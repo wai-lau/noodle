@@ -12,7 +12,8 @@ import pytest
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "api"))
 from noodle.holidays import qc_holidays  # noqa: E402
 
-_JS = os.path.join(os.path.dirname(__file__), "..", "web", "qc-holidays.js")
+# qc-holidays.js is exec-fn's (shared with /rd); this repo is its submodule apps/noodle
+_JS = os.path.join(os.path.dirname(__file__), "..", "..", "..", "web", "qc-holidays.js")
 
 
 @pytest.mark.skipif(shutil.which("node") is None, reason="node not installed")

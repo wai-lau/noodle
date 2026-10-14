@@ -17,9 +17,10 @@ from pathlib import Path
 
 import pytest
 
-ROOT = Path(__file__).resolve().parent.parent
+ROOT = Path(__file__).resolve().parent.parent   # this repo (exec-fn submodule apps/noodle)
+HOST = Path(__file__).resolve().parents[3]      # exec-fn: the full Iosevka the seal is cut from
 FONT = ROOT / "web/fonts/noodle-seal.woff2"
-FULL = ROOT / "web/fonts/Iosevka Mayukai Monolite Medium Nerd Font Complete.ttf"
+FULL = HOST / "web/fonts/Iosevka Mayukai Monolite Medium Nerd Font Complete.ttf"
 
 ttLib = pytest.importorskip("fontTools.ttLib")
 

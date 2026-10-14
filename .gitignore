@@ -1,0 +1,5 @@
+__pycache__/
+*.pyc
+/.eslint-tmp-*/
+node_modules/
+web/noodle-demo.mp4

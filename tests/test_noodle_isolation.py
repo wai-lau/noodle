@@ -3,8 +3,12 @@ touches only its own directory.
 
 1. Import graph -- every `import`/`from` in api/noodle/** is parsed (AST, not
    regex) and any that names an app module other than noodle fails. "App
-   module" is DERIVED from the tree (every api/*.py stem and every package dir
-   under api/), never hand-listed, so a module added later is covered.
+   module" is DERIVED from the tree -- exec-fn's api/ (every *.py stem and
+   package dir) plus every OTHER app submodule's apps/*/api -- never
+   hand-listed, so a module added later is covered. noodle is its own repo
+   (exec-fn submodule apps/noodle) since 2026-10-14, so exec-fn's api/ is found
+   through the root conftest's HOST_ROOT; the sanity test below fails loudly
+   rather than letting an empty list pass the import check.
 2. Storage audit -- open/os.replace/mkstemp/mkdir/unlink are wrapped, a whole
    create -> vote -> edit -> reset -> ask cycle runs, and every path touched
    must sit under the tmp NOODLE dir.
@@ -23,18 +27,22 @@ import pytest
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from noodle_helpers import make_poll  # noqa: E402
 
-API = Path(__file__).resolve().parent.parent / "api"
+API = Path(__file__).resolve().parent.parent / "api"   # this repo's api/ (the noodle package)
 sys.path.insert(0, str(API))
+from conftest import HOST_ROOT  # noqa: E402  -- exec-fn's root conftest
 
 cryptography = pytest.importorskip("cryptography")
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey  # noqa: E402
 
 
 def _app_modules() -> set[str]:
-    mods = {p.stem for p in API.glob("*.py")}
-    mods |= {p.name for p in API.iterdir() if p.is_dir() and (p / "__init__.py").exists()}
-    mods |= {p.name for p in API.iterdir() if p.is_dir() and any(p.glob("*.py"))}
-    return mods - {"noodle"}
+    roots = [HOST_ROOT / "api", *(HOST_ROOT / "apps").glob("*/api")]
+    mods: set[str] = set()
+    for r in roots:
+        mods |= {p.stem for p in r.glob("*.py")}
+        mods |= {p.name for p in r.iterdir() if p.is_dir() and (p / "__init__.py").exists()}
+        mods |= {p.name for p in r.iterdir() if p.is_dir() and any(p.glob("*.py"))}
+    return mods - {"noodle", "__pycache__"}
 
 
 def _imports(path: Path) -> list[tuple[int, str]]:
@@ -53,7 +61,8 @@ def _imports(path: Path) -> list[tuple[int, str]]:
 def test_app_module_list_is_real():
     mods = _app_modules()
     # sanity: the derivation actually finds the planner, board and TTS modules
-    for m in ("helpers", "chat", "nudge", "morning", "routes_tts", "auth", "pages", "tarot", "mtg"):
+    for m in ("helpers", "chat", "nudge", "morning", "routes_tts", "auth", "pages", "tarot", "mtg",
+              "app_paths", "routes_aspira"):
         assert m in mods, m
 
 
