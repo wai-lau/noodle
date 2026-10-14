@@ -8,9 +8,9 @@ what the voter is looking at, and answering from it filled days the page had
 greyed and missed the ones it showed (pinned by test_noodle_ask.py).
 
 Rolling windows, never a lifetime cap: a busy moment makes noodle say "try
-again in N seconds" and the box comes back by itself. Two windows, in memory
+again in N seconds" and the box comes back by itself. Three windows, in memory
 (a restart forgets them, which only ever errs toward answering): per poll,
-per client IP.
+per client IP, and one global.
 
 The model only ever SUGGESTS: its output is validated against a strict schema
 and handed back to fill the grid. Nothing is stored and nothing is signed.

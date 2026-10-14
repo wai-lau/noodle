@@ -1,6 +1,6 @@
 """noodle's HTML. Its own shell (api/templates/noodle-shell.html), NOT the
-site's page composer -- no nav, no Exec bubble, no CRT stack, and no import of
-the app's pages module. It links /chrome.css only for the palette + scale
+site's page composer -- no Exec bubble, no CRT stack, and no import of the
+app's pages module; the nav is handed in (set_nav), never built here. It links /chrome.css only for the palette + scale
 tokens, which are CSS, not code."""
 import html
 import json

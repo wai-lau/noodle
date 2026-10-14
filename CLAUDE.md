@@ -48,7 +48,7 @@ page part.
 `docker compose exec -w /app/apps/noodle/api api python -m noodle.reset <slug> "<name>"`.
 
 **Every non-ASCII glyph is single-width** via `web/fonts/noodle-seal.woff2`
-(cut from exec-fn's full Iosevka; `tests/test_noodle_glyphs.py`).
+(cut from exec-fn's full Iosevka Mayukai TTF in `web/fonts/`; `tests/test_noodle_glyphs.py`).
 
 **Docs rule**: this file is an INDEX; measurements, traps and stories go in
 ARCHITECTURE.md / ARCHAEOLOGY.md.

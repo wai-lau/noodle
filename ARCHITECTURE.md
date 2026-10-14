@@ -23,7 +23,7 @@ auth. The browser derives an Ed25519 key from the passphrase
 
 ### File map
 
-**Server** (`api/noodle/`), wired in by `api/routers.py`:
+**Server** (`api/noodle/`), wired in by exec-fn's `api/routers.py`:
 
 | File | What |
 |---|---|
@@ -41,7 +41,7 @@ auth. The browser derives an Ed25519 key from the passphrase
 | `rules.py` | Ask noodle's rule language + `apply()`. |
 | `ask.py` | Rate limits, prompt assembly, `ask()`. |
 | `llm.py` | Haiku client + `SLOT_TOOL` schema. |
-| `holidays.py` | Quebec holidays — Python mirror of `web/qc-holidays.js`. |
+| `holidays.py` | Quebec holidays — Python mirror of exec-fn's `web/qc-holidays.js`. |
 | `config.py` | Every knob (KDF params, caps, rate limits). |
 | `reset.py` | Owner CLI: `python -m noodle.reset <slug> "<name>"`. |
 
@@ -58,7 +58,7 @@ matters**: `noodle-vote.js` runs `ndvInit()` as it loads, so everything it
 calls must already be loaded: `qc-holidays` → `noodle-toggle` →
 `noodle-seal` → `noodle-cal` → `noodle-cal-view` → `noodle-kdf` (+
 `noodle-kdf-worker`) → `noodle-esc` → `noodle-roster` → `noodle-crop` →
-`noodle-storage` → `noodle-identity` → `noodle-claim` → `noodle-e2e` → `noodle-commit` → `noodle-vote` →
+`noodle-keystore` → `noodle-storage` → `noodle-identity` → `noodle-claim` → `noodle-e2e` → `noodle-commit` → `noodle-vote` →
 `noodle-ask` → `noodle-host` → `noodle-rekey` → `noodle-top` →
 `noodle-share`. `/noodle` (`noodle-admin.html`) loads only `noodle-claim` +
 `noodle-admin` + `noodle-created`.
@@ -69,17 +69,19 @@ user feedback: noodle is the site's one plain page),
 `noodle-vote.html` (poll body + scripts), `noodle-admin.html` (`/noodle`
 body + its 2 scripts).
 
-**Tests**: unit — isolation, votes, host, rekey, drafts, ask, rules,
-holidays, names, convert, toggle, glyphs (`tests/test_noodle_*.py`).
-Browser (WebKit/Playwright) — `test_noodle_browser.py` (sign/vote),
-`test_noodle_browser_page.py` (ask/storage/share/top-dates/pick-note),
-`test_noodle_browser_host.py` (host tools); shared helpers in
-`tests/noodle_helpers.py`; smoke rows in `tests/test_smoke.py`.
+**Tests** (`tests/test_noodle_*.py`): unit — isolation, crypt (at rest), votes,
+host, rekey, drafts, ask, rules, holidays, names, convert, toggle, glyphs,
+limits, stats, legacy, hardening, e2e, e2e_view. Browser (WebKit/Playwright) —
+`test_noodle_browser.py` (sign/vote), `_page` (ask/storage/share/top-dates/
+pick-note), `_host` (host tools), `_keys` (kept keys), `_created` (owner chart),
+`_e2e`, `_signed`, `_csp`, `_journey`; shared helpers in
+`tests/noodle_helpers.py`. exec-fn's side: the `noodle_slug` fixture (root
+`conftest.py`), smoke rows in exec-fn's `tests/test_smoke.py`.
 
 ### 21a. Access tiers & routes
 
 Nothing in `api/noodle/` imports `auth.py` — tier enforcement lives
-entirely outside the package (`tests/test_admin_only.py` enumerates
+entirely outside the package (exec-fn's `tests/test_admin_only.py` enumerates
 `owner_router` like any other admin route). Holding the link is the only
 access control for **voting**: the slug is `secrets.token_urlsafe(16)` (22
 chars, `[A-Za-z0-9_-]`), validated to that exact shape (`store._SLUG_RE`)
@@ -96,8 +98,9 @@ draft; the titled endpoint is direct-API/script only.
 
 Every body is capped and checked on both declared `Content-Length` and
 actual bytes read: `BODY_MAX_CREATE` 1024, `BODY_MAX_VOTE` 8192,
-`BODY_MAX_ASK` 1024 bytes. Every page sends `X-Robots-Tag: noindex` +
-`Referrer-Policy: no-referrer`, so a slug never leaks via Referer.
+`BODY_MAX_ASK` 1024 bytes. Every vote page sends `X-Robots-Tag: noindex` +
+`Referrer-Policy: no-referrer`, so a slug never leaks via Referer (`/noodle`
+sends `no-store` + its framing CSP only, 21m).
 
 ### 21b. Identity: passphrase -> key -> seal
 
@@ -130,7 +133,7 @@ eye pair, the mouth, and the HSL ink — is picked deterministically from
 `fp = SHA-256(raw pubkey)`, byte by byte (no modulo bias: 256 divides
 evenly into each choice set). Ink hue is unconstrained but lightness has a
 floor (62-82%) so every seal reads on black regardless of hue; it reaches
-CSS as the page-local `--seal-hsl` token (`scripts/lint-colors.py`
+CSS as the page-local `--seal-hsl` token (exec-fn's `scripts/lint-colors.py`
 `LOCAL_ACCENTS`) and also colours that voter's calendar dots.
 
 **One section edits at a time** (`ndvStep`/`ndvPaintStep` in
@@ -190,7 +193,7 @@ new host offer in the same write, so a time the host drops disappears from
 every guest's dots too.
 
 Recovery is owner-only and forgets the key, not the vote:
-`sudo docker compose exec api python -m noodle.reset <slug> "<name>"`
+`docker compose exec -w /app/apps/noodle/api api python -m noodle.reset <slug> "<name>"`
 blanks `pub`/`ts`; slots and dot-column `order` are kept, and the next
 signed submission re-binds whatever key signs it.
 
@@ -231,7 +234,7 @@ settings, signed by the key the server still recognises as theirs.
 0600) bound to the body's `{claim}` (400 without one -- 21m), and the page
 opens at `/noodle/<slug>?t=<token>#k=<key>` with an empty poll standing in. The host's first commit carries the token as an unsigned
 `draft` field; `drafts.ensure()` writes the poll (idempotent
-`store.create_at`) inside that request, then the page drops `?t=`. Without
+`store.try_create`) inside that request, then the page drops `?t=`. Without
 the exact token for that slug nothing is ever created, so an abandoned
 "create" leaves nothing and nobody can mint a poll on a slug of their
 choosing.
@@ -354,7 +357,7 @@ replaced a blurred month-number watermark behind the cells and a stepped
 month divider line.
 
 Quebec statutory holidays tint like
-weekends (`.hol`, from /rd's `qc-holidays.js`; `noodle/holidays.py` mirrors
+weekends (`.hol`, from exec-fn's `qc-holidays.js`, shared with /rd; `noodle/holidays.py` mirrors
 it).
 
 **Toggles** (`noodle-toggle.js`, pure, node-tested): a weekday column or
@@ -363,7 +366,7 @@ reading of current cell state; the grid's corner flips every button at
 once, and row/column buttons start OFF (hidden until the corner is tapped
 once). Every toggle/mode/copy glyph exists ONLY in
 `web/fonts/noodle-seal.woff2` under family `'Noodle Glyphs'`, named FIRST
-in the stack — with the mono font alone the icons render as nothing (21k).
+in the stack — with the mono font alone the icons render as nothing (21j).
 
 The **split** checkbox (host-only) sits on the calendar's first row (the
 always-past week above today), placed INSIDE the grid so it scrolls with
@@ -525,7 +528,7 @@ nginx access logs (14 days kept): a draft page (`?t=`) followed by a first
 successful commit, plus the owner's `POST /api/noodle-polls` -- polls first
 seen before 2026-09-29 have no date and are not drawn. There was an autoplaying demo
 video under the button until 2026-10-03; Wai dropped it ("just have the
-thing in the middle"), the last two copies are in `.archaeology/media/`.
+thing in the middle"), the last two copies are in exec-fn's `.archaeology/media/`.
 The title (`.nd-brand`) is big, glowing, set in **Courier New** —
 a system font everywhere — not the site's own mono face.
 
@@ -538,16 +541,13 @@ noodle green — the same tag paints an installed PWA's title bar. Meta
 caches a preview for weeks (re-scrape via Facebook's Sharing Debugger);
 Discord has no re-scrape tool (append `?1`).
 
-The shell writes the site's 5-layer CRT stack out literally (paint order
-`bg → lines → blur → crt → scan` is load-bearing, ARCHITECTURE.md §10)
-since noodle can't reach `pages._CRT_FX`; dimmed via the shared
-`crt-dim.css`. Lines are 2px everywhere in noodle (borders, crop lines,
-month segments, the split diagonal) — 1px hairlines broke up under the CRT
-scanlines.
+The shell carries no CRT stack (dropped 2026-10-03, top of 21). Lines are 2px
+in noodle (borders, crop lines, the split diagonal) — set when 1px hairlines
+broke up under the CRT scanlines that were then on the page.
 
 ### 21j. Glyph font
 
-`web/fonts/noodle-seal.woff2` (4.7KB) is a hand-cut subset of the Mayukai
+`web/fonts/noodle-seal.woff2` (4.9KB) is a hand-cut subset of the Mayukai
 TTF carrying every non-ASCII glyph noodle draws — seal parts, the teaching
 box's arrow and bullet, the toggle/mode/copy icons — under family
 `'Noodle Glyphs'` with a matching `unicode-range`; the site's own woff2 is
@@ -571,7 +571,7 @@ pinned against `slots.convert` through node, and the toggle/hit-test rules
 through node. Browser tests are split by topic (file map); helpers
 (`can_commit`/`offer_one`) are shared via `tests/noodle_helpers.py`.
 
-`tests/conftest.py`'s `noodle_slug` fixture creates a **fresh poll per test
+exec-fn's root `conftest.py`'s `noodle_slug` fixture creates a **fresh poll per test
 session** (titled `__smoke__`, deleted after) — it used to be one
 long-lived poll found by title and reused forever, so who had hosted it and
 what had been offered carried over between runs, and tests passed or
@@ -660,7 +660,7 @@ Every opened field is shape-checked: anyone holding the link holds the
 key. Title/note/`document.title` are filled in after opening
 (`ndeShowTexts`); the server's HTML and link preview say only "noodle".
 
-**Content-Security-Policy on the vote page** (2026-10-14): `script-src 'self'` (no inline script, no eval), `frame-ancestors 'none'`, `connect-src`/`worker-src`/`img-src`/`font-src 'self'`, `object-src 'none'`, `base-uri 'none'`; styles may be inline (seal inks are `style="--seal-hsl:…"` strings). The page holds the poll key and, once typed, the voter's key, so any future XSS should find nothing to run. `/noodle` carries the site nav (an inline script), so it gets `frame-ancestors 'none'` only. **Testing it**: Playwright's `wait_for_function` compiles its string predicate in the page on every poll, which the policy refuses (WebKit's `bypass_csp` covers only the first evaluation) -- so `tests/conftest.py`'s browser wrapper strips the CSP header off page documents for the general suites, and `tests/test_noodle_browser_csp.py` keeps it (`bypass_csp=False`), polls from Python, and walks a plain vote plus an e2e create -> commit with zero violations.
+**Content-Security-Policy on the vote page** (2026-10-14): `script-src 'self'` (no inline script, no eval), `frame-ancestors 'none'`, `connect-src`/`worker-src`/`img-src`/`font-src 'self'`, `object-src 'none'`, `base-uri 'none'`; styles may be inline (seal inks are `style="--seal-hsl:…"` strings). The page holds the poll key and, once typed, the voter's key, so any future XSS should find nothing to run. `/noodle` carries the site nav (an inline script), so it gets `frame-ancestors 'none'` only. **Testing it**: Playwright's `wait_for_function` compiles its string predicate in the page on every poll, which the policy refuses (WebKit's `bypass_csp` covers only the first evaluation) -- so exec-fn's root `conftest.py`'s browser wrapper strips the CSP header off page documents for the general suites, and `tests/test_noodle_browser_csp.py` keeps it (`bypass_csp=False`), polls from Python, and walks a plain vote plus an e2e create -> commit with zero violations.
 
 **Hardening from the 2026-10-14 audit** (`tests/test_noodle_hardening.py`):
 a key that LEFT a poll -- moved to a new passphrase, or removed by the host --
@@ -702,12 +702,12 @@ server never serves a name, title or note).
 
 ### Rate limits never fail the test suite
 
-The per-IP limiters (tarot chat + warm, mtg chat, noodle draft starts and
-ask) are SKIPPED for requests carrying `x-ratelimit-exempt:
-sha256("ratelimit-exempt:" + API_KEY)` (`auth.RATE_EXEMPT_TOKEN` /
+The per-IP limiters (tarot chat + warm, mtg chat, noodle draft starts, ask
+and signed writes) are SKIPPED for requests carrying `x-ratelimit-exempt:
+sha256("ratelimit-exempt:" + API_KEY)` (exec-fn's `auth.RATE_EXEMPT_TOKEN` /
 `auth.rate_exempt`; noodle derives the same token from the env itself, since it
 imports no app module, and never exempts when `API_KEY` is unset). The suite
-sends it from `tests/conftest.py`: every `httpx.Client` gets it as a default
+sends it from exec-fn's root `conftest.py`: every `httpx.Client` gets it as a default
 header, and every browser context adds it ONLY for requests to the app's own
 origin (a context route), never to CDNs. Why: a busy hour of pre-commit runs
 from this box spent noodle's 20-per-hour draft limit and failed

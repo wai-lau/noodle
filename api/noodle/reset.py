@@ -4,7 +4,7 @@ There is no in-app recovery by design -- a forgotten passphrase is a forgotten
 key. Run on the server, inside the container (the poll files are written by
 it, as root):
 
-    sudo docker compose exec api python -m noodle.reset <slug> "<name>"
+    docker compose exec -w /app/apps/noodle/api api python -m noodle.reset <slug> "<name>"
 
 The voter keeps their slots and their dot column; their NEXT signed
 submission binds whatever key it is signed with.
