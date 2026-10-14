@@ -21,8 +21,9 @@ way it finds its own (exec-fn ARCHITECTURE.md §1e):
 | `tests/` | collected by exec-fn's pytest (fixtures: exec-fn's root `conftest.py`) |
 
 **Commit HERE** (`git -C apps/noodle commit …` from exec-fn). exec-fn's push
-hook pushes this repo first, then bumps + pushes exec-fn's pointer. Pre-commit
-is exec-fn's shared hook (symlinked in): lints, caps, the tests.
+hook pushes this repo first, then bumps + pushes exec-fn's pointer. 
+
+**Lints, hooks and checks are exec-fn's, not this repo's.** `scripts/pre-commit` here is a SHIM (verbatim copy of exec-fn's `scripts/subrepo-pre-commit`; git runs it via `core.hooksPath=scripts`, which exec-fn's session hook sets). Inside exec-fn it runs exec-fn's `scripts/pre-commit`; cloned on its own it sparse-pulls ONLY the lint files (exec-fn `scripts/tooling-paths.txt`) into the gitignored `.exec-fn/` and runs that (lints only; tests need exec-fn). Never edit the shim here — change checks in exec-fn. A standalone clone: `git config core.hooksPath scripts` once. exec-fn ARCHITECTURE.md §1e.
 
 **noodle IMPORTS NO OTHER APP MODULE** — not exec-fn's, not another app's.
 Pinned by `tests/test_noodle_isolation.py` (the module list is DERIVED from

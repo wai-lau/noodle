@@ -3,3 +3,5 @@ __pycache__/
 /.eslint-tmp-*/
 node_modules/
 web/noodle-demo.mp4
+# exec-fn tooling, pulled by scripts/pre-commit when cloned outside exec-fn
+/.exec-fn/
