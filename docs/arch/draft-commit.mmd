@@ -1,0 +1,18 @@
+sequenceDiagram
+  participant N as /noodle page
+  participant G as POST /api/noodle-polls/new
+  participant P as vote page
+  participant E as POST vote
+  participant D as store
+  N->>N: K = 32 random bytes
+  N->>N: claim key = Ed25519 from HKDF(K, "noodle e2e claim v1")
+  N->>G: claim public key (20 per IP per h)
+  G-->>N: slug and token = claim.mac, nothing stored
+  N->>P: open /noodle/slug?t=token plus fragment k=K (never sent)
+  P->>P: empty draft page, K imports as the AES key
+  P->>E: first commit: sealed vote, draft token, claim signature
+  E->>E: token must be this slug's own
+  E->>D: try_create e2e poll holding the claim, stats.record
+  E->>E: claim signature over e2e-claim + voter pub verifies, claim spent
+  E->>D: voter stored at order 0, so the host
+  E-->>P: ok, page drops ?t= from the address

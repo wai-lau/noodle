@@ -1,0 +1,18 @@
+sequenceDiagram
+  participant B as Browser
+  participant R as routes.py
+  participant V as votes.submit
+  participant S as store (one lock)
+  B->>B: sign canonical bytes (sorted keys: name, poll, slots, ts)
+  B->>R: POST /api/noodle/slug/vote with name, pub, slots, ts, sig
+  R->>R: limits.take_write (60 per IP per 10 min, 300 per poll per h)
+  R->>R: body cap 8192 bytes, drafts.ensure
+  R->>V: plain poll (e2e poll goes to e2e.vote)
+  V->>V: normalize name, clean slots, crop check
+  V->>V: ts within 120 s of server clock
+  V->>V: Ed25519 verify (small-order keys refused)
+  V->>S: store.edit
+  S->>S: bind pub or match bound pub, ts newer than last
+  S->>S: re-check crop and split, host offer, seat cap 200
+  S->>S: host vote trims every guest to the new offer
+  S-->>B: ok, name, slots (409 stale or full, 403 other key)

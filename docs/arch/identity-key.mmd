@@ -1,0 +1,13 @@
+flowchart TD
+  subgraph browser["browser only"]
+    name["name<br/>NFKC, lowercase, a-z 0-9 space"] --> salt["salt = SHA-256(slug NUL name)[:16]<br/>e2e: slug NUL K NUL name"]
+    pass["passphrase<br/>typed, never stored, never sent"] --> kdf
+    salt --> kdf["Argon2id in a Worker<br/>m=64 MiB, t=2, p=1, 32 bytes<br/>starts 1 s after typing stops"]
+    kdf --> seed["32-byte seed"]
+    seed --> key["Ed25519 CryptoKey<br/>PKCS8 wrapped, non-extractable"]
+    key --> pub["public key"]
+    pub --> seal["seal glyphs + ink<br/>from SHA-256(pub)"]
+    key -. "once proven to be the seat" .-> idb[("IndexedDB noodle/keys<br/>id slug NUL name")]
+  end
+  key -- "signs each vote or action" --> srv
+  pub --> srv["server: name, pub, slots, ts, sig"]

@@ -1,0 +1,8 @@
+flowchart LR
+  slug["slug<br/>128 random bits, from the link"] --> h1["HKDF-SHA256<br/>info: noodle poll file v1"]
+  slug --> h2["HKDF-SHA256<br/>info: noodle poll key v1"]
+  h1 --> id["file id: polls/64-hex.json"]
+  h2 --> key["AES-256-GCM key"]
+  key --> blob["file = v, nonce, ct<br/>fresh nonce per write, AAD = file id"]
+  id --> blob
+  blob --> disk[("mkstemp, fsync, os.replace<br/>under one RLock")]

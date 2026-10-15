@@ -1,0 +1,15 @@
+sequenceDiagram
+  participant B as Page
+  participant A as ask.ask
+  participant L as Haiku (select_slots)
+  participant R as rules.apply
+  B->>A: POST /ask with text, dates now pickable, halves, draft token
+  A->>A: stored poll or valid draft token, text up to 280 chars
+  A->>A: rolling windows: 60 per poll, 60 per IP, 120 all, per hour
+  A->>L: prompt with dates, holidays, resolved relative days
+  L-->>A: reading, ordered rules, split, crop
+  A->>R: rules and the page's dates
+  R-->>A: slots, count of dropped invalid rules
+  A->>A: fold to whole days unless split, clip to crop
+  A-->>B: slots, reading, dropped, crop, split
+  B->>B: clamp to its own offer, replace grid, nothing stored or signed

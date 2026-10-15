@@ -1,0 +1,13 @@
+flowchart LR
+  K["poll key K<br/>32 random bytes, in the link fragment"]
+  K --> aes["AES-256-GCM key<br/>iv 12 bytes, AAD binds slug, kind, pub"]
+  K --> claim["claim key<br/>HKDF-SHA256, zero salt"]
+  K --> scope["salt scope for passphrase KDF"]
+  aes --> head["head: title, note, halves, from, to<br/>sealed whole by the host"]
+  aes --> vote["vote: name, slots<br/>sealed per voter"]
+  subgraph server["server holds"]
+    ct["ciphertext + public keys<br/>order, ts, signatures"]
+  end
+  head --> ct
+  vote --> ct
+  ct -- "page verifies each signature, drops forgeries" --> page["page opens and applies<br/>offer, crop, split, one seat per name"]

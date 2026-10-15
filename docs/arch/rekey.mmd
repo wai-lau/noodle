@@ -1,0 +1,13 @@
+sequenceDiagram
+  participant B as Browser
+  participant K as second KDF worker
+  participant S as server
+  B->>B: change tapped, old name and passphrase kept in memory
+  B->>K: re-derive the OLD key so it can still sign
+  B->>B: derive NEW key from new name + passphrase
+  Note over B,S: nothing is sent until Commit
+  B->>S: rekey signed by OLD key (newpub, newname, ts)
+  S->>S: old key matches the bound seat, ts newer, new name free
+  S->>S: record moves to new key and name (slots, order, host role kept)
+  B->>S: then pending settings, then the vote, each ts newer
+  Note over B,S: before Commit the OLD key stays live for host actions
