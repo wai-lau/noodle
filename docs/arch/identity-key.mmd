@@ -10,4 +10,4 @@ flowchart TD
     key -. "once proven to be the seat" .-> idb[("IndexedDB noodle/keys<br/>id slug NUL name")]
   end
   key -- "signs each vote or action" --> srv
-  pub --> srv["server: name, pub, slots, ts, sig"]
+  pub --> srv["server<br/>plain poll: name, pub, slots, ts, sig<br/>e2e poll: pub, sealed ct, ts, sig"]

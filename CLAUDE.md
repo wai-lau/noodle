@@ -36,8 +36,8 @@ What it does use from exec-fn is by URL only: `/chrome.css` tokens,
 the served file's content hash (`asset_version.py`, exec-fn §13c).
 
 **State is encrypted at rest, keyed by the link** (`data/noodle/polls/` in
-exec-fn's `api/data`): HKDF(slug) names the file and is the AES-GCM key; the
-server stores no links. **Polls started since 2026-10-09 are end-to-end** (key
+exec-fn's `api/data`): two HKDF-SHA256 outputs of the slug name the file and key
+AES-256-GCM; the server stores no links. **Polls started since 2026-10-09 are end-to-end** (key
 in the `#k=` fragment, never sent). §21d, §21m.
 
 **The `<link>`/`<script>` ORDER in the noodle templates is the cascade and the
@@ -48,7 +48,7 @@ page part.
 `docker compose exec -w /app/apps/noodle/api api python -m noodle.reset <slug> "<name>"`.
 
 **Every non-ASCII glyph is single-width** via `web/fonts/noodle-seal.woff2`
-(cut from exec-fn's full Iosevka Mayukai TTF in `web/fonts/`; `tests/test_noodle_glyphs.py`).
+(cut from the full Iosevka Mayukai TTF in exec-fn's `web/fonts/`; `tests/test_noodle_glyphs.py`).
 
 **Docs rule**: this file is an INDEX; measurements, traps and stories go in
 ARCHITECTURE.md / ARCHAEOLOGY.md.

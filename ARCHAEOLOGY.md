@@ -90,7 +90,7 @@ The `noodle_slug` fixture is a fresh poll per session (see the top of this file 
 
 ### 21m. End-to-end polls
 
-**Claim timeline.** From 2026-10-09 e2e drafts were a bare HMAC over `e2e\0`+slug; the claim key (2026-10-12) closed the observer-votes-first hole. The drafts minted 2026-10-09..12 (no claim) are refused outright, and an e2e poll stored with NO claim and NO voters (that window's shape, if any was abandoned) refuses its first vote — none existed when this landed (an empty unclaimed poll seals to exactly 235 bytes; no stored file was). Plain bare-HMAC drafts (before 2026-10-09) were retired 2026-10-14.
+**Claim timeline.** From 2026-10-09 e2e drafts were a bare HMAC over `e2e\0`+slug; the claim key (2026-10-12) closed the observer-votes-first hole. The drafts minted 2026-10-09..12 (no claim) are refused outright, and an e2e poll stored with NO claim and NO voters (that window's shape, if any was abandoned) refuses its first vote — none existed when this landed (per the owner at the time; not re-verifiable from the code). Plain bare-HMAC drafts (before 2026-10-09) were retired 2026-10-14.
 
 **Page-side signature checks (2026-10-14 audit).** A server that ALSO holds the poll key — its operator invited to the poll, say — could re-seal anyone's vote or the head, and pages took it. Records from before 2026-10-14 carry no signature and still show. Link holders now see each vote's ts. `ndvLoadPoll` used to hold the raw blobs on `NDV.poll` for a moment.
 

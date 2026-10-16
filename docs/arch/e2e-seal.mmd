@@ -10,4 +10,4 @@ flowchart LR
   end
   head --> ct
   vote --> ct
-  ct -- "page verifies each signature, drops forgeries" --> page["page opens and applies<br/>offer, crop, split, one seat per name"]
+  ct -- "page verifies the signatures present, drops any that fail" --> page["page opens and applies<br/>offer, crop, split, one seat per name"]

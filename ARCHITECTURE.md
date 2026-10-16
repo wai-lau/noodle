@@ -17,7 +17,7 @@ nav only on `/noodle`, handed in by exec-fn's `routers.py` via
 tokens only. Three bare routers carry it — `routers.py` mounts `routes.router`
 on `public`, `guest_router` on the guest tier, `owner_router` on `protected`;
 noodle itself holds no auth. The browser derives an Ed25519 key from the
-passphrase (`noodle-kdf-worker.js`) and sends only `{name, pub, slots, ts, sig}`.
+passphrase (`noodle-kdf-worker.js`) and never sends the passphrase or private key. A plain-poll vote carries `{name, pub, slots, ts, sig}`; an end-to-end one (every poll since 2026-10-09, 21m) carries `{pub, ct, ts, sig}` (+ `claim`/`draft` on a first vote), the name and slots sealed inside `ct`.
 
 ### File map
 
@@ -122,8 +122,9 @@ Pinned by `tests/test_noodle_names.py`.
 
 **The seal** (`noodle-seal.js`, one implementation for a voter's own seal and
 every roster seal): border cells, eyes, mouth and HSL ink are picked
-deterministically from `SHA-256(raw pubkey)` byte by byte (no modulo bias).
-Ink lightness is floored (62-82%) so it reads on black; it reaches CSS as the
+deterministically from `SHA-256(raw pubkey)` byte by byte (border: 256/32, eyes
+16, mouth 8 divide 256 evenly; the ink's hue/saturation/lightness use a plain
+modulo of their bytes, a negligible bias). Ink lightness is floored (62-82%) so it reads on black; it reaches CSS as the
 page-local `--seal-hsl` token (`scripts/lint-colors.py` `LOCAL_ACCENTS` in
 exec-fn) and colours that voter's calendar dots.
 
@@ -190,7 +191,8 @@ newpub, poll, ts)` against the bound record, requires strictly newer `ts`,
 (`NDR`, `noodle-rekey.js`): `change` keeps the old name+passphrase in memory,
 spawns a **second** KDF worker (`NDR.keeper`) to re-derive the old key, and
 becomes `undo`; **Commit carries the change** (`ndrCommit(ts)`: rekey, then
-pending settings, then the vote, each strictly newer). **Mid-change the OLD key
+pending settings, then the vote on a plain poll — vote, then settings on an
+end-to-end one, 21m — each strictly newer). **Mid-change the OLD key
 stays live**: `ndhSend()` signs with `NDR.keeper`/`NDR.oldPub` while
 `NDR.active`. `ndrAs(pub)` answers "which key does the server think I am".
 
@@ -222,7 +224,9 @@ two older kinds are refused (21m).
 Neither is stored; the id gives back neither. A file is `{"v":1,"nonce","ct"}`,
 fresh nonce per write, the file id as AAD (a blob moved under another poll's
 name fails to open). The server can open a poll only while a request carrying
-its link is in flight; a copy of `data/noodle/` is noise. On its own this is NOT
+its link is in flight; a copy of `data/noodle/polls/` is noise (file mtimes still
+show when a poll was last written; `data/noodle/` also holds `secret.key`, the
+draft-token HMAC secret, and `created.json`, 21i). On its own this is NOT
 end-to-end (a compromised RUNNING server sees each slug), which is why every
 poll started since 2026-10-09 is ALSO end-to-end (21m), sealed inside this
 layer. **Changing either HKDF label orphans every poll.** Pre-encryption
@@ -385,7 +389,8 @@ draft the poll holds, any identity's.
 
 **Works on the PAGE's state, never the server's.** `ask.ask()` takes the dates
 the caller says are pickable plus whether the poll is split, and never reads or
-writes a poll (pinned by a test that patches every `store` function to raise).
+writes a poll (it only asks `store.exists`; a test makes `store.load`/`edit`/
+`create`/`delete`/`all_polls`/`_write` raise).
 The page clamps the answer to its own offer again. Only a stored poll, or a draft
 carrying its own token (`drafts.valid`), may ask.
 
@@ -420,7 +425,7 @@ History: ARCHAEOLOGY.md 21h.
 encrypted", the URL shape `https://wai-lau.net/noodle/<slug>?t=<token>#k=<K>`,
 "<K> is a secret key composed on your device", "data after the # is not sent to
 the server", "only people you send the full URL can access the poll", and a link
-to Excalidraw's "End-to-End Encryption in the Browser" post. Deliberately NOT
+to Excalidraw's end-to-end-encryption blog post (text "same scheme as excalidraw's end-to-end encryption"). Deliberately NOT
 "Signal Protocol" — one static key per poll, no ratchet, no forward secrecy
 (21m). **No poll list**: the owner API `GET /api/noodle-polls` returns file ids +
 mtimes only (the server holds no links); `DELETE /api/noodle-polls/{ref}` takes a
@@ -466,9 +471,10 @@ with their passphrase; on the e2e poll the server's JSON and HTML hold no name,
 title, note or slot, and a link without its key opens nothing.
 
 `test_noodle_isolation.py` is an AST import-graph audit (the app-module list is
-derived from exec-fn's `api/` + every other `apps/*/api`) plus a runtime audit
-wrapping `open`/`os.replace`/`mkdir`/`scandir`/`mkstemp` over a full
-create -> vote -> edit -> ask -> reset cycle. The rest cover their module 1:1
+derived from exec-fn's `api/` + every other `apps/*/api`), a check that no noodle
+source mentions Exec/GLaDOS/TTS, plus a runtime audit wrapping `open`/`os.mkdir`/
+`scandir`/`replace`/`rename`/`remove`/`unlink`/`mkstemp` over a PLAIN-poll
+create -> vote -> re-vote -> ask -> list -> reset cycle (the e2e path is not in it). The rest cover their module 1:1
 (Ask with the model faked; `ndhConvert`/`ndeConvert` pinned against
 `slots.convert` through node; toggle/hit-test rules through node). Browser tests
 split by topic; helpers in `tests/noodle_helpers.py`. exec-fn's `noodle_slug`
@@ -535,7 +541,9 @@ with the ts it covers (`vts`; a voter's `ts` moves on with later host actions)
 and the head's signature + signer, and serves them (`e2e.public`, `_signed`).
 `ndeTrusted` verifies each with WebCrypto Ed25519 over
 `ndeCanon({ct, kind, poll, ts})` and DROPS a record whose signature fails. The
-head counts only if signed by the host seat (order 0); a host's passphrase change
+head counts as signed only if its signer is the host seat (order 0); a head with
+another signer or none is treated as unsigned (shown until this browser goes
+strict, below); a host's passphrase change
 re-signs the head with the new key in the same Commit (`pendingTitle`). Records
 with no signature (pre-2026-10-14, or a seat just handed to a new key until it
 votes) still show — until this browser has seen the poll FULLY signed
@@ -554,7 +562,7 @@ passphrase"). Every opened field is shape-checked (`ndeHeadOf`): anyone holding
 the link holds the key. Title/note/`document.title` are filled after opening
 (`ndeShowTexts`).
 
-**KDF salt** on an e2e poll is `SHA-256(slug + NUL + K + NUL + name)` (`ndeScope()`
+**KDF salt** on an e2e poll is `SHA-256(slug + NUL + K + NUL + name)[:16]` (`ndeScope()`
 passed as NoodleKdf's slug), so the server — which knows the slug — can't test
 guessed names or passphrases against stored public keys.
 
@@ -570,8 +578,8 @@ the general suites; `tests/test_noodle_browser_csp.py` keeps it
 (`bypass_csp=False`) and walks a plain vote plus an e2e create -> commit with zero
 violations.
 
-**Hardening** (`tests/test_noodle_hardening.py`): a key that LEFT a poll (moved to
-a new passphrase, or removed) is tombstoned in `poll["gone"]` with the ts it left
+**Hardening** (`tests/test_noodle_hardening.py`): on an END-TO-END poll a key that
+LEFT it (moved to a new passphrase, or removed) is tombstoned in `poll["gone"]` with the ts it left
 at (`e2e._bury`; entries older than the skew window dropped), so a body it signed
 earlier and replayed within the window gets 409; a genuinely newer vote may
 rejoin. `sig.valid_pub` refuses Ed25519 keys of small order (identity + torsion
@@ -585,8 +593,9 @@ the server to Haiku (never stored); anyone with the SLUG (no key needed) can pos
 seats whose sealed contents are junk (dropped when drawn, up to the seat cap); a
 link holder can claim a name first; the claim key derives from the poll key, so
 anyone the creator hands the raw draft address to before their first Commit can
-host instead; a malicious server can withhold, roll back or reorder (it cannot
-read or forge), and — as with any web page — a compromised server could serve JS
+host instead; a malicious server can withhold, roll back or reorder (it holds no
+key to read, and cannot forge a signed record the page checks — unsigned legacy
+records aside), and — as with any web page — a compromised server could serve JS
 that reads the fragment. Tests: `test_noodle_e2e.py`, `test_noodle_drafts.py`,
 `test_noodle_e2e_view.py` (node), `test_noodle_browser_e2e.py` (WebKit: `/noodle`
 -> draft -> host -> guest -> rekey -> keyless link -> remove).

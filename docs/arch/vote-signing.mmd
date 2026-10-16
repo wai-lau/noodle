@@ -12,7 +12,8 @@ sequenceDiagram
   V->>V: ts within 120 s of server clock
   V->>V: Ed25519 verify (small-order keys refused)
   V->>S: store.edit
+  S->>S: new name past seat cap 200 gets 409
   S->>S: bind pub or match bound pub, ts newer than last
-  S->>S: re-check crop and split, host offer, seat cap 200
+  S->>S: re-check crop and split, host offer
   S->>S: host vote trims every guest to the new offer
   S-->>B: ok, name, slots (409 stale or full, 403 other key)

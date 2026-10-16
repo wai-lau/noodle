@@ -2,6 +2,7 @@ sequenceDiagram
   participant B as Browser
   participant K as second KDF worker
   participant S as server
+  Note over B,S: plain poll shown, e2e rekey signs newpub + sealed ct, no name
   B->>B: change tapped, old name and passphrase kept in memory
   B->>K: re-derive the OLD key so it can still sign
   B->>B: derive NEW key from new name + passphrase
@@ -9,5 +10,5 @@ sequenceDiagram
   B->>S: rekey signed by OLD key (newpub, newname, ts)
   S->>S: old key matches the bound seat, ts newer, new name free
   S->>S: record moves to new key and name (slots, order, host role kept)
-  B->>S: then pending settings, then the vote, each ts newer
+  B->>S: then pending settings, then the vote, each ts newer (e2e: vote first)
   Note over B,S: before Commit the OLD key stays live for host actions
