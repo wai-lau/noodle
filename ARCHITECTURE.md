@@ -578,6 +578,27 @@ the general suites; `tests/test_noodle_browser_csp.py` keeps it
 (`bypass_csp=False`) and walks a plain vote plus an e2e create -> commit with zero
 violations.
 
+**Code verification** (2026-10-16): a web app's last gap is that it serves its
+own decrypting JS, so a server could hand one victim tampered code that lifts the
+fragment key -- crypto at rest cannot close it. noodle makes it CHECKABLE. There
+is no build step (a served `/noodle-*.js` is byte-for-byte the repo file; both
+repos are public -- `wai-lau/noodle`, and `wai-lau/exec-fn` for the shared
+`qc-holidays.js`), and the vote page pins every script with Subresource Integrity
+(`pages._apply_sri`): a `sha384` the browser enforces. noodle imports no app
+module, so it cannot resolve a parent-served script itself -- the composition
+root hands it a resolver (`pages.set_sri`, wired in `routers.py` beside
+`set_nav`; the resolver reads bytes via `app_paths.web_dirs`, the same resolution
+the static mount and `asset_version` use). The hash is of the served FILE,
+computed per render; no resolver (standalone / isolation) leaves the page working
+and unpinned. `scripts/verify.py` (stdlib, no install) checks a live vote URL:
+page-pin == served == public repo for every script. The targeting-resistant
+check for a voter is comparing the `integrity=` values in their OWN View-Source
+to the repo (the browser guarantees it ran the pinned bytes). What is still NOT
+closed: a targeted, timed swap served only to a victim who never checks -- only a
+pinned client (extension / native app) that stops re-fetching its code closes
+that. `VERIFY.md` is the voter-facing recipe; pinned by
+`tests/test_noodle_verify.py`.
+
 **Hardening** (`tests/test_noodle_hardening.py`): on an END-TO-END poll a key that
 LEFT it (moved to a new passphrase, or removed) is tombstoned in `poll["gone"]` with the ts it left
 at (`e2e._bury`; entries older than the skew window dropped), so a body it signed
@@ -596,7 +617,8 @@ anyone the creator hands the raw draft address to before their first Commit can
 host instead; a malicious server can withhold, roll back or reorder (it holds no
 key to read, and cannot forge a signed record the page checks — unsigned legacy
 records aside), and — as with any web page — a compromised server could serve JS
-that reads the fragment. Tests: `test_noodle_e2e.py`, `test_noodle_drafts.py`,
+that reads the fragment (now CHECKABLE, not closed: SRI + `scripts/verify.py`, the
+Code-verification note above). Tests: `test_noodle_e2e.py`, `test_noodle_drafts.py`,
 `test_noodle_e2e_view.py` (node), `test_noodle_browser_e2e.py` (WebKit: `/noodle`
 -> draft -> host -> guest -> rekey -> keyless link -> remove).
 History: ARCHAEOLOGY.md 21m.

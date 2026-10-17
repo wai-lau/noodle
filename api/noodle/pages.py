@@ -2,6 +2,8 @@
 site's page composer -- no Exec bubble, no CRT stack, and no import of the
 app's pages module; the nav is handed in (set_nav), never built here. It links /chrome.css only for the palette + scale
 tokens, which are CSS, not code."""
+import base64
+import hashlib
 import html
 import json
 import re
@@ -40,6 +42,41 @@ def _page(title: str, body: str, og: str = "") -> str:
     return _fill(_tmpl("noodle-shell.html"), TITLE=html.escape(title), OG=og, BODY=body)
 
 
+# SUBRESOURCE INTEGRITY for the vote page (noodle ARCHITECTURE.md 21m, "code
+# verification"): a sha384 on every <script src> so a link holder can check the
+# code their browser ran against the public repo. noodle imports no app module,
+# so it cannot resolve a parent-served script (qc-holidays.js) on its own -- the
+# composition root hands it a resolver (url -> served bytes), like set_nav. The
+# hash is the served FILE's; computed per render (files are small, served live).
+_sri = None   # (url: str) -> bytes | None
+
+
+def set_sri(fn) -> None:
+    global _sri
+    _sri = fn
+
+
+_SRI_SRC = re.compile(r'(<script\b[^>]*\bsrc=")(/[^"?]+\.js)((?:\?[^"]*)?")([^>]*>)')
+
+
+def _apply_sri(page: str) -> str:
+    # No resolver (standalone / isolation): leave the page untouched -- it still
+    # works, just unpinned. Never let a missing/odd file break the page.
+    if _sri is None:
+        return page
+
+    def repl(m: re.Match) -> str:
+        if "integrity=" in m.group(0):
+            return m.group(0)
+        data = _sri(m.group(2))
+        if not data:
+            return m.group(0)
+        h = base64.b64encode(hashlib.sha384(data).digest()).decode()
+        return f'{m.group(1)}{m.group(2)}{m.group(3)} integrity="sha384-{h}"{m.group(4)}'
+
+    return _SRI_SRC.sub(repl, page)
+
+
 def _kdf_attrs() -> str:
     kdf = {"m": config.KDF_M_KIB, "t": config.KDF_T, "p": config.KDF_P,
            "len": config.KDF_LEN, "debounce": config.KDF_DEBOUNCE_MS}
@@ -65,7 +102,7 @@ def vote_page(poll: dict, draft: str = "") -> str:
         ASK_MAX=str(config.ASK_MAX_CHARS),
     )
     og = _og("noodle" if sealed else shown, note, "/noodle/" + poll["slug"])
-    return _page("noodle" if sealed else f"noodle: {shown}", body, og)
+    return _apply_sri(_page("noodle" if sealed else f"noodle: {shown}", body, og))
 
 
 # The site's nav bar, HANDED IN by the app (routers.py set_nav): noodle
