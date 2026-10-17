@@ -421,19 +421,13 @@ History: ARCHAEOLOGY.md 21h.
 ### 21i. `/noodle` and link previews
 
 **Everyone, owner included**: the title and one `create poll` button, centred
-(`#noodle-admin`), with a COLLAPSIBLE under it (`.nd-create-note`, a `<details>`):
-the green summary "end-to-end encrypted" (caret ▸/▾ says it opens; closed by
-default) reveals the URL shape `https://wai-lau.net/noodle/<slug>?t=<token>#k=<K>`
-with its parts colour-coded (`.nd-u-key` the secret in green, `.nd-u-frag` the
-`#` boundary in pink, `.nd-u-var` the placeholders in cyan), "<K> is a secret key
-composed on your device", "data after the # is not sent to the server", "only
-people you send the full URL can access the poll", a link to Excalidraw's
-end-to-end-encryption blog post (text "same scheme as excalidraw's end-to-end
-encryption"), an ELI5 line, and an AUDIT line linking the one short sealing file
-(`web/noodle-e2e.js`, AES-256-GCM via `crypto.subtle`) and `VERIFY.md` — anyone
-can read the crypto and confirm the served code is byte-for-byte the public repo
-(code verification, 21m). Deliberately NOT "Signal Protocol" — one static key per
-poll, no ratchet, no forward secrecy (21m). **No poll list**: the owner API `GET /api/noodle-polls` returns file ids +
+(`#noodle-admin`), with a single green LINK under it (`.nd-create-note` →
+`VERIFY.md` in the public repo). Everything about the link's shape, `<slug>` /
+`<token>` / `<key>`, and how to audit the crypto now lives in `VERIFY.md`, not on
+the page — kept lean, Excalidraw-first (the same fragment-key scheme). The vote
+page's own "your noodle polls are end-to-end encrypted" note links there too
+(`.nd-e2e-only`). Deliberately NOT "Signal Protocol" — one static key per poll,
+no ratchet, no forward secrecy (21m). **No poll list**: the owner API `GET /api/noodle-polls` returns file ids +
 mtimes only (the server holds no links); `DELETE /api/noodle-polls/{ref}` takes a
 slug or file id. The vote page REMOVES any `noodle.polls` it finds.
 
@@ -596,14 +590,15 @@ root hands it a resolver (`pages.set_sri`, wired in `routers.py` beside
 `set_nav`; the resolver reads bytes via `app_paths.web_dirs`, the same resolution
 the static mount and `asset_version` use). The hash is of the served FILE,
 computed per render; no resolver (standalone / isolation) leaves the page working
-and unpinned. `scripts/verify.py` (stdlib, no install) checks a live vote URL:
-page-pin == served == public repo for every script. The targeting-resistant
-check for a voter is comparing the `integrity=` values in their OWN View-Source
-to the repo (the browser guarantees it ran the pinned bytes). What is still NOT
-closed: a targeted, timed swap served only to a victim who never checks -- only a
-pinned client (extension / native app) that stops re-fetching its code closes
-that. `VERIFY.md` is the voter-facing recipe; pinned by
-`tests/test_noodle_verify.py`.
+and unpinned. The targeting-resistant check for a voter is comparing the
+`integrity=` values in their OWN View-Source to the public repo (the browser
+guarantees it ran the pinned bytes) — no install, nothing to tamper. What is
+still NOT closed: a targeted, timed swap served only to a victim who never checks
+-- only a pinned client (extension / native app) that stops re-fetching its code
+closes that. `VERIFY.md` is the voter-facing recipe (Excalidraw-first; `<slug>` /
+`<token>` / `<key>` explained, the View-Source check, and a GitHub-Pages
+paste-your-View-Source verifier that compares the pins to the repo from a neutral
+origin); pinned by `tests/test_noodle_verify.py`.
 
 **Hardening** (`tests/test_noodle_hardening.py`): on an END-TO-END poll a key that
 LEFT it (moved to a new passphrase, or removed) is tombstoned in `poll["gone"]` with the ts it left
@@ -623,7 +618,7 @@ anyone the creator hands the raw draft address to before their first Commit can
 host instead; a malicious server can withhold, roll back or reorder (it holds no
 key to read, and cannot forge a signed record the page checks — unsigned legacy
 records aside), and — as with any web page — a compromised server could serve JS
-that reads the fragment (now CHECKABLE, not closed: SRI + `scripts/verify.py`, the
+that reads the fragment (now CHECKABLE, not closed: SRI + View-Source/VERIFY.md, the
 Code-verification note above). Tests: `test_noodle_e2e.py`, `test_noodle_drafts.py`,
 `test_noodle_e2e_view.py` (node), `test_noodle_browser_e2e.py` (WebKit: `/noodle`
 -> draft -> host -> guest -> rekey -> keyless link -> remove).

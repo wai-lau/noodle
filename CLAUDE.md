@@ -40,7 +40,7 @@ exec-fn's `api/data`): two HKDF-SHA256 outputs of the slug name the file and key
 AES-256-GCM; the server stores no links. **Polls started since 2026-10-09 are end-to-end** (key
 in the `#k=` fragment, never sent). §21d, §21m.
 
-**Code is verifiable** (no build step → served `.js` == the public repo; both repos public). The vote page pins every script with SRI (`pages._apply_sri`, resolver injected by `routers.py` via `pages.set_sri` — noodle imports no app module). Voter recipe: `VERIFY.md` + `scripts/verify.py <vote-url>`. §21m.
+**Code is verifiable** (no build step → served `.js` == the public repo; both repos public). The vote page pins every script with SRI (`pages._apply_sri`, resolver injected by `routers.py` via `pages.set_sri` — noodle imports no app module). Voter recipe: `VERIFY.md` (View-Source compare to the public repo + a GitHub-Pages paste-View-Source verifier; no install). The `/noodle` create page and the vote page's e2e note both link to it. §21m.
 
 **The `<link>`/`<script>` ORDER in the noodle templates is the cascade and the
 init order** (`noodle-vote.js` runs `ndvInit` as it loads). One CSS/JS file per

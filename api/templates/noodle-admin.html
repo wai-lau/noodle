@@ -2,18 +2,7 @@
   <h1 class="nd-title nd-brand">noodle</h1>
   <form id="nd-create" class="nd-create">
     <button type="submit" class="nd-submit">create poll</button>
-    <details class="nd-dim nd-create-note">
-      <summary class="nd-create-note-head">end-to-end encrypted</summary>
-      <div class="nd-create-note-body">
-        <p class="nd-url"><code><span class="nd-u-base">https://wai-lau.net/noodle/</span><span class="nd-u-var">&lt;slug&gt;</span><span class="nd-u-punc">?t=</span><span class="nd-u-var">&lt;token&gt;</span><span class="nd-u-frag">#k=</span><span class="nd-u-key">&lt;K&gt;</span></code></p>
-        <p><span class="nd-u-key">&lt;K&gt;</span> is a secret key composed on your device</p>
-        <p>data after the <span class="nd-u-frag">#</span> is not sent to the server</p>
-        <p>only people you send the full URL can access the poll</p>
-        <p><a href="https://blog.excalidraw.com/end-to-end-encryption/" target="_blank" rel="noopener noreferrer">same scheme as excalidraw's end-to-end encryption</a></p>
-        <p class="nd-note-prose nd-eli5">In plain words: your browser locks the poll with the secret <span class="nd-u-key">&lt;K&gt;</span> before anything leaves your device. The server only ever holds the locked copy and never sees <span class="nd-u-key">&lt;K&gt;</span>, so it can't read the names or the times. Only someone you hand the whole link to can unlock it &mdash; the part after the <span class="nd-u-frag">#</span> carries the key.</p>
-        <p class="nd-note-prose nd-audit">Check the lock yourself: the sealing code is one short file, <a href="https://github.com/wai-lau/noodle/blob/master/web/noodle-e2e.js" target="_blank" rel="noopener noreferrer">noodle-e2e.js</a> (AES-256-GCM via the browser's built-in <code>crypto.subtle</code>). noodle has no build step, so the file the server runs is byte-for-byte the public one &mdash; <a href="https://github.com/wai-lau/noodle/blob/master/VERIFY.md" target="_blank" rel="noopener noreferrer">one command confirms it</a>.</p>
-      </div>
-    </details>
+    <p class="nd-dim nd-create-note"><a href="https://github.com/wai-lau/noodle/blob/master/VERIFY.md" target="_blank" rel="noopener noreferrer">end-to-end encrypted</a></p>
     <p id="nd-msg" class="nd-status"></p>
   </form>
   <!-- OWNER only: shown once the owner-only counts load (noodle-created.js) -->
