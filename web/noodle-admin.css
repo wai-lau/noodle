@@ -12,14 +12,36 @@
 }
 .nd-create { display: flex; flex-direction: column; gap: var(--space-4); }
 
-/* what "create poll" makes, under the button: the heading in green, a gap,
-   then single-spaced grey lines -- the link's shape and what each part of it
-   means */
+/* under the button: a COLLAPSIBLE whose green summary ("end-to-end encrypted")
+   opens the link's shape, what each part means, an ELI5, and how to audit the
+   crypto. Closed by default; the caret says it opens. */
 .nd-create .nd-create-note { text-align: center; }
-.nd-create-note p { margin: 0; }
-.nd-create-note .nd-create-note-head { margin-bottom: var(--space-3); color: hsl(var(--green-hsl) / 0.8); }
-.nd-create-note code { font: inherit; overflow-wrap: anywhere; }
-.nd-create-note a { color: inherit; text-decoration: underline; }
+.nd-create-note > .nd-create-note-head {
+  cursor: pointer;
+  list-style: none;                 /* drop the native marker; use our caret */
+  color: hsl(var(--green-hsl) / 0.8);
+}
+.nd-create-note > .nd-create-note-head::-webkit-details-marker { display: none; }
+.nd-create-note > .nd-create-note-head::after { content: " \25B8"; }   /* click to expand */
+.nd-create-note[open] > .nd-create-note-head::after { content: " \25BE"; }
+.nd-create-note > .nd-create-note-head:hover { text-decoration: underline; }
+
+.nd-create-note-body { margin-top: var(--space-3); }
+.nd-create-note-body p { margin: 0; }
+.nd-create-note-body p + p { margin-top: var(--space-2); }
+.nd-create-note-body code { font: inherit; overflow-wrap: anywhere; }
+.nd-create-note-body a { color: inherit; text-decoration: underline; }
+
+/* the URL's parts, colour-coded: the key is the secret (green), the fragment
+   boundary that never leaves the browser (pink), the placeholders (cyan) */
+.nd-u-var  { color: hsl(var(--cyan-hsl) / 0.8); }
+.nd-u-punc { opacity: 0.6; }
+.nd-u-frag { color: hsl(var(--pink-hsl) / 0.8); }
+.nd-u-key  { color: hsl(var(--green-hsl) / 0.8); }
+
+/* the two paragraphs (ELI5 + audit) read as prose: left-aligned, held narrow */
+.nd-note-prose { max-width: 44ch; margin-inline: auto; text-align: left; }
+.nd-create-note-body .nd-eli5 { margin-top: var(--space-3); }
 
 /* the empty status line under the button would push it off centre */
 .nd-create #nd-msg:empty { display: none; }

@@ -421,19 +421,25 @@ History: ARCHAEOLOGY.md 21h.
 ### 21i. `/noodle` and link previews
 
 **Everyone, owner included**: the title and one `create poll` button, centred
-(`#noodle-admin`), with a blurb under it (`.nd-create-note`): "end-to-end
-encrypted", the URL shape `https://wai-lau.net/noodle/<slug>?t=<token>#k=<K>`,
-"<K> is a secret key composed on your device", "data after the # is not sent to
-the server", "only people you send the full URL can access the poll", and a link
-to Excalidraw's end-to-end-encryption blog post (text "same scheme as excalidraw's end-to-end encryption"). Deliberately NOT
-"Signal Protocol" — one static key per poll, no ratchet, no forward secrecy
-(21m). **No poll list**: the owner API `GET /api/noodle-polls` returns file ids +
+(`#noodle-admin`), with a COLLAPSIBLE under it (`.nd-create-note`, a `<details>`):
+the green summary "end-to-end encrypted" (caret ▸/▾ says it opens; closed by
+default) reveals the URL shape `https://wai-lau.net/noodle/<slug>?t=<token>#k=<K>`
+with its parts colour-coded (`.nd-u-key` the secret in green, `.nd-u-frag` the
+`#` boundary in pink, `.nd-u-var` the placeholders in cyan), "<K> is a secret key
+composed on your device", "data after the # is not sent to the server", "only
+people you send the full URL can access the poll", a link to Excalidraw's
+end-to-end-encryption blog post (text "same scheme as excalidraw's end-to-end
+encryption"), an ELI5 line, and an AUDIT line linking the one short sealing file
+(`web/noodle-e2e.js`, AES-256-GCM via `crypto.subtle`) and `VERIFY.md` — anyone
+can read the crypto and confirm the served code is byte-for-byte the public repo
+(code verification, 21m). Deliberately NOT "Signal Protocol" — one static key per
+poll, no ratchet, no forward secrecy (21m). **No poll list**: the owner API `GET /api/noodle-polls` returns file ids +
 mtimes only (the server holds no links); `DELETE /api/noodle-polls/{ref}` takes a
 slug or file id. The vote page REMOVES any `noodle.polls` it finds.
 
 **The owner's chart**: "polls created per day", one column a day from the first
 counted day to today (`NDC_MAX_DAYS`=90; older days fold into an "earlier"
-count), tooltip on hover/focus/tap, peak on its cap, an "as a table" fallback
+count), tooltip on hover/focus/tap, peak on its cap
 (`web/noodle-created.{js,css}`). Shown only when `GET /api/noodle-polls/created`
 answers. Sealed polls can't say when they were made, so `stats.py` COUNTS
 creations as they happen (`store.try_create` / `drafts.ensure` report whether

@@ -72,25 +72,6 @@ function ndcBars(bars) {
   plot.addEventListener('focusout', function (e) { if (!plot.contains(e.relatedTarget)) ndcTip(null); });
 }
 
-function ndcTable(bars, older) {
-  var body = document.getElementById('nd-chart-rows');
-  body.textContent = '';
-  bars.filter(function (b) { return b.n; }).reverse().forEach(function (b) {
-    var tr = document.createElement('tr'), day = document.createElement('td'), n = document.createElement('td');
-    day.textContent = ndcLabel(b.day);
-    n.textContent = b.n;
-    tr.append(day, n);
-    body.append(tr);
-  });
-  if (older) {
-    var tr = document.createElement('tr'), day = document.createElement('td'), n = document.createElement('td');
-    day.textContent = 'earlier';
-    n.textContent = older;
-    tr.append(day, n);
-    body.append(tr);
-  }
-}
-
 async function ndcInit() {
   var box = document.getElementById('nd-owner');
   if (!box) return;
@@ -104,7 +85,6 @@ async function ndcInit() {
     (s.older ? ' (' + s.older + ' earlier)' : '');
   document.getElementById('nd-chart-from').textContent = ndcLabel(s.bars[0].day);
   ndcBars(s.bars);
-  ndcTable(s.bars, s.older);
 }
 
 ndcInit();
