@@ -20,7 +20,7 @@ _JS = os.path.join(os.path.dirname(__file__), "..", "..", "..", "web", "qc-holid
 def test_python_mirror_matches_the_js_for_decades():
     years = list(range(2024, 2061))
     out = subprocess.run(
-        ["node", "-e", f"global.window={{}};require({json.dumps(os.path.abspath(_JS))});"
+        ["node", "-e", f"global.window={{}};(0,eval)(require('fs').readFileSync({json.dumps(os.path.abspath(_JS))},'utf8'));"
                        f"console.log(JSON.stringify({json.dumps(years)}.map(y => [...window.QcHolidays.qcHolidays(y)].sort())))"],
         capture_output=True, text=True, check=True)
     js = json.loads(out.stdout)

@@ -20,7 +20,7 @@ def js(expr: str, module: str = "noodle-toggle.js", glob: str = "NoodleToggle"):
     # as ESM with no CommonJS exports -- read what they hang on `window` instead
     path = os.path.abspath(os.path.join(_WEB, module))
     out = subprocess.run(
-        ["node", "-e", f"global.window={{}};require({json.dumps(path)});const M=window.{glob};"
+        ["node", "-e", f"global.window={{}};(0,eval)(require('fs').readFileSync({json.dumps(path)},'utf8'));const M=window.{glob};"
                        f"console.log(JSON.stringify((()=>{{{expr}}})()))"],
         capture_output=True, text=True, check=True)
     return json.loads(out.stdout)
