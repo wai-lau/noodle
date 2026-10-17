@@ -102,7 +102,17 @@ def vote_page(poll: dict, draft: str = "") -> str:
         ASK_MAX=str(config.ASK_MAX_CHARS),
     )
     og = _og("noodle" if sealed else shown, note, "/noodle/" + poll["slug"])
-    return _apply_sri(_page("noodle" if sealed else f"noodle: {shown}", body, og))
+    page = _page("noodle" if sealed else f"noodle: {shown}", body, og)
+    # Mirror the vote-page CSP (sent as a header by routes) into a <meta> in the
+    # <head>, so the "no inline/eval scripts" rule is IN the bytes a link holder
+    # verifies -- the browser enforces it even if a hostile server strips the
+    # header, and its absence from the served HTML is itself the tell. Only the
+    # vote page gets it (the /noodle admin page runs the site nav's inline script).
+    # VOTE_CSP_META is a trusted constant (no < > & "); keep the quotes literal
+    # so the policy reads cleanly in View-Source. Guard a stray " just in case.
+    meta = f'<meta http-equiv="Content-Security-Policy" content="{config.VOTE_CSP_META.replace(chr(34), "&quot;")}">'
+    page = page.replace('<meta charset="utf-8">', '<meta charset="utf-8">\n' + meta, 1)
+    return _apply_sri(page)
 
 
 # The site's nav bar, HANDED IN by the app (routers.py set_nav): noodle

@@ -590,15 +590,28 @@ root hands it a resolver (`pages.set_sri`, wired in `routers.py` beside
 `set_nav`; the resolver reads bytes via `app_paths.web_dirs`, the same resolution
 the static mount and `asset_version` use). The hash is of the served FILE,
 computed per render; no resolver (standalone / isolation) leaves the page working
-and unpinned. The targeting-resistant check for a voter is comparing the
-`integrity=` values in their OWN View-Source to the public repo (the browser
-guarantees it ran the pinned bytes) — no install, nothing to tamper. What is
-still NOT closed: a targeted, timed swap served only to a victim who never checks
--- only a pinned client (extension / native app) that stops re-fetching its code
-closes that. `VERIFY.md` is the voter-facing recipe (Excalidraw-first; `<slug>` /
-`<token>` / `<key>` explained, the View-Source check, and a GitHub-Pages
-paste-your-View-Source verifier that compares the pins to the repo from a neutral
-origin); pinned by `tests/test_noodle_verify.py`.
+and unpinned. SRI covers only the external scripts, not the server-generated
+document, so (adversarial audit, 2026-10-17) the vote page ALSO mirrors its strict
+CSP into a `<meta>` (`config.VOTE_CSP`/`VOTE_CSP_META`, injected in
+`pages.vote_page` — vote page only, since the `/noodle` admin page runs the nav's
+inline script): `script-src 'self'` with no inline/eval and `connect-src 'self'`,
+so even a pinned-script-clean page cannot run injected inline code or phone the
+key out. CSP policies INTERSECT, so the `<meta>` only ever tightens the header and
+cannot break a poll; a server that strips it to inject inline code leaves its
+absence in the served HTML. The targeting-resistant check is reading the page the
+browser ACTUALLY received (DevTools → Network → the document's Response, NOT
+`view-source:`, which re-fetches and can be answered differently) and confirming
+every script's pin equals the repo AND the strict CSP meta is present AND there is
+no inline script. The GitHub-Pages verifier (`docs/verify.html`, served at
+`wai-lau.github.io/noodle/verify.html` — a neutral origin the noodle server can't
+touch) does all three from a pasted document: pins vs repo, the exact CSP meta,
+and inline-script / `on*` / `<base>` scan. What verification CANNOT prove: that
+the repo code is itself honest ("served == repo" ≠ "repo safe" — the ceiling is
+re-reading the key-touching scripts on each change), and the KDF Web Worker is
+unpinnable by SRI (a tampered worker could leak a passphrase, not names/picks).
+`VERIFY.md` is the voter-facing recipe (Excalidraw-first; `<slug>`/`<token>`/`<key>`
+explained; the verifier; the by-hand check; and the honest "what you're
+guaranteed"); pinned by `tests/test_noodle_verify.py`.
 
 **Hardening** (`tests/test_noodle_hardening.py`): on an END-TO-END poll a key that
 LEFT it (moved to a new passphrase, or removed) is tombstoned in `poll["gone"]` with the ts it left

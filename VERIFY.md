@@ -21,41 +21,63 @@ https://wai-lau.net/noodle/<slug>?t=<token>#k=<key>
 
 ## Auditing the code
 
-Encryption can't prove one thing: that the **JavaScript the server handed your
+Encryption can't prove one thing: that the **page the server handed your
 browser** is the public, audited code and not a tampered copy that copies
-`<key>`. Two facts make that checkable here:
+`<key>`. Three facts make that checkable here:
 
-- **No build step.** Each file the server serves (e.g. `/noodle-e2e.js`) is
+- **No build step.** Each script the server serves (e.g. `/noodle-e2e.js`) is
   byte-for-byte a file in this repo. The sealing/opening code is one short file:
   [`web/noodle-e2e.js`](web/noodle-e2e.js) (AES-256-GCM via the browser's
   built-in `crypto.subtle`).
 - **Every script is pinned** with [Subresource Integrity](https://developer.mozilla.org/docs/Web/Security/Subresource_Integrity):
   a `sha384` the **browser itself enforces**, refusing to run a script whose
-  bytes don't match.
+  bytes don't match. So a pin that equals the repo's hash means the browser ran
+  the repo's code — you don't even have to re-download the script.
+- **A strict policy is in the page.** The vote page carries a
+  `<meta http-equiv="Content-Security-Policy">` that forbids inline scripts,
+  `eval`, and any request leaving the site. It's right there in the HTML, so you
+  can see it's present; the browser enforces it even if the server strips the
+  matching HTTP header, and its absence would be plain in the page.
 
-So the only question is: *does the hash pinned on the page equal the hash of the
-file in this public repo?*
+Together those cover everything that can run: if every script is pinned to the
+repo and the strict policy is in force, no other code — inline or external — can
+touch your key.
 
-### The real check: View-Source (no install, targeting-resistant)
+### Check it (the verifier — no install)
 
-Open **View-Source** on your own vote page (`view-source:` prefix, or right-click
-→ View Page Source). Every `<script>` carries `integrity="sha384-…"`. If each one
-equals the matching repo file's hash — and none is missing — then every script
-your browser ran was the public code. This is the trustworthy check: the browser
-enforced those exact hashes, and View-Source shows them as served, outside any
-script the page could run.
+Open **<https://wai-lau.github.io/noodle/verify.html>**. It runs on GitHub, which
+the noodle server can't touch, and compares the page you paste against this public
+repo — checking the scripts' pins, the policy, and that there's no inline script.
 
-Hash a repo file to compare:
+Paste the page your browser **actually received**, not `view-source:`:
+
+1. On your vote page, press **F12** → **Network** → reload.
+2. Click the **top request** (the document) → **Response** → select all, copy.
+3. Paste into the verifier → **Check**.
+
+(Why the Network response and not `view-source:`? `view-source:` re-fetches the
+page — a hostile server could answer that second request differently from the one
+that ran. The Network response is the bytes that ran.)
+
+### Or by hand
+
+In the same Response, confirm the `<meta … Content-Security-Policy …>` is present
+and that every `<script>` has an `integrity="sha384-…"` matching the repo — no
+script without one, and no inline `<script>`. Hash a repo file to compare:
 
 ```
 curl -s https://raw.githubusercontent.com/wai-lau/noodle/master/web/noodle-e2e.js \
   | openssl dgst -sha384 -binary | openssl base64
 ```
 
-## The honest limit
+## What you're guaranteed
 
-A server that wants to target **one** person could serve clean code to a checker
-and tampered code to the victim. No web page fully closes that — only a pinned
-client that stops re-fetching its code (a browser extension, a native app) can.
-What this gets you: the attack must be targeted and timed, and **any one person
-who View-Sources their own page can expose it.**
+Verify the page that actually ran and **that visit cannot read your poll** — the
+browser will not run a script that isn't the public code, and the policy lets
+nothing else run or phone out. There's nothing left to trust but the public code
+itself. Do it each visit (a server can't fool a check you actually run; it can
+only hope you skip it), and — because "matches the repo" only means the server
+served the repo's code — trust that the code is honest by reading the handful of
+files that touch your key (`web/noodle-e2e.js`, `noodle-vote.js`,
+`noodle-claim.js`, `noodle-commit.js`, `noodle-keystore.js`) and re-reading them
+when they change.

@@ -26,10 +26,10 @@ _NO_STORE = {"Cache-Control": "no-store"}
 # The vote page holds the poll's key (in the address) and, once typed, the
 # voter's key: no script but this site's own files may run there, nothing
 # may frame it, and nothing it fetches leaves the site. Styles may be inline
-# (seal inks are style="--seal-hsl:..." strings); scripts never.
-_VOTE_CSP = ("default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; "
-             "img-src 'self' data:; font-src 'self'; connect-src 'self'; worker-src 'self'; "
-             "object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'")
+# (seal inks are style="--seal-hsl:..." strings); scripts never. The policy
+# lives in config.VOTE_CSP and is ALSO mirrored into a <meta> on the page
+# (pages.vote_page) so a link holder can see it in the bytes they verify.
+_VOTE_CSP = config.VOTE_CSP
 _PRIVATE_PAGE = {"Cache-Control": "no-store", "X-Robots-Tag": "noindex",
                  "Referrer-Policy": "no-referrer", "Content-Security-Policy": _VOTE_CSP}
 # /noodle carries the site nav (inline script), so only the framing rule here

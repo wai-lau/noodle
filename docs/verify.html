@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>verify a noodle poll</title>
+<style>
+  :root { color-scheme: dark; --bg:#05070a; --fg:#c9d4cf; --dim:#7f8c86; --grn:#49d67e; --red:#ff6b6b; --line:#1b2a22; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--fg); font:15px/1.6 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; }
+  main { max-width:760px; margin:0 auto; padding:24px 16px 64px; }
+  h1 { color:var(--grn); font-size:1.5rem; margin:0 0 4px; }
+  a { color:var(--grn); }
+  p, li { color:var(--fg); }
+  .dim { color:var(--dim); }
+  ol { padding-left:1.3em; }
+  textarea { width:100%; height:180px; margin-top:12px; background:#0a0f12; color:var(--fg); border:1px solid var(--line);
+             border-radius:8px; padding:10px; font:13px/1.5 ui-monospace,monospace; resize:vertical; }
+  button { margin-top:10px; background:var(--grn); color:#04120a; border:0; border-radius:8px; padding:10px 18px;
+           font:600 15px/1 inherit; cursor:pointer; }
+  button:disabled { opacity:.5; cursor:default; }
+  pre#out { white-space:pre-wrap; word-break:break-word; margin-top:18px; padding:14px; border:1px solid var(--line);
+            border-radius:8px; background:#0a0f12; min-height:2em; }
+  .ok { color:var(--grn); } .bad { color:var(--red); }
+  hr { border:0; border-top:1px solid var(--line); margin:28px 0; }
+  code { background:#0a0f12; padding:1px 5px; border-radius:4px; }
+  details { margin-top:10px; } summary { cursor:pointer; color:var(--dim); }
+</style>
+</head>
+<body>
+<main>
+  <h1>verify a noodle poll</h1>
+  <p class="dim">Runs entirely here, on GitHub's servers — the noodle server can't touch this page. It checks
+  the page your browser actually received against the public source at
+  <a href="https://github.com/wai-lau/noodle" target="_blank" rel="noopener">github.com/wai-lau/noodle</a>.
+  Nothing you paste leaves your browser except hash lookups to GitHub.</p>
+
+  <ol>
+    <li>Open your poll's vote page. Press <b>F12</b> → <b>Network</b> tab → reload the page.</li>
+    <li>Click the <b>top request</b> (the document, named like your poll slug) → <b>Response</b> tab.</li>
+    <li>Select all of it, copy, and paste below. Then <b>Check</b>.</li>
+  </ol>
+  <p class="dim">Use the Network <b>Response</b>, not <code>view-source:</code> — view-source re-fetches the page, and a
+  hostile server could answer that second request differently from the one that actually ran. The Network response is
+  the bytes that ran.</p>
+
+  <textarea id="src" placeholder="paste the document Response here"></textarea>
+  <br><button id="go">Check</button>
+  <pre id="out"></pre>
+
+  <hr>
+  <details>
+    <summary>what this proves — and what it doesn't</summary>
+    <p><b>It proves</b>, for the page you pasted: every script is the public code (a <code>sha384</code> the browser
+    refuses to run unless the bytes match), no inline script or event handler can run, and nothing the page loads can
+    leave the site — so <b>that visit cannot leak your key</b>. Do it each visit; a server can't fool a check you
+    actually run.</p>
+    <p><b>It does not prove the public code is safe.</b> "Matches the repo" only means the server served the repo's code.
+    You are trusting that <a href="https://github.com/wai-lau/noodle" target="_blank" rel="noopener">the repo</a> itself
+    is honest (and GitHub, and your browser). To trust that, read the code that touches your key — chiefly
+    <code>web/noodle-e2e.js</code>, <code>noodle-vote.js</code>, <code>noodle-claim.js</code>,
+    <code>noodle-commit.js</code>, <code>noodle-keystore.js</code> — and re-read them when they change.</p>
+    <p class="dim">Known residual: the passphrase key-derivation runs in a Web&nbsp;Worker, which the browser can't pin
+    with SRI; a tampered worker could leak a <i>passphrase</i> (not your names or times). The verifier can't see inside
+    a worker.</p>
+  </details>
+</main>
+
+<script>
+// This file is public and self-contained — read it. It fetches ONLY the repo's
+// files from raw.githubusercontent.com to hash them; it never contacts the
+// noodle server. The page you paste is parsed inertly (DOMParser never runs it).
+const EXPECTED_CSP = "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'";
+const REPOS = ['wai-lau/noodle', 'wai-lau/exec-fn'];
+const REFS = ['master', 'main'];
+
+const norm = s => (s || '').replace(/\s+/g, ' ').trim();
+
+async function sha384(buf) {
+  const h = await crypto.subtle.digest('SHA-384', buf);
+  return btoa(String.fromCharCode(...new Uint8Array(h)));
+}
+async function bytes(url) {
+  try { const r = await fetch(url); return r.ok ? await r.arrayBuffer() : null; } catch { return null; }
+}
+// sha384 + "repo@ref" of the first public-repo copy of web/<name>, or null.
+async function repoHash(name) {
+  for (const repo of REPOS) for (const ref of REFS) {
+    const d = await bytes(`https://raw.githubusercontent.com/${repo}/${ref}/web/${name}`);
+    if (d) return { h: await sha384(d), src: `${repo}@${ref}` };
+  }
+  return null;
+}
+
+async function check(text) {
+  const lines = [];
+  let ok = true;
+  const fail = m => { ok = false; lines.push('✗ ' + m); };
+  const pass = m => lines.push('✓ ' + m);
+  const doc = new DOMParser().parseFromString(text, 'text/html');
+
+  // 1. the strict CSP must be present IN the document, exactly.
+  const metas = [...doc.querySelectorAll('meta[http-equiv]')]
+    .filter(m => /content-security-policy/i.test(m.getAttribute('http-equiv') || ''));
+  if (!metas.length) {
+    fail('no Content-Security-Policy <meta> — the strict "no inline/eval scripts" rule is missing from the page');
+  } else if (norm(metas[0].getAttribute('content')) !== norm(EXPECTED_CSP)) {
+    fail('the CSP <meta> is not the expected strict policy');
+    lines.push('    got: ' + norm(metas[0].getAttribute('content')));
+    lines.push('    exp: ' + norm(EXPECTED_CSP));
+  } else {
+    pass('strict CSP present — scripts from this site only, no inline, no eval, nothing leaves the site');
+  }
+
+  // 2. the document must carry nothing that can run outside the pinned scripts.
+  if (doc.querySelector('base')) fail('a <base> tag is present (can repoint relative URLs)');
+  for (const s of doc.querySelectorAll('script')) {
+    if (!s.getAttribute('src') && (s.textContent || '').trim()) {
+      fail('an INLINE <script> is present: ' + s.textContent.trim().slice(0, 70).replace(/\s+/g, ' ') + '…');
+    }
+  }
+  let handlers = 0, jsurls = 0;
+  for (const el of doc.querySelectorAll('*')) {
+    for (const a of el.attributes) {
+      if (/^on/i.test(a.name)) handlers++;
+      if (/^\s*javascript:/i.test(a.value)) jsurls++;
+    }
+  }
+  if (handlers) fail(handlers + ' inline event handler(s) (on…=) in the page');
+  if (jsurls) fail(jsurls + ' javascript: URL(s) in the page');
+
+  // 3. every external script must be pinned, and its pin must equal the repo's hash.
+  //    SRI then guarantees the browser ran exactly those bytes.
+  const scripts = [...doc.querySelectorAll('script[src]')];
+  if (!scripts.length) fail('no <script src> found — is this a noodle vote page?');
+  for (const s of scripts) {
+    const src = s.getAttribute('src');
+    const name = src.split('?')[0].split('/').pop();
+    const pin = (s.getAttribute('integrity') || '').replace(/^sha384-/, '') || null;
+    if (!pin) { fail('UNPINNED ' + src + ' (no integrity — the browser would not enforce it)'); continue; }
+    const repo = await repoHash(name);
+    if (!repo) { fail('MISMATCH ' + name + ' — not found in any public repo'); continue; }
+    if (pin === repo.h) {
+      pass('script ' + name + ' — pinned and matches ' + repo.src);
+    } else {
+      fail('MISMATCH ' + name);
+      lines.push('    page pin : sha384-' + pin);
+      lines.push('    repo     : sha384-' + repo.h + '  [' + repo.src + ']');
+    }
+  }
+
+  const head = ok
+    ? '— VERIFIED: this visit runs only the public code; nothing else can run —'
+    : '— NOT VERIFIED: see the ✗ lines below —';
+  return { ok, text: head + '\n\n' + lines.join('\n') };
+}
+
+const out = document.getElementById('out');
+const go = document.getElementById('go');
+go.addEventListener('click', async () => {
+  const text = document.getElementById('src').value;
+  if (!text.trim()) { out.textContent = 'paste the page first.'; return; }
+  go.disabled = true; out.textContent = 'checking…';
+  try {
+    const r = await check(text);
+    out.textContent = r.text;
+    out.className = r.ok ? 'ok' : 'bad';
+  } catch (e) {
+    out.textContent = 'error: ' + (e && e.message || e);
+    out.className = 'bad';
+  }
+  go.disabled = false;
+});
+</script>
+</body>
+</html>
