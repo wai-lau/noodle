@@ -70,3 +70,26 @@ def test_routers_wire_the_resolver_so_production_is_not_noop():
     from conftest import HOST_ROOT
     src = (HOST_ROOT / "api" / "routers.py").read_text()
     assert "noodle_pages.set_sri(" in src, "routers.py must call noodle_pages.set_sri"
+
+
+def test_verifier_expected_csp_matches_the_served_meta():
+    """The GitHub-Pages verifier (docs/verify.html) checks a pasted page's CSP
+    <meta> against a hard-coded EXPECTED_CSP; it must equal what the server puts
+    in the <meta> (config.VOTE_CSP_META), or the verifier rejects honest pages."""
+    import re as _re
+
+    from noodle import config
+    html = (Path(__file__).resolve().parent.parent / "docs" / "verify.html").read_text(encoding="utf-8")
+    m = _re.search(r'const EXPECTED_CSP = "([^"]+)";', html)
+    assert m, "verify.html must define EXPECTED_CSP"
+    assert m.group(1) == config.VOTE_CSP_META, "verifier EXPECTED_CSP drifted from config.VOTE_CSP_META"
+
+
+def test_vote_csp_admits_the_pinned_blob_worker():
+    """The key worker now runs from a Blob (pinned), which a blob: worker-src and
+    (because a blob worker inherits the page CSP) 'wasm-unsafe-eval' for Argon2's
+    WebAssembly make possible. 'wasm-unsafe-eval' permits wasm only, not eval()."""
+    from noodle import config
+    assert "worker-src 'self' blob:" in config.VOTE_CSP
+    assert "'wasm-unsafe-eval'" in config.VOTE_CSP
+    assert "'unsafe-eval'" not in config.VOTE_CSP.replace("'wasm-unsafe-eval'", "")

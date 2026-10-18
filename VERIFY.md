@@ -34,10 +34,12 @@ browser** is the public, audited code and not a tampered copy that copies
   bytes don't match. So a pin that equals the repo's hash means the browser ran
   the repo's code — you don't even have to re-download the script.
 - **A strict policy is in the page.** The vote page carries a
-  `<meta http-equiv="Content-Security-Policy">` that forbids inline scripts,
-  `eval`, and any request leaving the site. It's right there in the HTML, so you
-  can see it's present; the browser enforces it even if the server strips the
-  matching HTTP header, and its absence would be plain in the page.
+  `<meta http-equiv="Content-Security-Policy">` that forbids inline scripts and
+  `eval` of JavaScript, and any request leaving the site. (It does allow one
+  thing: compiling WebAssembly, which the key helper needs for its Argon2 — that
+  can't run or load JavaScript.) It's right there in the HTML, so you can see
+  it's present; the browser enforces it even if the server strips the matching
+  HTTP header, and its absence would be plain in the page.
 
 Together those cover everything that can run: if every script is pinned to the
 repo and the strict policy is in force, no other code — inline or external — can

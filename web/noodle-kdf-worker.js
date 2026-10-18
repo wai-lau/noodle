@@ -12,7 +12,13 @@
 // The CryptoKey crosses postMessage as a structured clone and STAYS
 // non-extractable: whoever holds it can sign, nobody can read it out.
 
-importScripts('/vendor/hash-wasm-argon2-4.12.0.min.js');
+// In the PINNED path (noodle-kdf.js runs this worker from a Blob with the
+// vendored Argon2 prepended) hashwasm is already defined, so this unpinned
+// network load is skipped -- nothing the worker runs is fetched unverified.
+// In the standalone path (a raw worker url) it is not defined, so load it.
+if (typeof self.hashwasm === 'undefined') {
+  importScripts('/vendor/hash-wasm-argon2-4.12.0.min.js');
+}
 
 // PKCS#8 wrapper for a raw 32-byte Ed25519 seed (RFC 8410): WebCrypto has no
 // "import raw private seed", but a seed inside this fixed prefix is exactly

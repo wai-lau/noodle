@@ -95,15 +95,20 @@ NOTE_MAX = 280
 # ── vote-page content security policy (noodle ARCHITECTURE.md 21m) ────────────
 # The vote page frames nothing and nothing it fetches leaves the site; styles
 # may be inline (seal inks are style="--seal-hsl:..."), scripts NEVER (no inline,
-# no eval -- so a key cannot be lifted by injected JS). Sent BOTH as a response
-# header (routes._PRIVATE_PAGE) AND mirrored into a <meta> in the document
-# (pages.vote_page): the header is invisible to a link holder inspecting the
-# page, the <meta> is right there in the bytes they verify. CSP policies
-# INTERSECT, so the <meta> can only tighten -- it never relaxes the header, so it
-# never breaks a poll -- and a hostile server that strips it to inject inline
-# code leaves its absence plainly in the served HTML.
-VOTE_CSP = ("default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; "
-            "img-src 'self' data:; font-src 'self'; connect-src 'self'; worker-src 'self'; "
+# no eval -- so a key cannot be lifted by injected JS). 'wasm-unsafe-eval' is the
+# ONE narrow exception: it lets the key worker compile Argon2's WebAssembly, and
+# nothing else -- it does NOT permit eval() or inline script, so the injection
+# story is unchanged. It is needed because the worker is now PINNED by running it
+# from a Blob (worker-src blob:; noodle-kdf.js), and a blob worker inherits this
+# policy (a same-origin worker url did not, so plain polls never needed it).
+# Sent BOTH as a response header (routes._PRIVATE_PAGE) AND mirrored into a
+# <meta> in the document (pages.vote_page): the header is invisible to a link
+# holder inspecting the page, the <meta> is right there in the bytes they verify.
+# CSP policies INTERSECT, so the <meta> can only tighten -- it never relaxes the
+# header, so it never breaks a poll -- and a hostile server that strips it to
+# inject inline code leaves its absence plainly in the served HTML.
+VOTE_CSP = ("default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; "
+            "img-src 'self' data:; font-src 'self'; connect-src 'self'; worker-src 'self' blob:; "
             "object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'")
 # frame-ancestors is header-only (a <meta> ignores it and logs a console
 # warning), so the <meta> copy drops exactly that one directive and nothing else.

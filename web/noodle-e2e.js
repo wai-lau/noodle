@@ -68,10 +68,29 @@ function ndeAad(kind, pub) {
   return new TextEncoder().encode('noodle e2e v1|' + NDV.slug + '|' + kind + '|' + (pub || ''));
 }
 
+// Pad the plaintext to a fixed BUCKET so a sealed object's SIZE stops leaking a
+// name's length or the exact number of picks -- the server (and anyone with the
+// stored file) sees only which bucket. Trailing SPACES: JSON.parse ignores them,
+// so ndeOpen is unchanged and a record sealed before padding (none) opens exactly
+// as before -- no migration. Clamped so a near-full vote is never pushed over the
+// server's per-object cap (noodle/e2e.py CT_MAX 6000 b64 chars -> 4472 plaintext
+// bytes); padding never makes the server reject a vote it would otherwise take.
+var NDE_PAD_BUCKET = 256;
+var NDE_PAD_MAX = 4472;   // floor(6000 / 4) * 3 - 12 (iv) - 16 (gcm tag)
+function ndePad(bytes) {
+  var target = Math.ceil(bytes.length / NDE_PAD_BUCKET) * NDE_PAD_BUCKET;
+  if (target > NDE_PAD_MAX) return bytes;   // too big to pad safely; its size is already no secret
+  var out = new Uint8Array(target);
+  out.set(bytes);
+  out.fill(0x20, bytes.length);   // ascii space, invisible to JSON.parse
+  return out;
+}
+
 async function ndeSeal(kind, pub, obj) {
   var iv = crypto.getRandomValues(new Uint8Array(12));
+  var pt = ndePad(new TextEncoder().encode(JSON.stringify(obj)));
   var ct = new Uint8Array(await crypto.subtle.encrypt({ name: 'AES-GCM', iv: iv, additionalData: ndeAad(kind, pub) },
-    await NDV.key, new TextEncoder().encode(JSON.stringify(obj))));
+    await NDV.key, pt));
   var out = new Uint8Array(12 + ct.length);
   out.set(iv);
   out.set(ct, 12);

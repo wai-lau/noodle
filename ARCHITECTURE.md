@@ -567,9 +567,12 @@ passed as NoodleKdf's slug), so the server — which knows the slug — can't te
 guessed names or passphrases against stored public keys.
 
 **Content-Security-Policy on the vote page** (`routes._VOTE_CSP`): `default-src
-'self'`; `script-src 'self'` (no inline, no eval); styles may be inline (seal inks
-are `style="--seal-hsl:…"`); `img-src 'self' data:`; `font-src`/`connect-src`/
-`worker-src 'self'`; `object-src 'none'`; `base-uri 'none'`; `form-action 'self'`;
+'self'`; `script-src 'self' 'wasm-unsafe-eval'` (no inline, no eval — the one
+exception is WebAssembly, for the pinned key worker's Argon2, see Code
+verification); styles may be inline (seal inks are `style="--seal-hsl:…"`);
+`img-src 'self' data:`; `font-src`/`connect-src 'self'`; `worker-src 'self' blob:`
+(the key worker runs from a verified Blob); `object-src 'none'`; `base-uri 'none'`;
+`form-action 'self'`;
 `frame-ancestors 'none'`. `/noodle` carries the site nav (an inline script), so
 it gets `frame-ancestors 'none'` only. **Testing it**: Playwright's
 `wait_for_function` compiles a string predicate in the page, which the policy
@@ -607,8 +610,27 @@ no inline script. The GitHub-Pages verifier (`docs/verify.html`, served at
 touch) does all three from a pasted document: pins vs repo, the exact CSP meta,
 and inline-script / `on*` / `<base>` scan. What verification CANNOT prove: that
 the repo code is itself honest ("served == repo" ≠ "repo safe" — the ceiling is
-re-reading the key-touching scripts on each change), and the KDF Web Worker is
-unpinnable by SRI (a tampered worker could leak a passphrase, not names/picks).
+re-reading the key-touching scripts on each change). The KDF Web Worker and the
+Argon2 it `importScripts` are loaded by `new Worker()`/`importScripts`, which SRI
+cannot cover, so (2026-10-17) `noodle-kdf.js` — which IS SRI-pinned — hard-codes a
+`sha384` of each (`NDK_PIN`), fetches both (cache-revalidated), checks them, and
+runs them from a Blob whose bytes ARE the verified bytes (no second-request gap);
+the worker's `importScripts` is guarded (`typeof self.hashwasm === 'undefined'`)
+so the inlined-vendor Blob never re-fetches it. A hash MISMATCH fails the derive
+closed (the privacy-nut wants that); a transient fetch error retries twice. This
+is why the CSP gained `worker-src blob:` and `script-src 'wasm-unsafe-eval'` (a
+blob worker inherits the page policy, and Argon2 is wasm — `wasm-unsafe-eval`
+permits wasm compilation only, not `eval()`/inline, so the injection story is
+unchanged). Pinned by `tests/test_noodle_kdf_pin.py` (recomputes the hashes from
+the files; `pin: true` opts in — `noodle-vote.js`, `noodle-rekey.js`). Residual: a
+tampered worker is now caught, but the hash lives in `noodle-kdf.js`, so the chain
+still rests on that file being the pinned repo copy. Sealed objects are also
+PADDED to 256-byte buckets (`ndePad` in `noodle-e2e.js`, clamped under `e2e.CT_MAX`
+so a near-full vote is never pushed over the server cap) so a record's size stops
+leaking a name's length or exact pick count; the pad is trailing spaces, which
+`JSON.parse` ignores, so `ndeOpen` is unchanged and records sealed before padding
+open identically (no migration). Rough pick count still coarsely leaks at the
+bucket granularity.
 `VERIFY.md` is the voter-facing recipe (Excalidraw-first; `<slug>`/`<token>`/`<key>`
 explained; the verifier; the by-hand check; and the honest "what you're
 guaranteed"); pinned by `tests/test_noodle_verify.py`.

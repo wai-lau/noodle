@@ -73,7 +73,7 @@ function ndrBegin() {
   NDR.oldPass = ndr$('nd-pass').value;
   NDR.oldPub = NDV.kdf.pub();
   NDR.keeperPub = new Promise(function (resolve, reject) {
-    NDR.keeper = window.NoodleKdf({ slug: ndeScope(), kdf: cfg, workerUrl: root.dataset.worker,
+    NDR.keeper = window.NoodleKdf({ slug: ndeScope(), kdf: cfg, workerUrl: root.dataset.worker, pin: true,
       onStart: function () {}, onDerived: function (d) { resolve(d.pub); }, onError: reject });
   });
   NDR.keeperPub.catch(function () {});   // surfaced at Commit, not as an unhandled rejection

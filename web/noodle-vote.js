@@ -222,7 +222,7 @@ function ndvInit() {
   ndvStepInit();
   ndv$('nd-ask').addEventListener('input', ndvSaveAsk);
   NDV.kdf = window.NoodleKdf({
-    slug: ndeScope(), kdf: NDV.kdfCfg, workerUrl: root.dataset.worker,
+    slug: ndeScope(), kdf: NDV.kdfCfg, workerUrl: root.dataset.worker, pin: true,
     onStart: ndvOnStart, onDerived: ndvOnDerived,
     onError: function (msg) {
       NDV.keyError = true;

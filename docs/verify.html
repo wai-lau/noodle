@@ -60,9 +60,13 @@
     is honest (and GitHub, and your browser). To trust that, read the code that touches your key — chiefly
     <code>web/noodle-e2e.js</code>, <code>noodle-vote.js</code>, <code>noodle-claim.js</code>,
     <code>noodle-commit.js</code>, <code>noodle-keystore.js</code> — and re-read them when they change.</p>
-    <p class="dim">Known residual: the passphrase key-derivation runs in a Web&nbsp;Worker, which the browser can't pin
-    with SRI; a tampered worker could leak a <i>passphrase</i> (not your names or times). The verifier can't see inside
-    a worker.</p>
+    <p class="dim">The passphrase key-derivation runs in a Web&nbsp;Worker. SRI can't pin a <code>new&nbsp;Worker()</code>,
+    so <code>noodle-kdf.js</code> (which SRI <i>does</i> pin) fetches the worker and its Argon2, checks them against a
+    hard-coded <code>sha384</code>, and runs them from a Blob of exactly those bytes &mdash; a mismatch stops the derive.
+    The <code>'wasm-unsafe-eval'</code> in the policy is for that worker's WebAssembly only; it does not permit
+    <code>eval()</code> or inline script, so nothing injected can still run. If you audit the repo, check that the
+    <code>sha384</code> in <code>noodle-kdf.js</code> matches <code>noodle-kdf-worker.js</code> and the vendored
+    <code>hash-wasm</code>.</p>
   </details>
 </main>
 
@@ -70,7 +74,7 @@
 // This file is public and self-contained — read it. It fetches ONLY the repo's
 // files from raw.githubusercontent.com to hash them; it never contacts the
 // noodle server. The page you paste is parsed inertly (DOMParser never runs it).
-const EXPECTED_CSP = "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'";
+const EXPECTED_CSP = "default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; worker-src 'self' blob:; object-src 'none'; base-uri 'none'; form-action 'self'";
 const REPOS = ['wai-lau/noodle', 'wai-lau/exec-fn'];
 const REFS = ['master', 'main'];
 
