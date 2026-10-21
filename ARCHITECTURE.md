@@ -328,6 +328,18 @@ History (month rendering, dot size): ARCHAEOLOGY.md 21e.
 
 ### 21f. The vote page
 
+**Nothing moves while it loads.** The card is served `.nd-booting`
+(`visibility:hidden`, so layout still builds underneath) and revealed in ONE
+frame by `ndvMaybeReveal` (end of `ndvPaintStep`): the poll loaded + rendered
+AND a returning voter's auto-step decided (taken, or ruled out once the key is
+made). Errors (`ndvBanner`) reveal at once; a 1.5s cap (`BOOT_CAP_MS`) covers a
+from-scratch Argon2. Before (2026-10-21) the bare HTML painted first, then the
+roster, note and calendar filled in and pushed everything ~150px down, and a
+returning voter's YOU step folded to PICK in front of them. Measured reveal
+~600-700ms on WebKit. A test that types into `#nd-name` right after a reload
+was racing that old window: the restored name opens on PICK, so tap
+`#nd-you-edit` first.
+
 **Read-only until the key is yours.** `.nd-off` (grey, calendar still SCROLLS, no
 `inert`) applies with no name, a key still deriving, or a voter's name with no
 passphrase yet; `.nd-locked` (grey AND `inert`) applies once the typed name is

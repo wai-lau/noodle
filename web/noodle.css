@@ -36,6 +36,13 @@ body.noodle {
    (.with-nav), whose script keeps --nav-h live on the root */
 body.noodle:not(.with-nav) { --nav-h: 0px; }
 
+/* a poll page paints NOTHING of the card until its first full render
+   (noodle-vote.js ndvReveal): the bare HTML has no roster, note or calendar,
+   and filling them in pushed everything ~150px down as it loaded.
+   visibility, not display: the layout is built underneath, so the reveal is
+   one frame with everything already where it belongs. */
+.nd-card.nd-booting { visibility: hidden; }
+
 .nd-card {
   /* no backing card: the page sits straight on the background */
   border: 0;

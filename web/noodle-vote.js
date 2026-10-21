@@ -23,8 +23,22 @@ function ndvStatus(msg, kind) {
 
 function ndvBanner(msg) {
   var el = ndv$('nd-banner');
+  if (msg) ndvReveal();   // an error is never kept behind the boot veil
   el.textContent = msg || '';
   el.hidden = !msg;
+}
+
+// The card stays hidden (.nd-booting, noodle.css) until it is drawn as it
+// will stay: the poll loaded and rendered, and a returning voter's step
+// (you -> pick, ndvPaintStep) decided. A key still being derived from scratch
+// (Argon2, seconds on a phone) is not waited for past BOOT_CAP_MS.
+var BOOT_CAP_MS = 1500;
+function ndvReveal() { var root = ndv$('noodle'); if (root) root.classList.remove('nd-booting'); }
+function ndvMaybeReveal() {
+  // the auto-step is decided: taken, or ruled out (the name is someone
+  // else's -- known only once the key is made; before, every held name is)
+  var decided = !NDV.autoStep || NDV.blocked || NDV.keyError || (ndvReady() && NDV.held && !NDV.mine);
+  if (NDV.poll && decided) ndvReveal();
 }
 
 function ndvReady() { return !!NDV.kdf && NDV.kdf.ready(); }
@@ -212,13 +226,14 @@ async function ndvLoadPoll() {
 function ndvInit() {
   var root = ndv$('noodle');
   if (!root || !root.dataset.slug) return;
+  setTimeout(ndvReveal, BOOT_CAP_MS);
   NDV.slug = root.dataset.slug;
   NDV.draft = root.dataset.draft || '';
   NDV.kdfCfg = JSON.parse(root.dataset.kdf);
   // end-to-end: the key from the link (or a new one for a fresh draft); a
   // link without one can show nothing (noodle-e2e.js)
   NDV.e2e = root.dataset.e2e === '1';
-  if (NDV.e2e && !ndeInit()) return;
+  if (NDV.e2e && !ndeInit()) { ndvReveal(); return; }
   ndvStepInit();
   ndv$('nd-ask').addEventListener('input', ndvSaveAsk);
   NDV.kdf = window.NoodleKdf({

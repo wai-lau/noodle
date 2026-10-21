@@ -106,8 +106,10 @@ def test_the_ask_text_is_kept_per_poll_and_name(browser, base_url, noodle_slug):
         page.wait_for_function("(NDV.step !== 'pick' && ndvCanNext() && ndvStep('pick'), !document.getElementById('noodle').classList.contains('nd-off'))", timeout=20000)
         page.fill("#nd-ask", "fridays after work")
         page.reload()
-        page.fill("#nd-name", "smoke asker two")
+        # the name comes back by itself, and the page opens on the pick step
+        # (the card stays hidden until it has, .nd-booting), so no typing here
         page.wait_for_function("document.getElementById('nd-ask').value === 'fridays after work'", timeout=20000)
+        page.click("#nd-you-edit")
         page.fill("#nd-name", "smoke someone else")   # another name: its own (empty) text
         page.wait_for_function("document.getElementById('nd-ask').value === ''", timeout=20000)
     finally:

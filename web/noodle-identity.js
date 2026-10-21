@@ -154,6 +154,7 @@ function ndvPaintStep() {
   if (NDV.seal) you.style.setProperty('--seal-hsl', NDV.seal.ink); else you.style.removeProperty('--seal-hsl');
   ndv$('nd-submit').inert = !pick;
   if (was !== NDV.step && window.ndhRole) ndhTitleMarks(ndhRole(ndvReady() ? ndvPub() : null));
+  ndvMaybeReveal();
 }
 
 // wired by ndvInit: this file loads before NDV exists (noodle-vote.js)
