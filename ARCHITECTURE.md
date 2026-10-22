@@ -482,6 +482,20 @@ later host edit reaches everyone; a voter on a NEW device gets their vote back
 with their passphrase; on the e2e poll the server's JSON and HTML hold no name,
 title, note or slot, and a link without its key opens nothing.
 
+**Smoke + old polls** — `tests/test_noodle_browser_smoke.py`, run by exec-fn's
+pre-commit on any noodle commit touching `web/`/`api/` (~20s): a guest-made poll
+voted by host + guest with TYPED names and REAL taps (no `setSel`/`ndvStep`).
+The first run saves that poll's link to `api/data/noodle-smoke-poll.json`, kept
+forever, so each run also reopens an ever-older e2e poll and unlocks its guest's
+seat. `api/data/noodle-smoke-legacy.json` lists hand-picked REAL polls per older
+era (from pre-2026-10-14 unmasked nginx logs), opened read-only. Both files are
+gitignored on purpose: a slug is the poll's key and this repo is public.
+**The plain entries are special exceptions, not a contract** — keeping them
+working is no argument for keeping plain-poll support; a security change that
+drops it deletes the entry. Eras with nothing to test (2026-10-21): a plain poll
+sealed from birth (the 10-08 21:46 -> 10-09 09:52 window made none) and a
+pre-`v:2` e2e poll (its `#k=` never reaches the server).
+
 `test_noodle_isolation.py` is an AST import-graph audit (the app-module list is
 derived from exec-fn's `api/` + every other `apps/*/api`), a check that no noodle
 source mentions Exec/GLaDOS/TTS, plus a runtime audit wrapping `open`/`os.mkdir`/
