@@ -131,8 +131,19 @@ body.noodle-tc {
   background: transparent;   /* the ground is html's (above) */
 }
 
-/* [P2] never justified */
-.noodle-tc p, .noodle-tc label, .noodle-tc li { text-align: inherit; text-justify: none; }
+/* EVERYTHING centred -- text, labels, fields, buttons (owner, 2026-10-23);
+   [P2] never justified */
+.noodle-tc #noodle, .noodle-tc #noodle-admin { text-align: center; }
+.noodle-tc p, .noodle-tc label, .noodle-tc li { text-align: center; text-justify: none; }
+
+/* fields stay full width; only their labels and text are centred */
+.noodle-tc .nd-field { align-items: stretch; }
+
+.noodle-tc .nd-field > span, .noodle-tc .nd-dirty, .noodle-tc .nd-why, .noodle-tc .nd-status,
+.noodle-tc .nd-you-sum, .noodle-tc .nd-another { justify-content: center; text-align: center; }
+.noodle-tc input[type="text"], .noodle-tc textarea { text-align: center; }
+.noodle-tc .nd-submit, .noodle-tc .nd-another a { margin-inline: auto; }
+.noodle-tc .nd-another { display: flex; justify-content: center; }
 
 /* ── headings: Baskerville in the ink ─────────────────────────────────────── */
 .noodle-tc .nd-title {
@@ -200,7 +211,7 @@ body.noodle-tc {
   margin: 0 0 var(--space-3);
   font-weight: var(--fw-bold);
   font-size: var(--tc-fs-body);
-  text-align: left;
+  text-align: center;
 }
 .noodle-tc #noodle:not(.nd-step-pick) #nd-you::before { content: 'Step 1 of 2: Your name'; }
 .noodle-tc #noodle.nd-step-pick #nd-pick::before { content: 'Step 2 of 2: Choose the times that work for you'; }
@@ -324,6 +335,14 @@ body.noodle-tc {
    and the skin's 18px / 1.5 pushed each day's pips off the bottom of the cell */
 .noodle-tc .nd-grid { font-size: var(--fs-sm); line-height: var(--lh-snug); }
 .noodle-tc .nd-n { font-family: var(--tc-sans); line-height: var(--lh-snug); text-shadow: none; }
+
+/* ONE weight for every day number. The shared sheet says a day's state with
+   its weight (bold = pickable or picked, regular = past / not offered), and
+   in Almarai bold reads as a bigger size -- "why are some dates different
+   sizes" (owner, 2026-10-23). Here state is said by other means: peach fill
+   (picked), the outline (offered), the strike (past). Specificity matches
+   the shared .nd-grid.host .nd-d:not(...) .nd-n rule; loaded later, it wins. */
+.noodle-tc .nd-cal-wrap .nd-grid .nd-d .nd-n { font-weight: var(--fw-bold); }
 
 
 /* WHO IS FREE: noodle's pips, one per person, in each voter's own colour
