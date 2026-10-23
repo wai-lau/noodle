@@ -349,6 +349,42 @@ body.noodle-tc {
    the shared .nd-grid.host .nd-d:not(...) .nd-n rule; loaded later, it wins. */
 .noodle-tc .nd-cal-wrap .nd-grid .nd-d .nd-n { font-weight: var(--fw-bold); }
 
+/* BIGGER day numbers (owner, 2026-10-23), set tight so the cell's pips still fit */
+.noodle-tc .nd-cal-wrap .nd-grid .nd-n { font-size: var(--fs-xl); line-height: var(--lh-none); }
+
+/* a STRUCK day (past, or outside the crop): a drawn line reaching well past
+   both sides of the number, not the font's own line-through, which barely
+   cleared the digits. The number shrinks to its own width so the line can be
+   measured from it. */
+.noodle-tc .nd-d.out .nd-n, .noodle-tc .nd-d.shut .nd-n { display: inline-block; text-decoration: none; }
+
+.noodle-tc .nd-d.out .nd-n::after, .noodle-tc .nd-d.shut .nd-n::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: -0.35em;
+  right: -0.35em;
+  height: 2px;
+  background: hsl(var(--tc-ink));
+}
+
+/* TODAY: a rust tab across the top of its cell, and its number in rust */
+.noodle-tc .nd-d.today::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--tc-press);
+  background: hsl(var(--tc-rust));
+}
+.noodle-tc .nd-cal-wrap .nd-grid .nd-d.today .nd-n { color: hsl(var(--tc-rust)); }
+
+/* the LAST column the same width as the rest: every other day gives 5px of
+   its box to the gap (a right border), the week's last day gave none and so
+   drew wider (measured: 46px boxes, 41px tiles, Saturday's 46) */
+.noodle-tc .nd-d.eow { border-right: 5px solid hsl(var(--green-hsl) / 0.12); }
+
 
 /* WHO IS FREE: noodle's pips, one per person, in each voter's own colour
    pulled INTO this palette (owner, 2026-10-23): the bright seal ink, sepia-
