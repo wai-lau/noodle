@@ -31,7 +31,7 @@
     'split each day into halves': 'Split each day into daytime and evening',
     'Commit': 'Save', 'Commit*': 'Save', 'committed.': 'Saved.',
     '* unsaved changes': 'Unsaved changes', 'all changes saved': 'All changes saved',
-    'or ask noodle': 'Or describe your availability', 'help me': 'Fill in',
+    'or ask noodle': 'Or describe your availability', 'help me': 'Fill in for me',
     'your noodle polls are end-to-end encrypted': 'Polls are end-to-end encrypted.',
     'noodle helper chatbot is not (it needs to read your requests to pick dates)':
       'The availability assistant is not: it reads your request to select dates.',

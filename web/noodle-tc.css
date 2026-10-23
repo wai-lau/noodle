@@ -110,6 +110,7 @@ body.noodle-tc {
   --tc-fs-small: 16px;
   --tc-lh: 1.5;
   --tc-press: 3px;    /* [P5] the pressable lip under a button */
+  --tc-weekcol: 28px;   /* the calendar's week column: just the month's name */
 
   /* noodle's ink tokens -> the deep green: every text, line and lit cell the
      shared sheets draw turns over here at once */
@@ -338,7 +339,12 @@ body.noodle-tc {
 
 /* inside the grid, noodle's own type metrics: its cells are sized for them,
    and the skin's 18px / 1.5 pushed each day's pips off the bottom of the cell */
-.noodle-tc .nd-grid { font-size: var(--fs-sm); line-height: var(--lh-snug); }
+.noodle-tc .nd-grid {
+  /* the week column holds only the month's name (no fill tools, below) */
+  grid-template-columns: var(--tc-weekcol) repeat(7, minmax(0, 1fr));
+  font-size: var(--fs-sm);
+  line-height: var(--lh-snug);
+}
 .noodle-tc .nd-n { font-family: var(--tc-sans); line-height: var(--lh-snug); text-shadow: none; }
 
 /* ONE weight for every day number. The shared sheet says a day's state with
@@ -367,6 +373,11 @@ body.noodle-tc {
   height: 2px;
   background: hsl(var(--tc-ink));
 }
+
+/* [P5] every day that can be TAPPED wears a 1px cream ring (owner,
+   2026-10-23): inset, inside the 5px gap borders, so it never shifts a cell.
+   Past and cropped-off (.out) and not-offered (.shut) days have none. */
+.noodle-tc .nd-d:not(.out, .shut) { box-shadow: inset 0 0 0 1px hsl(var(--tc-cream)); }
 
 /* TODAY: a rust tab across the top of its cell, and its number in rust */
 .noodle-tc .nd-d.today::before {
@@ -447,6 +458,19 @@ body.noodle-tc {
   filter: sepia(0.2) saturate(1.1) brightness(0.5);   /* = the pips' (above) */
 }
 .noodle-tc .nd-tc-legend i.plain { background: hsl(var(--tc-ink)); filter: none; }
+
+/* NO FILL TOOLS on this page (owner, 2026-10-23): the paint-bucket / eraser
+   button per weekday and per week, and the corner switch between them.
+   Days are tapped one at a time (or a half on a split day). */
+.noodle-tc .nd-grid .nd-tg, .noodle-tc .nd-grid .nd-mode { display: none; }
+
+/* so the week column holds only the month's name: 28px, not the shared
+   56px (40px of those buttons + 16px of name), the days get the rest */
+.noodle-tc .nd-mlabel { left: 6px; }
+
+/* the crop frame -- and the dimming outside it -- start at the first DAY,
+   not across the month column (owner, 2026-10-23) */
+.noodle-tc .nd-grid .nd-crop-h, .noodle-tc .nd-shade { left: var(--tc-weekcol); }
 
 /* the host's SPLIT switch UNDER the calendar (owner, 2026-10-23), not laid
    over its first row: --nd-split-in-grid tells noodle-host.js ndhPlaceSplit

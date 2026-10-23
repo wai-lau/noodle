@@ -351,3 +351,29 @@ def test_title_and_note_are_editable_on_the_you_step(browser, base_url):
     finally:
         page.close()
         httpx.delete(f"{base_url}/api/noodle-polls/{slug}", headers=auth)
+
+
+def test_a_host_tap_outside_the_crop_grows_it_and_picks_the_day(browser, base_url, crop_slug):
+    """A future day outside the crop is the host saying "this one too": the
+    crop grows to take in its week (pending until Commit) and the day is
+    picked. A past day stays untappable."""
+    page = browser.new_page(viewport={"width": 430, "height": 932})
+    try:
+        page.goto(f"{base_url}/noodle/{crop_slug}")
+        page.fill("#nd-name", "smoke grow host")
+        page.fill("#nd-pass", "grow host pass")
+        page.wait_for_function("(NDV.step !== 'pick' && ndvCanNext() && ndvStep('pick'), !document.getElementById('nd-cal').classList.contains('nd-readonly'))", timeout=20000)
+        page.wait_for_function("document.querySelector('.nd-cropbox')", timeout=10000)
+        today = page.evaluate("NoodleCalParts.iso(new Date())")
+        day = page.evaluate(f"[...document.querySelectorAll('#nd-cal .nd-d.out')].map(c => c.dataset.day).find(d => d > '{today}')")
+        assert day, "a future day outside the crop to tap"
+        before = page.evaluate("ndhCrop()")
+        cell = page.locator(f"#nd-cal .nd-d[data-day='{day}']")
+        cell.scroll_into_view_if_needed()
+        cell.click()
+        page.wait_for_function(f"!document.querySelector(\"#nd-cal .nd-d[data-day='{day}']\").classList.contains('out')", timeout=5000)
+        after = page.evaluate("ndhCrop()")
+        assert after["to"] >= day and after["from"] <= before["from"], (before, after)
+        assert any(s.startswith(day) for s in page.evaluate("[...NDV.cal.getSel()]")), "the tapped day is picked"
+    finally:
+        page.close()

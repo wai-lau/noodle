@@ -164,8 +164,28 @@ async function ndxSave(crop) {
   ndvSaveDraft();       // marks it unsaved
 }
 
+// A HOST tapping a future day OUTSIDE the crop means "offer this one too"
+// (owner, 2026-10-23): the crop grows just enough to take in that day's week
+// -- pending, saved by the next Commit like a drag -- and the tapped day (or
+// half) is picked. The past stays struck and untappable.
+function ndxTapOut(e) {
+  var cell = e.target.closest('.nd-d.out');
+  if (!cell || !NDV.cal || !ndxIsHost() || NDX.drag || ndx$('nd-cal').classList.contains('nd-readonly')) return;
+  var P = window.NoodleCalParts, day = cell.dataset.day;
+  if (!day || day < P.iso(new Date())) return;
+  var halves = window.ndhHalves ? window.ndhHalves() : !!(NDV.poll && NDV.poll.halves);
+  var slot = ndcSlotAt(cell, e, halves), sun = P.sunday(day), sat = P.addDays(sun, 6);
+  var c = ndhCrop() || { from: NDV.cal.weekOf(NDX.a)[0], to: NDV.cal.weekOf(NDX.b)[6] };
+  ndxSave({ from: sun < c.from ? sun : c.from, to: sat > c.to ? sat : c.to });   // rebuilds NDV.cal
+  var sel = NDV.cal.getSel();
+  sel.add(slot);
+  NDV.cal.setSel(sel);
+  ndvSaveDraft();
+}
+
 (function () {
   if (!ndx$('nd-cal')) return;
+  ndx$('nd-cal').addEventListener('click', ndxTapOut);
   window.addEventListener('pointermove', ndxMove);
   window.addEventListener('pointerup', ndxUp);
   window.addEventListener('pointercancel', ndxUp);
