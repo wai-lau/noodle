@@ -212,7 +212,10 @@ async function ndeView(raw) {
     var slots = o.slots.filter(function (s) { return typeof s === 'string' && NDE_SLOT_RE.test(s); });
     slots = ndeConvert(slots, head.halves);   // the split
     if (head.crop) slots = slots.filter(function (s) { return head.crop.from <= s.slice(0, 10) && s.slice(0, 10) <= head.crop.to; });
-    voters.push({ name: name, pub: v.pub, slots: slots, order: v.order });
+    // the name as typed (capitals), only if it IS this seat's name -- a record
+    // cannot show one name over another's seat
+    var shown = o.display && window.noodleNormName(o.display) === name ? window.noodleShownName(o.display) : name;
+    voters.push({ name: name, display: shown, pub: v.pub, slots: slots, order: v.order });
   });
   // the host's picks ARE the offer: a guest's dots show only within it
   if (voters.length) {
@@ -237,7 +240,7 @@ function ndeShowTexts() {
 
 async function ndeSendVote(name, slots, ts) {
   var pub = NDV.kdf.pub();
-  var ct = await ndeSeal('vote', pub, { name: window.noodleNormName(name), slots: slots });
+  var ct = await ndeSeal('vote', pub, { name: window.noodleNormName(name), display: window.noodleShownName(name), slots: slots });
   var sig = await NDV.kdf.sign(ndeCanon({ ct: ct, kind: 'e2e-vote', poll: NDV.slug, ts: ts }));
   var body = { pub: pub, ts: ts, ct: ct, sig: sig };
   // nothing sealed on the poll yet (a draft, or a poll whose first vote

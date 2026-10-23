@@ -19,6 +19,15 @@ function noodleNormName(raw) {
   return s;
 }
 
+// The name as its owner TYPED it (case kept, spaces tidied) -- what others
+// are shown -- or null when it is not a valid name at all. Identity stays
+// noodleNormName's: "Wai" and "wai" are one seat, one key; this is only how
+// that seat's name is written (owner, 2026-10-23: capitals allowed).
+function noodleShownName(raw) {
+  if (!noodleNormName(raw)) return null;
+  return String(raw).normalize('NFKC').split(/\s+/).filter(Boolean).join(' ');
+}
+
 function ndHex(bytes) {
   return Array.from(bytes, function (b) { return b.toString(16).padStart(2, '0'); }).join('');
 }
@@ -189,5 +198,6 @@ function NoodleKdf(opts) {
 if (typeof window !== 'undefined') {
   window.NoodleKdf = NoodleKdf;
   window.noodleNormName = noodleNormName;
+  window.noodleShownName = noodleShownName;
   window.noodleSalt = noodleSalt;
 }

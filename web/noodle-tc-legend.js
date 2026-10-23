@@ -76,7 +76,10 @@ function ndtcInk(pub) {
     if (ink) dot.style.setProperty('--seal-hsl', ink);
     else dot.className = 'plain';
     shape.forEach(function (k) { var v = seal.style.getPropertyValue(k); if (v) dot.style.setProperty(k, v); });
-    who.textContent = (face.classList.contains('you') ? 'You' : name) +
+    // the name as its owner typed it (the face's label), not data-name's
+    // lowercased identity
+    var label = face.querySelector('.nd-face-name');
+    who.textContent = (face.classList.contains('you') ? 'You' : (label ? label.textContent : name)) +
       (face.classList.contains('host') ? ' (host)' : '');
     li.append(dot, who);
     return li;

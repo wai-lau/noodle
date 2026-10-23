@@ -188,3 +188,36 @@ def test_an_old_era_poll_still_opens(browser, base_url, old):
         assert page.locator("#nd-voters .nd-face[data-name]:not([data-name=\"\"])").count() == len(poll["voters"]), "every voter has a face"
     finally:
         ctx.close()
+
+
+def test_a_name_keeps_its_capitals_for_everyone(browser, base_url, admin_headers):
+    """A name is shown as its owner typed it -- capitals and all -- to every
+    viewer of an end-to-end poll, while the seat stays case-blind (the
+    identity is the lowercased name)."""
+    cookie = _guest_cookie()
+    hctx, host = _device(browser, base_url, cookie)
+    slug = None
+    try:
+        host.goto(f"{base_url}/noodle")
+        host.click("#nd-create button")
+        host.wait_for_function("window.NDV && NDV.keyStr", timeout=WAIT)
+        slug, key = host.evaluate("[NDV.slug, NDV.keyStr]")
+        _sign_in(host, "Smoke Capital Host", "cap pass")
+        assert host.input_value("#nd-name") == "Smoke Capital Host", "capitals kept as typed"
+        _tap(host, 1)
+        _commit(host)
+        vctx, visitor = _device(browser, base_url)
+        try:
+            visitor.goto(f"{base_url}/noodle/{slug}#k={key}")
+            _opened(visitor)
+            visitor.wait_for_function("NDV.poll.voters.length === 1", timeout=WAIT)
+            seat = visitor.evaluate("NDV.poll.voters[0]")
+            assert seat["name"] == "smoke capital host", "the identity is the lowercased name"
+            assert seat["display"] == "Smoke Capital Host"
+            assert visitor.inner_text("#nd-voters .nd-face-name") == "Smoke Capital Host"
+        finally:
+            vctx.close()
+    finally:
+        hctx.close()
+        if slug:
+            httpx.delete(f"{base_url}/api/noodle-polls/{slug}", headers={"Authorization": admin_headers["Authorization"]})

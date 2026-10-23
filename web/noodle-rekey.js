@@ -144,7 +144,7 @@ async function ndrCommit(ts) {
 // the new one, with the vote re-sealed to the new key (and new name).
 async function ndrSealed(newpub, newname, ts) {
   var ct = await ndeSeal('vote', newpub, { name: window.noodleNormName(newname),
-    slots: Array.from(NDV.cal.getSel()).sort() });
+    display: window.noodleShownName(newname), slots: Array.from(NDV.cal.getSel()).sort() });
   var sig = await NDR.keeper.sign(ndeCanon({ ct: ct, kind: 'e2e-rekey', newpub: newpub, poll: NDV.slug, ts: ts }));
   return ndvPost('/rekey', { pub: NDR.oldPub, ts: ts, sig: sig, newpub: newpub, ct: ct });
 }

@@ -37,7 +37,7 @@ function ndrRender(el, voters, seals, myPub, canRemove, howto) {
       (v.blank ? '' : window.noodleEsc(v.name)) + '"' + (v.blank ? '' : ' title="' + v.slots.length + ' slots"') + '>' +
       '<pre class="nd-seal xs' + (seal ? ' inked" style="--seal-hsl:' + seal.ink + '"' : '"') + '>' +
       (seal ? seal.html : '') +   // already escaped, face in <b> (noodle-seal.js)
-      '</pre><span class="nd-face-name">' + window.noodleEsc(v.name) + '</span>' +
+      '</pre><span class="nd-face-name">' + window.noodleEsc(v.display || v.name) + '</span>' +
       (v.order === 0 ? '<span class="nd-face-host">host</span>' : '') + '</button>' +
       // the host (and only the host) can remove a guest, and their vote with them
       (canRemove && v.order !== 0 && !v.pending ? '<button type="button" class="nd-face-rm" data-name="' +

@@ -126,7 +126,7 @@ async function ndvSubmit() {
     // never let the clipboard hold a commit up: some browsers leave the write
     // pending forever (no focus, no permission) -- 800ms, then carry on
     var copied = await Promise.race([copying, new Promise(function (r) { setTimeout(r, 800, false); })]);
-    ndvApproved(NDV.seal, window.noodleNormName(name), copied);
+    ndvApproved(NDV.seal, window.noodleShownName(name), copied);
     await ndvLoadPoll();
     ndvStatus('committed.');   // (clears a stale error)
     NDV.committed = (NDV.committed || 0) + 1;   // tests wait on this

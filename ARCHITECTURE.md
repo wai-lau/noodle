@@ -162,6 +162,16 @@ slug never leaks via Referer. CSP: see 21m.
 
 ### 21b. Identity: passphrase -> key -> seal
 
+**A name keeps its capitals; its SEAT does not** (2026-10-23). Identity is the
+normalized name (`noodleNormName` / `slots.normalize_name`: NFKC, spaces
+collapsed, lowercased) -- it salts the KDF and binds the seat, so "Wai" and
+"wai" are one person, one key. The field no longer lowercases as it is typed;
+an end-to-end vote (and a rekey) seals the typed form beside the identity as
+`display` (`noodleShownName`), and `ndeView` shows it ONLY when it normalizes
+to that seat's name, so no record can put one name over another's seat. Old
+records have no `display` and read as before; plain polls are stored by the
+server lowercased.
+
 ![Passphrase to key to seal: what stays in the browser](docs/arch/identity-key.svg)
 
 `noodle-kdf.js` debounces `KDF_DEBOUNCE_MS` (1000ms) after typing stops, then a

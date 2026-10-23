@@ -54,12 +54,14 @@ function ndvWarnEmpty() {
     : 'no passphrase: anyone can change your vote';
 }
 
-// Names are lowercase as they are typed. Identity was ALREADY case-blind (the
-// key is salted with, and the server binds by, the normalized name), so this
-// changes no key and merges no one -- it just stops "Wai" and "wai" looking
-// like two different people.
+// Names keep their CAPITALS as typed (owner, 2026-10-23; they used to be
+// lowercased here). Identity is case-blind regardless -- the key is salted
+// with, and the server binds by, the normalized name (noodleNormName) -- so
+// "Wai" and "wai" are still one seat; an end-to-end vote seals the typed
+// form beside it as `display` (noodle-e2e.js), shown only if it normalizes
+// to that seat's name.
 function ndvCleanFields() {
-  ndvKeepOnly(ndv$('nd-name'), true);
+  ndvKeepOnly(ndv$('nd-name'), false);
   ndvKeepOnly(ndv$('nd-pass'), false);
 }
 
@@ -150,7 +152,7 @@ function ndvPaintStep() {
   ndv$('nd-next-why').textContent = ndvNextWhy();
   ndv$('nd-next').disabled = !ndvCanNext();
   ndv$('nd-next').textContent = window.ndxIsHost && window.ndxIsHost() ? 'next: offer times' : 'next: pick times';
-  you.textContent = window.noodleNormName(ndv$('nd-name').value);
+  you.textContent = window.noodleShownName(ndv$('nd-name').value) || '';
   if (NDV.seal) you.style.setProperty('--seal-hsl', NDV.seal.ink); else you.style.removeProperty('--seal-hsl');
   ndv$('nd-submit').inert = !pick;
   if (was !== NDV.step && window.ndhRole) ndhTitleMarks(ndhRole(ndvReady() ? ndvPub() : null));
