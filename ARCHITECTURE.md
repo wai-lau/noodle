@@ -75,12 +75,20 @@ made or shared on a front end stays on it -- and any link opens on either.
 - **The look** re-points the shared palette tokens on `body.noodle-tc`
   (`--green/--gray/--cyan/--orange-hsl` -> one deep-green ink, `--bg-hsl` ->
   peach, `--font-mono` -> Almarai, `--radius-2` -> 10px), then sets type,
-  buttons and the ground. Contrast was MEASURED (ink 4.8:1 on the ground,
-  cream headings 3.04:1, large text only), which is why the ground is a step
-  darker and flatter than taridchange.com's: its own orange gave 2.2:1. The
-  ground is ONE colour at every edge (= theme-color): iOS tints its bars from
-  it, and a gradient left mismatched bands. No seal art: voters are name
-  cards and the calendar dots are one ink (a seal colour would name no one).
+  buttons and the ground: taridchange.com's orange-to-rust, MUTED (owner: its
+  own was too saturated), with NO theme-color so iOS Safari fades its bars
+  over the page instead of painting a hard band. Built to "UX accessibility
+  for elderly -- 12 principles" (Trzepla 2019), each rule tagged [P1]..[P12]
+  in the sheet: 18px type, line height 1.5, MEASURED contrast (ink >= 4.9:1
+  on every ground stop, 7.8:1 at the top; cream only on the rust, 7.4:1),
+  pressable bordered buttons, "Step 1 of 2" markers, external links said,
+  months in full, no decorative motion. No seal art: voters are name cards,
+  and the per-voter coloured dots are a NUMBER badge (how many are free;
+  split days count each half) drawn by CSS counters from the hidden dots --
+  NOT `:has(i.on)::after`, which WebKit fails to re-check when the dots are
+  injected later. The host's crop is a photo editor's frame (corners + edge
+  ticks), the outside dimmed with its hue kept, its grab strip 44px and
+  almost all OUTSIDE the crop so it never steals a tap on a day.
   Fonts are self-hosted (`fonts/tc-*.woff2`, SIL OFL): the vote CSP allows
   `font-src 'self'` only.
 - **The wording** is a DOM layer, not a fork: `noodle-tc-copy.js` rewrites

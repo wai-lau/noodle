@@ -67,7 +67,7 @@ def test_the_tc_pages_speak_in_their_own_words(browser, base_url, admin_headers)
         _sign_in(page, "tc host", "tc pass")
         _tap(page, 2)
         _no_leaks(page, "the host's pick step")
-        assert page.inner_text("#nd-submit") == "SAVE"   # "Save", uppercased by the skin
+        assert page.inner_text("#nd-submit") == "Save"   # sentence case, never spaced capitals
         assert not page.locator(".nd-seal").first.is_visible(), "no seal art on /noodle-tc"
     finally:
         ctx.close()

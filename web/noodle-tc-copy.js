@@ -16,7 +16,9 @@
 (function () {
   var NDTC_EXACT = {
     // the page
-    'noodle': 'Find a time', 'create poll': 'Create a poll', 'end-to-end encrypted': 'End-to-end encrypted',
+    'noodle': 'Find a time', 'create poll': 'Create a poll',
+    // [P6] a link that leaves the page says where it goes
+    'end-to-end encrypted': 'End-to-end encrypted: how it works (opens GitHub in a new tab)',
     'you are': 'Responding as', 'edit': 'Change', 'change': 'Change',
     'your name': 'Your name', 'passphrase (optional)': 'Passphrase (optional)',
     'no passphrase: anyone can change your vote': 'Without a passphrase, anyone can change your response.',
@@ -28,12 +30,15 @@
     'Commit': 'Save', 'Commit*': 'Save', 'committed.': 'Saved.',
     '* unsaved changes': 'Unsaved changes', 'all changes saved': 'All changes saved',
     'or ask noodle': 'Or describe your availability', 'help me': 'Fill in',
-    'your noodle polls are end-to-end encrypted': 'Polls are end-to-end encrypted.',
+    'your noodle polls are end-to-end encrypted': 'Polls are end-to-end encrypted: how it works (opens GitHub in a new tab)',
     'noodle helper chatbot is not (it needs to read your requests to pick dates)':
       'The availability assistant is not: it reads your request to select dates.',
     'make another noodle': 'Create another poll', 'make your own noodle': 'Create your own poll',
-    'I found a bug!': 'Report a problem', 'link copied to clipboard': 'Link copied',
+    'I found a bug!': 'Report a problem (opens your email)', 'link copied to clipboard': 'Link copied',
     'host': 'Host', 'remove': 'Remove', 'you': 'You',
+    // [P10] month names in full (the calendar's week column)
+    'jan': 'January', 'feb': 'February', 'mar': 'March', 'apr': 'April', 'may': 'May', 'jun': 'June',
+    'jul': 'July', 'aug': 'August', 'sep': 'September', 'oct': 'October', 'nov': 'November', 'dec': 'December',
     // placeholders, tooltips, labels
     'please help the host know who you are': 'Enter your name',
     'how shall the guests address you, host?': 'Enter your name',
