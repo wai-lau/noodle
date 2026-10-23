@@ -91,14 +91,24 @@ def _poll_or_404(slug: str) -> dict:
 
 
 # ── public: anyone holding the link ─────────────────────────────────────────
-@router.get("/noodle/{slug}", response_class=HTMLResponse)
-async def noodle_vote_page(slug: str, t: str | None = None):
+def _vote_page(slug: str, t: str | None, base: str) -> HTMLResponse:
     # a DRAFT: no poll yet, but its own token for this slug (drafts.py) --
     # every draft becomes an end-to-end poll
     if not store.exists(slug) and drafts.kind(slug, t) == "e2e":
         draft = {"slug": slug, "title": drafts.UNTITLED, "e2e": 1}
-        return HTMLResponse(pages.vote_page(draft, draft=t), headers=_PRIVATE_PAGE)
-    return HTMLResponse(pages.vote_page(_poll_or_404(slug)), headers=_PRIVATE_PAGE)
+        return HTMLResponse(pages.vote_page(draft, draft=t, base=base), headers=_PRIVATE_PAGE)
+    return HTMLResponse(pages.vote_page(_poll_or_404(slug), base=base), headers=_PRIVATE_PAGE)
+
+
+@router.get("/noodle/{slug}", response_class=HTMLResponse)
+async def noodle_vote_page(slug: str, t: str | None = None):
+    return _vote_page(slug, t, "/noodle")
+
+
+@router.get("/noodle-tc/{slug}", response_class=HTMLResponse)
+async def noodle_tc_vote_page(slug: str, t: str | None = None):
+    """The same poll in the Tarid Change front end (pages.SKINS)."""
+    return _vote_page(slug, t, "/noodle-tc")
 
 
 @router.get("/noodle/{slug}/results")
@@ -203,6 +213,12 @@ async def noodle_admin_page(request: Request):
     """GUEST tier (behind Cloudflare Turnstile): any guest may start a poll. The
     page lists no polls; the owner API below does (ids only)."""
     return HTMLResponse(pages.admin_page(request), headers=_ADMIN_PAGE)
+
+
+@guest_router.get("/noodle-tc", response_class=HTMLResponse)
+async def noodle_tc_admin_page(request: Request):
+    """/noodle in the Tarid Change front end: same tier, same create flow."""
+    return HTMLResponse(pages.admin_page(request, "/noodle-tc"), headers=_ADMIN_PAGE)
 
 
 @guest_router.post("/api/noodle-polls/new")

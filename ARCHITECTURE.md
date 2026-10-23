@@ -64,6 +64,40 @@ exists, so nothing in it may run at load.
 wrapper, OG slot), `noodle-vote.html` (poll body + scripts), `noodle-admin.html`
 (`/noodle` body + its 3 scripts).
 
+**Front ends** (`pages.SKINS`, 2026-10-23): ONE backend, one set of polls, two
+looks. `/noodle` + `/noodle/<slug>` is the original; `/noodle-tc` +
+`/noodle-tc/<slug>` (same tier each) is the Tarid Change look -- the SAME
+templates and JS, plus `noodle-tc.css` loaded LAST and `noodle-tc-copy.js` in
+the `<head>`. The shell carries `data-base` (`/noodle` or `/noodle-tc`) and
+`{{THEME}}`; the JS builds every page link from `data-base` (`noodle-admin.js`
+post-create redirect, `noodle-e2e.js` `ndeLink`, `noodle-share.js`), so a poll
+made or shared on a front end stays on it -- and any link opens on either.
+- **The look** re-points the shared palette tokens on `body.noodle-tc`
+  (`--green/--gray/--cyan/--orange-hsl` -> one deep-green ink, `--bg-hsl` ->
+  peach, `--font-mono` -> Almarai, `--radius-2` -> 10px), then sets type,
+  buttons and the ground. Contrast was MEASURED (ink 4.8:1 on the ground,
+  cream headings 3.04:1, large text only), which is why the ground is a step
+  darker and flatter than taridchange.com's: its own orange gave 2.2:1. The
+  ground is ONE colour at every edge (= theme-color): iOS tints its bars from
+  it, and a gradient left mismatched bands. No seal art: voters are name
+  cards and the calendar dots are one ink (a seal colour would name no one).
+  Fonts are self-hosted (`fonts/tc-*.woff2`, SIL OFL): the vote CSP allows
+  `font-src 'self'` only.
+- **The wording** is a DOM layer, not a fork: `noodle-tc-copy.js` rewrites
+  every text node / `placeholder` / `title` / `aria-label` whose whole text is
+  a key in its table (or matches a pattern: messages with a name or number in
+  them), plus the native `confirm()`. A MutationObserver runs before paint, so
+  the original words never show. It NEVER touches poll content (`#nd-title`,
+  `#nd-note`, names) -- `noodle-host.js` reads the title back to spot the
+  `title` placeholder, which `noodle-tc.css` shows as "Add a title" instead.
+  **A new or changed string in the shared JS shows in noodle's own words on
+  /noodle-tc until its line is added to that table**; server error text
+  (`votes.py` etc.) is not translated.
+- **Security wiring outside this repo**: both slug masks cover `/noodle-tc/`
+  (exec-fn `api/log_masking.py`, nginx `conf.d/noodle-log-mask.conf`), and the
+  guest page set lists it (exec-fn `_GUEST_NEXT_ALLOWED`, the 401 handler).
+  Any further front end needs all four.
+
 **Tests** (`tests/test_noodle_*.py`): unit — isolation, crypt (at rest), votes,
 host, rekey, drafts, ask, rules, holidays, names, convert, toggle, glyphs,
 limits, stats, legacy, hardening, e2e, e2e_view. Browser (WebKit/Playwright) —

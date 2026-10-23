@@ -94,20 +94,24 @@ def _view(page, n):
                          " voters: Object.fromEntries(NDV.poll.voters.map(v => [v.name, [...v.slots].sort()]))})")
 
 
-def test_a_new_poll_takes_votes_from_real_taps(browser, base_url, admin_headers):
+# every FRONT END (noodle pages.SKINS): one backend, so the same flow on each
+@pytest.mark.parametrize("front", ["/noodle", "/noodle-tc"])
+def test_a_new_poll_takes_votes_from_real_taps(browser, base_url, admin_headers, front):
     cookie = _guest_cookie()
     hctx, host = _device(browser, base_url, cookie)
     slug, keep = None, False
     try:
-        host.goto(f"{base_url}/noodle")
+        host.goto(f"{base_url}{front}")
         host.click("#nd-create button")
         host.wait_for_function("window.NDV && NDV.keyStr", timeout=WAIT)
         slug, key = host.evaluate("[NDV.slug, NDV.keyStr]")
-        path = f"/noodle/{slug}#k={key}"   # saved without the origin: any SMOKE_BASE_URL
+        assert host.url.startswith(f"{base_url}{front}/{slug}"), "a poll opens in the front end it was made in"
+        path = f"{front}/{slug}#k={key}"   # saved without the origin: any SMOKE_BASE_URL
         link = base_url + path
         _sign_in(host, *HOST)
         _tap(host, 3)
         _commit(host)
+        assert host.evaluate("ndeLink()") == link, "the share link stays in this front end"
 
         gctx, guest = _device(browser, base_url)
         try:
@@ -129,7 +133,7 @@ def test_a_new_poll_takes_votes_from_real_taps(browser, base_url, admin_headers)
         assert len(seen["voters"][HOST[0]]) == 3 and len(seen["voters"][GUEST[0]]) == 2
         assert set(seen["voters"][GUEST[0]]) <= set(seen["voters"][HOST[0]]), "a guest picks only what was offered"
 
-        if not SAVED.exists():   # the first one becomes the old poll for every later run
+        if front == "/noodle" and not SAVED.exists():   # the first one becomes the old poll for every later run
             SAVED.write_text(json.dumps({"path": path, "slug": slug, "made": host.evaluate("new Date().toISOString()"),
                                          "title": seen["title"], "voters": seen["voters"]}, indent=2))
             keep = True

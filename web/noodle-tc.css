@@ -1,0 +1,292 @@
+/* noodle-tc -- the Tarid Change front end (/noodle-tc, pages.SKINS): the SAME
+   templates and JS as /noodle, restyled by this one sheet, loaded last.
+   The look is taridchange.com's: a warm orange ground with grain, cream
+   Libre Baskerville headings, Almarai for the working text in a deep green
+   ink, soft 10px corners, peach buttons lettered in that green. No seal art (owner, 2026-10-23): voters are name cards.
+   The wording is noodle-tc-copy.js's.
+
+   It works by RE-POINTING the palette tokens every noodle sheet already reads
+   (green = the ink, gray = the dim ink, cyan = accent, orange = alert,
+   bg = the dark under a shut half), so the whole page turns over in one place;
+   the rules after that only change type, shape and the few surfaces a token
+   cannot reach. Off the site palette on purpose (owner, 2026-10-23: this page
+   follows Tarid Change's colours and fonts, not chrome.css's).
+
+   Fonts are self-hosted (the vote page's CSP allows font-src 'self' only),
+   latin subsets from Google Fonts, both SIL OFL. */
+@font-face {
+  font-family: 'TC Baskerville';
+  src: url('/fonts/tc-libre-baskerville-400.woff2?v=1') format('woff2');
+  font-weight: 400 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'TC Baskerville';
+  src: url('/fonts/tc-libre-baskerville-400i.woff2?v=1') format('woff2');
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'TC Almarai';
+  src: url('/fonts/tc-almarai-400.woff2?v=1') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'TC Almarai';
+  src: url('/fonts/tc-almarai-700.woff2?v=1') format('woff2');
+  font-weight: 700;
+  font-display: swap;
+}
+
+/* the ORIGINAL monospace, kept before body re-points --font-mono below: the
+   copy button's icon glyph is drawn from it. Read on html, where the token
+   still holds chrome.css's value, and inherited as that value. */
+html:has(body.noodle-tc) {
+  --tc-mono: var(--font-mono);
+  --tc-cream: 32 71% 96%;     /* #fcf5ed: headings, and type on the rust */
+  --tc-peach: 31 97% 88%;     /* #fee1c3: buttons, fields */
+  --tc-sand: 31 64% 59%;      /* #d99954: the ground's top */
+  --tc-amber: 27 63% 57%;     /* #d68a4b */
+  --tc-clay: 20 61% 52%;      /* #cf6a39 */
+  --tc-rust: 11 85% 40%;      /* #bd2f0f: the logo red -- the ground's foot, calendar heads, banner */
+  --tc-ink: 162 55% 10%;      /* taridchange.com's #164b3a, deepened: all working text */
+
+  /* CONTRAST (WCAG, measured 2026-10-23): ink on sand 5.7:1, on clay 4.3:1
+     (working text sits above the rust); cream on rust 5.4:1 (the foot);
+     ink on peach 12:1. Cream HEADINGS on the sand top are 2.25:1 -- as on
+     taridchange.com itself: the owner chose its look over a darker ground
+     ("visually match as much as you can"). */
+  min-height: 100%;
+
+  /* the ground: taridchange.com's orange sliding to its rust down the whole
+     document, under a grain. NO theme-color (pages.SKINS): iOS Safari then
+     fades its bars over this, as on that site -- a solid theme-color drew a
+     hard band (owner, 2026-10-23). */
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .22 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"),
+    linear-gradient(180deg, hsl(var(--tc-sand)) 0%, hsl(var(--tc-amber)) 35%, hsl(var(--tc-clay)) 75%, hsl(var(--tc-rust)) 100%) hsl(var(--tc-sand));
+}
+
+body.noodle-tc {
+  /* 'Noodle Glyphs' first in each: it holds only noodle's icon glyphs
+     (unicode-range, noodle.css), so letters fall through to the face named */
+  --tc-serif: 'Noodle Glyphs', 'TC Baskerville', georgia, serif;
+  --tc-sans: 'Noodle Glyphs', 'TC Almarai', system-ui, sans-serif;
+
+  /* noodle's ink tokens -> the deep green: every text, line and lit cell the
+     shared sheets draw turns over here at once */
+  --green-hsl: var(--tc-ink);
+  --gray-hsl: var(--tc-ink);
+  --cyan-hsl: var(--tc-ink);
+  --orange-hsl: var(--tc-ink);
+  --orange-glow-hsl: var(--tc-ink);
+  --bg-hsl: var(--tc-peach);
+  --radius-2: 10px;   /* taridchange.com's corner: every noodle box rounds to it */
+  --tc-fs-field: 16px;   /* a field's type: under 16px, iOS zooms the page on focus */
+
+  /* every noodle rule that names the monospace gets Almarai instead */
+  --font-mono: 'Noodle Glyphs', 'TC Almarai', system-ui, sans-serif;
+
+  font-family: var(--tc-sans);
+  font-size: var(--fs-sm);
+  color: hsl(var(--tc-ink));
+  background: transparent;   /* the ground is html's (above) */
+}
+
+/* ── headings: cream Baskerville ──────────────────────────────────────────── */
+.noodle-tc .nd-title {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  font-family: var(--tc-serif);
+  font-weight: var(--fw-normal);
+  font-size: clamp(2rem, 9vw, 3.25rem);
+  line-height: var(--lh-tight);
+  letter-spacing: 0;
+  text-transform: none;
+  overflow-wrap: anywhere;
+  margin: 0 0 var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  color: hsl(var(--tc-cream));
+  border: 1px solid hsl(var(--tc-cream));
+  border-radius: var(--radius-2);
+}
+
+/* the host's untouched placeholder title ("title", which noodle-host.js reads
+   back, so it is never reworded in the DOM): shown as "Add a title" instead,
+   the real text back the moment the host taps in to type over it */
+.noodle-tc .nd-title.untitled { text-decoration: none; }
+
+.noodle-tc .nd-title.untitled:not(:focus) { font-size: 0; }
+
+.noodle-tc .nd-title.untitled:not(:focus)::after {
+  content: 'Add a title';
+  font-size: clamp(2rem, 9vw, 3.25rem);
+  color: hsl(var(--tc-cream));
+}
+
+.noodle-tc .nd-subnote, .noodle-tc .nd-pick-note, .noodle-tc .nd-ask-label {
+  font-family: var(--tc-serif);
+  font-style: italic;
+  font-weight: var(--fw-normal);
+  font-size: var(--fs-xl);
+  line-height: var(--lh-snug);
+  letter-spacing: 0;
+  overflow-wrap: anywhere;
+  color: hsl(var(--tc-cream));
+}
+.noodle-tc .nd-subnote.editable:empty::before { content: 'Add a description'; color: hsl(var(--tc-cream)); }
+.noodle-tc .nd-pick-note { margin: 0 0 var(--space-4); }
+.noodle-tc .nd-subnote { margin-top: var(--space-2); }
+
+/* ── working text: the deep green, full strength, readable size ───────────── */
+.noodle-tc .nd-dim, .noodle-tc .nd-why, .noodle-tc .nd-dirty, .noodle-tc .nd-status,
+.noodle-tc .nd-field > span, .noodle-tc .nd-warn, .noodle-tc .nd-you-sum {
+  font-size: var(--fs-sm);
+  letter-spacing: 0;
+  color: hsl(var(--tc-ink));
+}
+.noodle-tc .nd-warn { font-weight: var(--fw-bold); }
+.noodle-tc a { color: hsl(var(--tc-ink)); text-decoration: underline; text-underline-offset: 3px; }
+.noodle-tc .nd-ask .nd-ask-helper { color: hsl(var(--tc-ink)); }
+.noodle-tc .nd-you-sum { flex-wrap: wrap; }
+.noodle-tc #nd-you-name { color: hsl(var(--tc-ink)); overflow-wrap: anywhere; }
+
+/* errors: cream on the logo rust, never the ink-on-dark the token swap gave */
+.noodle-tc .nd-banner { background: hsl(var(--tc-rust)); color: hsl(var(--tc-cream)); border-color: hsl(var(--tc-cream)); }
+
+/* ── no seal art: voters are name cards, their dots one ink ───────────────── */
+.noodle-tc .nd-seal, .noodle-tc #nd-seal-row { display: none; }
+
+.noodle-tc .nd-face {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 44px;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid hsl(var(--tc-ink) / 0.45);
+  border-radius: var(--radius-2);
+}
+.noodle-tc .nd-face.you { border-color: hsl(var(--tc-ink)); background: hsl(var(--tc-peach) / 0.45); }
+.noodle-tc .nd-face-name, .noodle-tc .nd-face-host { color: hsl(var(--tc-ink)); letter-spacing: 0; }
+.noodle-tc .nd-face-rm { min-height: 44px; }
+
+.noodle-tc .nd-approved-by {
+  font-family: var(--tc-serif);
+  font-size: var(--fs-xl);
+  letter-spacing: 0;
+  text-transform: none;
+  color: hsl(var(--tc-ink));
+}
+
+/* a dot's colour was its voter's seal ink; with no seals it would name no one */
+.noodle-tc .nd-dots i.on, .noodle-tc .nd-dots i.on[style],
+.noodle-tc .nd-top-dots i.on, .noodle-tc .nd-top-dots i.on[style] { background: hsl(var(--tc-ink)); }
+
+/* ── fields: peach wells, ink type ─────────────────────────────────────────── */
+.noodle-tc input[type="text"], .noodle-tc textarea, .noodle-tc #nd-ask, .noodle-tc .nd-share .nd-url {
+  font-family: var(--tc-sans);
+  font-size: var(--tc-fs-field);
+  background: hsl(var(--tc-peach));
+  color: hsl(var(--tc-ink));
+  border: 1px solid hsl(var(--tc-ink) / 0.45);
+  border-radius: var(--radius-2);
+}
+.noodle-tc input::placeholder, .noodle-tc textarea::placeholder { color: hsl(var(--tc-ink) / 0.6); }
+.noodle-tc input:focus, .noodle-tc textarea:focus { outline: 2px solid hsl(var(--tc-ink)); outline-offset: 1px; }
+
+.noodle-tc button:focus-visible, .noodle-tc a:focus-visible, .noodle-tc .nd-face:focus-visible {
+  outline: 2px solid hsl(var(--tc-cream));
+  outline-offset: 2px;
+}
+
+/* ── buttons: peach, lettered in the green, as taridchange.com's ──────────── */
+.noodle-tc .nd-submit, .noodle-tc .nd-rekey, .noodle-tc .nd-ask-go {
+  font-family: var(--font-mono);   /* = Almarai here (re-pointed above) */
+  font-weight: var(--fw-bold);
+  font-size: var(--fs-2xs);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  min-height: 44px;
+  min-width: 44px;
+  background: hsl(var(--tc-peach));
+  color: hsl(var(--tc-ink));
+  border: none;
+  border-radius: var(--radius-2);
+}
+.noodle-tc .nd-submit { padding-inline: var(--space-8); }
+
+.noodle-tc .nd-submit:disabled, .noodle-tc .nd-ask-go:disabled {
+  background: hsl(var(--tc-peach) / 0.45);
+  color: hsl(var(--tc-ink) / 0.6);
+}
+
+/* the foot sits on the rust end of the ground: cream there */
+.noodle-tc .nd-another a { color: hsl(var(--tc-cream)); border-color: hsl(var(--tc-cream)); letter-spacing: 0; }
+
+/* the copy-link button keeps its icon glyph */
+.noodle-tc #nd-copy { font-family: 'Noodle Glyphs', var(--tc-mono); font-size: inherit; }
+
+/* ── the calendar: rust heads in cream, ink days ───────────────────────────── */
+.noodle-tc .nd-cal-wrap { border-radius: var(--radius-2); overflow: hidden; }
+.noodle-tc .nd-hd, .noodle-tc .nd-wk { background: hsl(var(--tc-rust)); color: hsl(var(--tc-cream)); }
+.noodle-tc .nd-hd, .noodle-tc .nd-mlabel { font-family: var(--tc-serif); font-style: italic; }
+.noodle-tc .nd-mlabel, .noodle-tc .nd-mlabel span { color: hsl(var(--tc-cream)); }
+.noodle-tc .nd-n { font-family: var(--tc-sans); text-shadow: none; }
+
+/* a picked day fills with the ink: its number turns cream to stay legible */
+.noodle-tc .nd-d.mid .nd-n, .noodle-tc .nd-d.nit .nd-n { color: hsl(var(--tc-cream)); }
+
+/* ── the landing page: a headline, the button, the note -- set high, not
+   floated in the middle of the screen ─────────────────────────────────────── */
+.noodle-tc #noodle-admin { justify-content: flex-start; padding-top: 22dvh; }
+
+.noodle-tc .nd-brand {
+  margin: 0 0 var(--space-8);
+  border: none;
+  padding: 0;
+  font-style: italic;
+  font-size: clamp(2.5rem, 12vw, 4rem);
+  text-shadow: none;
+}
+
+/* ── the host's crop: a photo editor's frame (owner, 2026-10-23) ───────────
+   The crop only moves up and down (first week, last week), so the frame is
+   L-shaped cream corners plus a centre tick on the top and bottom edges --
+   the draggable ones -- and no side ticks, which would promise a sideways
+   crop there is none of. What it leaves out goes darker, keeping its hue:
+   the shared sheet's grayscale + 0.55 read near-black on the orange. */
+.noodle-tc .nd-shade { backdrop-filter: brightness(0.75); }
+
+.noodle-tc .nd-grid .nd-crop-h {
+  --tc-frame: linear-gradient(hsl(var(--tc-cream)), hsl(var(--tc-cream)));
+  --tc-edge: 3px;
+
+  border: none;
+}
+
+.noodle-tc .nd-grid .nd-crop-h.top {
+  background:
+    var(--tc-frame) left top / 18% var(--tc-edge) no-repeat,
+    var(--tc-frame) center top / 18% var(--tc-edge) no-repeat,
+    var(--tc-frame) right top / 18% var(--tc-edge) no-repeat,
+    var(--tc-frame) left top / var(--tc-edge) 100% no-repeat,
+    var(--tc-frame) right top / var(--tc-edge) 100% no-repeat;
+}
+
+.noodle-tc .nd-grid .nd-crop-h.bot {
+  background:
+    var(--tc-frame) left bottom / 18% var(--tc-edge) no-repeat,
+    var(--tc-frame) center bottom / 18% var(--tc-edge) no-repeat,
+    var(--tc-frame) right bottom / 18% var(--tc-edge) no-repeat,
+    var(--tc-frame) left bottom / var(--tc-edge) 100% no-repeat,
+    var(--tc-frame) right bottom / var(--tc-edge) 100% no-repeat;
+}
+
+/* the frame IS the handle: the grip strokes stay as hit areas, unseen */
+.noodle-tc .nd-crop-h .grip { opacity: 0; }

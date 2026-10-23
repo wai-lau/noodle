@@ -35,7 +35,9 @@ function ndeFromB64u(s) {
 
 // The link to hand on: on an end-to-end poll it MUST carry the key.
 function ndeLink() {
-  return location.origin + '/noodle/' + NDV.slug + (NDV.keyStr ? '#k=' + NDV.keyStr : '');
+  // the front end this page is (the shell's data-base): a link shared from
+  // /noodle-tc opens on /noodle-tc
+  return location.origin + (document.body.dataset.base || '/noodle') + '/' + NDV.slug + (NDV.keyStr ? '#k=' + NDV.keyStr : '');
 }
 
 // What the passphrase KDF is salted with. On an end-to-end poll the poll key

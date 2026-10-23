@@ -38,8 +38,26 @@ def _og(title: str, desc: str, path: str) -> str:
     return "\n".join(out + ['<meta name="twitter:card" content="summary_large_image">'])
 
 
-def _page(title: str, body: str, og: str = "") -> str:
-    return _fill(_tmpl("noodle-shell.html"), TITLE=html.escape(title), OG=og, BODY=body)
+# The FRONT ENDS: one backend, one set of polls (a link opens on either), each
+# its own page base and look. "/noodle" is the original; "/noodle-tc" is the
+# same templates and JS, restyled by ONE stylesheet layered last (noodle-tc.css)
+# and reworded by ONE script in the head (noodle-tc-copy.js): the Tarid Change
+# look, plain professional wording. A skin changes no behaviour: anything it
+# would need to change belongs in the shared JS, for both.
+# base -> (skin name, theme-color: what iOS/Android tint the browser bars, or
+# None for none -- then iOS Safari fades its bars over the page, as
+# taridchange.com does, instead of painting a solid band; owner 2026-10-23).
+SKINS = {"/noodle": ("", "#000"), "/noodle-tc": ("noodle-tc", None)}
+
+
+def _page(title: str, body: str, og: str = "", base: str = "/noodle", nav: bool = False) -> str:
+    skin, theme = SKINS[base]
+    css = f'<link rel="stylesheet" href="/{skin}.css?v=1">\n' if skin else ""
+    js = f'<script src="/{skin}-copy.js?v=1"></script>\n' if skin else ""
+    cls = (" " + skin if skin else "") + (" with-nav" if nav else "")
+    return _fill(_tmpl("noodle-shell.html"), TITLE=html.escape(title), OG=og, BODY=body,
+                 BASE=base, SKIN_CSS=css, SKIN_JS=js, BODY_CLASS=cls,
+                 THEME=f'<meta name="theme-color" content="{theme}">' if theme else "")
 
 
 # SUBRESOURCE INTEGRITY for the vote page (noodle ARCHITECTURE.md 21m, "code
@@ -83,7 +101,7 @@ def _kdf_attrs() -> str:
     return html.escape(json.dumps(kdf), quote=True)
 
 
-def vote_page(poll: dict, draft: str = "") -> str:
+def vote_page(poll: dict, draft: str = "", base: str = "/noodle") -> str:
     # an END-TO-END poll's title and note are sealed (e2e.py): the server has
     # none to write, so the page and its link preview say just "noodle" and
     # the browser fills the real ones in once it has opened them. A draft
@@ -100,9 +118,10 @@ def vote_page(poll: dict, draft: str = "") -> str:
         NOTE=html.escape(note),
         KDF=_kdf_attrs(),
         ASK_MAX=str(config.ASK_MAX_CHARS),
+        BASE=base,
     )
-    og = _og("noodle" if sealed else shown, note, "/noodle/" + poll["slug"])
-    page = _page("noodle" if sealed else f"noodle: {shown}", body, og)
+    og = _og("noodle" if sealed else shown, note, f"{base}/{poll['slug']}")
+    page = _page("noodle" if sealed else f"noodle: {shown}", body, og, base)
     # Mirror the vote-page CSP (sent as a header by routes) into a <meta> in the
     # <head>, so the "no inline/eval scripts" rule is IN the bytes a link holder
     # verifies -- the browser enforces it even if a hostile server strips the
@@ -136,11 +155,11 @@ def set_owner(fn) -> None:
     _is_owner = fn
 
 
-def admin_page(request=None) -> str:
-    body = _tmpl("noodle-admin.html")
-    page = _page("noodle", body, _og("noodle", "", "/noodle"))
-    if _nav and request is not None:
-        page = page.replace('<body class="noodle">', '<body class="noodle with-nav">', 1)
+def admin_page(request=None, base: str = "/noodle") -> str:
+    # the site's nav belongs to the original front end only: a skin is its own look
+    nav = bool(_nav and request is not None and not SKINS[base][0])
+    page = _page("noodle", _tmpl("noodle-admin.html"), _og("noodle", "", base), base, nav)
+    if nav:
         page = page.replace("</body>", _nav(request) + "</body>", 1)
     return page
 

@@ -7,11 +7,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex, nofollow">
 <title>{{TITLE}}</title>
-{{OG}}
+{{SKIN_JS}}{{OG}}
 <!-- --bg-hsl as hex (a meta tag cannot read var()). theme-color also paints an
      installed app's title bar and some browsers' toolbars, so it is the page's
      black, not green -- which also makes Discord's embed stripe black -->
-<meta name="theme-color" content="#000">
+{{THEME}}
 <link rel="icon" href="/favicon.png">
 <link rel="preload" href="/fonts/iosevka-500.woff2?v=1" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/fonts/noodle-seal.woff2?v=6" as="font" type="font/woff2" crossorigin>
@@ -25,8 +25,8 @@
 <link rel="stylesheet" href="/noodle-created.css?v=1">
 <link rel="stylesheet" href="/noodle-foot.css?v=5">
 <link rel="stylesheet" href="/noodle-cal.css?v=74">
-</head>
-<body class="noodle">
+{{SKIN_CSS}}</head>
+<body class="noodle{{BODY_CLASS}}" data-base="{{BASE}}">
 <!-- the page scrolls in chrome.css's .page-scroll wrapper; the calendar page
      and /noodle turn it static and let the document scroll (noodle-cal.css).
      No CRT stack: noodle is the one plain page (dropped 2026-10-03, feedback) -->

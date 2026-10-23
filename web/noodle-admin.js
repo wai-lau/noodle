@@ -22,7 +22,10 @@ async function ndmCreate(e) {
     body: JSON.stringify({ claim: claim.pub }) });
   var d = await r.json().catch(function () { return {}; });
   if (!r.ok) { msg.textContent = d.detail || 'could not start a poll'; return; }
-  location.href = d.url + '#k=' + key;   // straight to the new poll, its key in the fragment
+  // straight to the new poll, its key in the fragment, in THIS front end (the
+  // shell's data-base: /noodle or /noodle-tc); the server's url is /noodle's
+  var base = document.body.dataset.base || '/noodle';
+  location.href = base + d.url.slice('/noodle'.length) + '#k=' + key;
 }
 
 (function () {

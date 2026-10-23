@@ -10,7 +10,7 @@ function ndsIcon(btn, which) {
 
 function ndsShare(root) {
   // an end-to-end poll's link carries its key (noodle-e2e.js ndeLink)
-  var url = window.NDV && NDV.slug ? ndeLink() : location.origin + '/noodle/' + root.dataset.slug;
+  var url = window.NDV && NDV.slug ? ndeLink() : location.origin + (document.body.dataset.base || '/noodle') + '/' + root.dataset.slug;
   var box = document.getElementById('nd-url'), btn = document.getElementById('nd-copy');
   box.value = url;
   ndsIcon(btn, 'copy');
