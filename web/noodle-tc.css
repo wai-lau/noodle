@@ -379,6 +379,18 @@ body.noodle-tc {
    Past and cropped-off (.out) and not-offered (.shut) days have none. */
 .noodle-tc .nd-d:not(.out, .shut) { box-shadow: inset 0 0 0 1px hsl(var(--tc-cream)); }
 
+/* a split day's diagonal, and a guest's half-day outlines: the same cream as
+   the tappable-day ring (owner, 2026-10-23), not the shared sheet's ink */
+.noodle-tc .nd-grid:not(.single) .nd-d {
+  background-image: linear-gradient(330deg,
+    var(--bot) calc(50% - 1px),
+    hsl(var(--tc-cream)) calc(50% - 1px),
+    hsl(var(--tc-cream)) calc(50% + 1px),
+    var(--top) calc(50% + 1px));
+}
+.noodle-tc .nd-grid:not(.host) .nd-d { background-image: none; }
+.noodle-tc .nd-tri::before { background: hsl(var(--tc-cream)); }
+
 /* TODAY: a rust tab across the top of its cell, and its number in rust */
 .noodle-tc .nd-d.today::before {
   content: '';
@@ -397,26 +409,23 @@ body.noodle-tc {
 .noodle-tc .nd-d.eow { border-right: 5px solid hsl(var(--green-hsl) / 0.12); }
 
 
-/* WHO IS FREE: noodle's pips, one per person, in each voter's own colour
-   pulled INTO this palette (owner, 2026-10-23): the bright seal ink, sepia-
-   toned, softened and darkened, so every voter keeps a distinct hue but all
-   of them read as earth tones -- dark enough to stand on every cell with no
-   outline (the shared sheet rings each pip in --bg-hsl to lift it off the
-   dark; here nothing needs lifting). Your own pip (no ink yet) is the ink.
-   A number badge was tried and was too small to read. [P3] the legend
-   under the calendar says what a pip means. */
-.noodle-tc .nd-dots i.on, .noodle-tc .nd-top-dots i.on { outline: none; }
-.noodle-tc .nd-dots i.on:not([style]), .noodle-tc .nd-top-dots i.on:not([style]) { background: hsl(var(--tc-ink)); }
-
-.noodle-tc .nd-dots i.on[style], .noodle-tc .nd-top-dots i.on[style] {
-  filter: sepia(0.2) saturate(1.1) brightness(0.5);
+/* WHO IS FREE: noodle's pips, one per person, each voter's colour and shape
+   set by noodle-tc-legend.js (the hue circle shared out equally, one dark
+   earthy tone, then circle / square / triangle past 6 voters). That tone
+   sits in this palette, so no outline: the shared sheet rings each pip to
+   lift it off its dark ground, and here nothing needs lifting. Your own
+   pip (no ink yet) is the ink. [P3] the legend says whose pip is whose. */
+.noodle-tc .nd-dots i.on, .noodle-tc .nd-top-dots i.on, .noodle-tc .nd-tc-legend i {
+  outline: none;
+  border-radius: var(--tc-pip-r, var(--radius-pill));
+  clip-path: var(--tc-pip-clip, none);
 }
+.noodle-tc .nd-dots i.on:not([style]), .noodle-tc .nd-top-dots i.on:not([style]) { background: hsl(var(--tc-ink)); }
 
 /* a PICKED day is light (peach), not ink-filled, so the same dark pips and
    the ink number read on it as on any other day */
 .noodle-tc .nd-d.mid { --top: hsl(var(--tc-peach)); }
 .noodle-tc .nd-d.nit { --bot: hsl(var(--tc-peach)); }
-.noodle-tc .nd-tri::before { background: hsl(var(--tc-ink)); }
 
 /* a guest's OFFERED day carries a soft peach wash (solid once picked), so
    the pips read on it too, not on the bare ground */
@@ -455,7 +464,6 @@ body.noodle-tc {
   height: 12px;
   border-radius: var(--radius-pill);
   background: hsl(var(--seal-hsl));
-  filter: sepia(0.2) saturate(1.1) brightness(0.5);   /* = the pips' (above) */
 }
 .noodle-tc .nd-tc-legend i.plain { background: hsl(var(--tc-ink)); filter: none; }
 
@@ -518,7 +526,7 @@ body.noodle-tc {
 .noodle-tc .nd-shade { backdrop-filter: brightness(0.8); }
 
 .noodle-tc .nd-grid .nd-crop-h {
-  --tc-frame: linear-gradient(hsl(var(--tc-ink)), hsl(var(--tc-ink)));
+  --tc-frame: linear-gradient(hsl(var(--tc-cream)), hsl(var(--tc-cream)));   /* white (owner) */
   --tc-edge: 4px;
 
   border: none;

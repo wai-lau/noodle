@@ -91,9 +91,11 @@ made or shared on a front end stays on it -- and any link opens on either.
   and past the page's ends, so the two meet. Edge strips for the bars to
   sample did nothing on iOS 26 but draw a line.
 - **The calendar**: picked days are PEACH (not ink-filled), offered days a
-  soft peach wash, so one set of pips reads on every cell. Pips are each
-  voter's seal ink pulled into the palette by a filter (sepia + darker),
-  with no outline; a number badge was tried and was too small. NOT
+  soft peach wash, so one set of pips reads on every cell. Pips: N voters share the
+  hue circle EQUALLY (a triangle for 3, a square for 4) from a host hue seeded
+  by the slug, one dark earthy tone, no outline; past 6 voters they also take
+  a shape (circle / square / triangle), carried IN the ink string as
+  `--tc-pip-r` / `--tc-pip-clip` (`noodle-tc-legend.js` wraps `NoodleSeal.seal`); a number badge was tried and was too small. NOT
   `:has()` on the pips' pseudo-elements: WebKit does not re-check it when
   the dots are injected later. The host's crop is a photo editor's frame
   (corners + edge ticks), the outside dimmed with its hue kept, its grab
