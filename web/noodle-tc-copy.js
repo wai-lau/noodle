@@ -17,8 +17,9 @@
   var NDTC_EXACT = {
     // the page
     'noodle': 'Find a time', 'create poll': 'Create a poll',
-    // [P6] a link that leaves the page says where it goes
-    'end-to-end encrypted': 'End-to-end encrypted: how it works (opens GitHub in a new tab)',
+    // [P6] says a link leaves the page -- but NOT for the encryption link,
+    // whose "(opens GitHub)" the owner dropped (2026-10-23)
+    'end-to-end encrypted': 'End-to-end encrypted',
     'you are': 'Responding as', 'edit': 'Change', 'change': 'Change',
     'your name': 'Your name', 'passphrase (optional)': 'Passphrase (optional)',
     'no passphrase: anyone can change your vote': 'Without a passphrase, anyone can change your response.',
@@ -30,7 +31,7 @@
     'Commit': 'Save', 'Commit*': 'Save', 'committed.': 'Saved.',
     '* unsaved changes': 'Unsaved changes', 'all changes saved': 'All changes saved',
     'or ask noodle': 'Or describe your availability', 'help me': 'Fill in',
-    'your noodle polls are end-to-end encrypted': 'Polls are end-to-end encrypted: how it works (opens GitHub in a new tab)',
+    'your noodle polls are end-to-end encrypted': 'Polls are end-to-end encrypted.',
     'noodle helper chatbot is not (it needs to read your requests to pick dates)':
       'The availability assistant is not: it reads your request to select dates.',
     'make another noodle': 'Create another poll', 'make your own noodle': 'Create your own poll',
