@@ -448,6 +448,30 @@ body.noodle-tc {
 }
 .noodle-tc .nd-tc-legend i.plain { background: hsl(var(--tc-ink)); filter: none; }
 
+/* the host's SPLIT switch UNDER the calendar (owner, 2026-10-23), not laid
+   over its first row: --nd-split-in-grid tells noodle-host.js ndhPlaceSplit
+   to leave it out of the grid, and the pick step becomes a column whose
+   order puts the switch right after the calendar, before the legend */
+.noodle-tc #nd-pick { display: flex; flex-direction: column; }
+.noodle-tc #nd-pick > * { order: 0; }
+.noodle-tc #nd-pick > #nd-cal ~ * { order: 2; }
+.noodle-tc #nd-pick > .nd-submit { align-self: center; }
+
+.noodle-tc #nd-split-slot {
+  --nd-split-in-grid: no;
+
+  order: 1;
+  position: static;
+  margin: var(--space-3) 0 0;
+}
+
+.noodle-tc .nd-split {
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--tc-fs-small);
+  background: hsl(var(--tc-peach));
+  border-radius: var(--radius-2);
+}
+
 /* the most popular times (noodle-top.js), under the page: a heading, and
    the dates at a readable size (worded in full by noodle-tc-copy.js) */
 .noodle-tc .nd-top-box::before {

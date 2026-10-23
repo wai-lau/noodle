@@ -55,6 +55,9 @@ function ndhTitleMarks(role) {
 // the box and its words do.
 function ndhPlaceSplit() {
   var slot = ndh$('nd-split-slot'), grid = document.querySelector('#nd-cal .nd-grid');
+  // a front end that lays the box out itself says so in CSS (noodle-tc.css
+  // puts it under the calendar): then it stays where the template has it
+  if (slot && getComputedStyle(slot).getPropertyValue('--nd-split-in-grid').trim() === 'no') return;
   var rows = NDV.cal ? NDV.cal.rows() : [];
   if (!grid || !rows.length) return;
   if (slot.parentNode !== grid) grid.appendChild(slot);
