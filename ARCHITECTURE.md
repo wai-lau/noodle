@@ -67,8 +67,8 @@ wrapper, OG slot), `noodle-vote.html` (poll body + scripts), `noodle-admin.html`
 **Front ends** (`pages.SKINS`, 2026-10-23): ONE backend, one set of polls, two
 looks. `/noodle` + `/noodle/<slug>` is the original; `/noodle-tc` +
 `/noodle-tc/<slug>` (same tier each) is the Tarid Change look -- the SAME
-templates and JS, plus `noodle-tc.css` loaded LAST and `noodle-tc-copy.js` in
-the `<head>`. The shell carries `data-base` (`/noodle` or `/noodle-tc`) and
+templates and JS, plus `noodle-tc.css` loaded LAST, `noodle-tc-copy.js` in
+the `<head>` and `noodle-tc-legend.js` (deferred). The shell carries `data-base` (`/noodle` or `/noodle-tc`) and
 `{{THEME}}`; the JS builds every page link from `data-base` (`noodle-admin.js`
 post-create redirect, `noodle-e2e.js` `ndeLink`, `noodle-share.js`), so a poll
 made or shared on a front end stays on it -- and any link opens on either.
@@ -100,6 +100,13 @@ made or shared on a front end stays on it -- and any link opens on either.
   strip 44px and almost all OUTSIDE the crop so it never steals a tap. Inside
   the grid the type is noodle's own size: its cells are sized for it, and
   the skin's 18px pushed the pips out of the cell.
+- **No roster row**: the name cards and the host's guide are hidden (owner);
+  with them go tap-a-name-to-fill-it and the host's Remove-guest button.
+  The names live in the PIP LEGEND under the calendar (`noodle-tc-legend.js`):
+  it reads the hidden roster the shared JS still renders (`.nd-face`
+  data-name + the ink on its `.nd-seal`), redraws on every change, builds
+  names with `textContent`, and the wording layer skips it (a voter named
+  "noodle" stays "noodle").
 - Fonts are self-hosted (`fonts/tc-*.woff2`, SIL OFL): the vote CSP allows
   `font-src 'self'` only.
 - **The wording** is a DOM layer, not a fork: `noodle-tc-copy.js` rewrites

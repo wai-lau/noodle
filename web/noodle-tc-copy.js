@@ -26,7 +26,8 @@
     'no passphrase: anyone can change the entire poll, what a chaotic host':
       'Without a passphrase, anyone can edit this poll.',
     'next: pick times': 'Continue', 'next: offer times': 'Continue',
-    'when are you free? (everyone can see)': 'Select the times that work for you. Everyone with the link can see responses.',
+    // the step label above it already says what to do
+    'when are you free? (everyone can see)': 'Everyone with the link can see responses.',
     'split each day into halves': 'Split each day into daytime and evening',
     'Commit': 'Save', 'Commit*': 'Save', 'committed.': 'Saved.',
     '* unsaved changes': 'Unsaved changes', 'all changes saved': 'All changes saved',
@@ -95,7 +96,16 @@
     [/^note must be at most (\d+) characters$/, 'The note can be at most $1 characters.'],
     [/^remove (.+) and their vote\?$/, 'Remove $1 and their response?'],
     [/^noodle: (.+)$/, '$1'],   // the tab title of a plain poll
+    // [P10] the top-dates list (noodle-top.js ndtDate): "fri 23/10/2026: "
+    [/^(sun|mon|tue|wed|thu|fri|sat) (\d\d)\/(\d\d)\/\d{4}:$/, function (m, wd, d, mo) {
+      return NDTC_WEEKDAYS[wd] + ' ' + Number(d) + ' ' + NDTC_MONTHS[Number(mo) - 1] + ':';
+    }],
   ];
+
+  var NDTC_WEEKDAYS = { sun: 'Sunday', mon: 'Monday', tue: 'Tuesday', wed: 'Wednesday',
+    thu: 'Thursday', fri: 'Friday', sat: 'Saturday' };
+  var NDTC_MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July',
+    'August', 'September', 'October', 'November', 'December'];
 
   // the first-poll guide in the roster (noodle-roster.js NDR_HOWTO)
   var NDTC_HTML = {
@@ -105,7 +115,7 @@
 
   // (#nd-ask / #nd-url hold their text as a VALUE, never a node: their
   // placeholder and label are reworded like any other)
-  var NDTC_SKIP = '#nd-title, #nd-note, .nd-face-name, #nd-you-name, .nd-top-date';
+  var NDTC_SKIP = '#nd-title, #nd-note, .nd-face-name, #nd-you-name, .nd-tc-legend li';
   var ATTRS = ['placeholder', 'title', 'aria-label'];
 
   function said(s) {

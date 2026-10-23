@@ -53,7 +53,9 @@ SKINS = {"/noodle": ("", "#000"), "/noodle-tc": ("noodle-tc", None)}
 def _page(title: str, body: str, og: str = "", base: str = "/noodle", nav: bool = False) -> str:
     skin, theme = SKINS[base]
     css = f'<link rel="stylesheet" href="/{skin}.css?v=1">\n' if skin else ""
-    js = f'<script src="/{skin}-copy.js?v=1"></script>\n' if skin else ""
+    # the wording first (it must see every node as it arrives), then the legend
+    js = (f'<script src="/{skin}-copy.js?v=1"></script>\n'
+          f'<script src="/{skin}-legend.js?v=1" defer></script>\n') if skin else ""
     cls = (" " + skin if skin else "") + (" with-nav" if nav else "")
     return _fill(_tmpl("noodle-shell.html"), TITLE=html.escape(title), OG=og, BODY=body,
                  BASE=base, SKIN_CSS=css, SKIN_JS=js, BODY_CLASS=cls,

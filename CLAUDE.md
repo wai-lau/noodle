@@ -50,8 +50,8 @@ page part.
 `docker compose exec -w /app/apps/noodle/api api python -m noodle.reset <slug> "<name>"`.
 
 **Two front ends, one backend** (`pages.SKINS`): `/noodle` and `/noodle-tc`
-(Tarid Change look: `noodle-tc.css` + the wording table `noodle-tc-copy.js`,
-same templates and JS). A new user-facing string in the shared JS needs a line
+(Tarid Change look: `noodle-tc.css` + the wording table `noodle-tc-copy.js` +
+the pip legend `noodle-tc-legend.js`, same templates and JS). A new user-facing string in the shared JS needs a line
 in that table; a new front end needs the slug masks + guest lists in exec-fn
 and nginx. §Front ends.
 

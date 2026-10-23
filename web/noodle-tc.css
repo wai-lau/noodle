@@ -244,6 +244,11 @@ body.noodle-tc {
   border-color: hsl(var(--tc-cream));
 }
 
+/* ── no roster row (owner, 2026-10-23): the name cards and the host's guide
+   are hidden; the names live in the pip legend under the calendar. Gone with
+   it: tap a name to fill it in, and the host's Remove button for a guest. ── */
+.noodle-tc #nd-who { display: none; }
+
 /* ── no seal art: voters are name cards ───────────────────────────────────── */
 .noodle-tc .nd-seal, .noodle-tc #nd-seal-row { display: none; }
 
@@ -373,14 +378,52 @@ body.noodle-tc {
 .noodle-tc .nd-d.mid .nd-tri.m::after, .noodle-tc .nd-d.nit .nd-tri.n::after,
 .noodle-tc .nd-d.mid .nd-tri.d::after { background: hsl(var(--tc-peach)); }
 
-.noodle-tc .nd-cal-wrap::after {
-  content: 'Each dot is one person who is free then.';
-  display: block;
-  padding: var(--space-2) var(--space-3);
+/* [P3] the pip legend under the calendar (noodle-tc-legend.js): whose
+   pip is whose, a swatch in the pip's own colour beside each name */
+.noodle-tc .nd-tc-legend {
+  margin: var(--space-2) 0 0;
+  padding: var(--space-3);
   font-size: var(--tc-fs-small);
   line-height: var(--tc-lh);
   background: hsl(var(--tc-peach));
+  border-radius: var(--radius-2);
 }
+.noodle-tc .nd-tc-legend[hidden] { display: none; }
+.noodle-tc .nd-tc-legend p { margin: 0 0 var(--space-2); }
+
+.noodle-tc .nd-tc-legend ul {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-2) var(--space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.noodle-tc .nd-tc-legend li { display: flex; align-items: center; gap: var(--space-2); overflow-wrap: anywhere; }
+
+.noodle-tc .nd-tc-legend i {
+  flex: none;
+  width: 12px;
+  height: 12px;
+  border-radius: var(--radius-pill);
+  background: hsl(var(--seal-hsl));
+  filter: sepia(0.2) saturate(1.1) brightness(0.5);   /* = the pips' (above) */
+}
+.noodle-tc .nd-tc-legend i.plain { background: hsl(var(--tc-ink)); filter: none; }
+
+/* the most popular times (noodle-top.js), under the page: a heading, and
+   the dates at a readable size (worded in full by noodle-tc-copy.js) */
+.noodle-tc .nd-top-box::before {
+  content: 'Most popular times';
+  display: block;
+  margin: 0 0 var(--space-2);
+  font-family: var(--tc-serif);
+  font-style: italic;
+  font-size: var(--fs-xl);
+}
+.noodle-tc .nd-top { font-size: var(--tc-fs-small); line-height: var(--tc-lh); }
+.noodle-tc .nd-top-dots i { width: 8px; height: 8px; }
 
 /* ── the host's crop [P12]: a photo editor's frame (owner, 2026-10-23) ──────
    The crop only moves up and down (first week, last week), so the frame is
