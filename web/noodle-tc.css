@@ -160,7 +160,7 @@ body.noodle-tc {
   overflow-wrap: anywhere;
   margin: 0 0 var(--space-2);
   padding: var(--space-3) var(--space-4);
-  color: hsl(var(--tc-ink));
+  color: hsl(var(--tc-cream));   /* white (owner, 2026-10-26) */
   border: 1px solid hsl(var(--tc-ink));
   border-radius: var(--radius-2);
 }
@@ -174,7 +174,7 @@ body.noodle-tc {
 .noodle-tc .nd-title.untitled:not(:focus)::after {
   content: 'Add a title';
   font-size: clamp(2rem, 9vw, 3.25rem);
-  color: hsl(var(--tc-ink));
+  color: hsl(var(--tc-cream));
 }
 
 .noodle-tc .nd-subnote, .noodle-tc .nd-pick-note, .noodle-tc .nd-ask-label {
@@ -187,8 +187,8 @@ body.noodle-tc {
   overflow-wrap: anywhere;
   color: hsl(var(--tc-ink));
 }
-.noodle-tc .nd-subnote { margin-top: var(--space-2); }
-.noodle-tc .nd-subnote.editable:empty::before { content: 'Add a description'; color: hsl(var(--tc-ink)); }
+.noodle-tc .nd-subnote { margin-top: var(--space-2); color: hsl(var(--tc-cream)); }
+.noodle-tc .nd-subnote.editable:empty::before { content: 'Add a description'; color: hsl(var(--tc-cream)); }
 .noodle-tc .nd-pick-note { margin: 0 0 var(--space-4); }
 
 /* ONE step on screen at a time: the pick (calendar, Ask, Save) is HIDDEN
@@ -282,7 +282,7 @@ body.noodle-tc {
   border: 1px solid hsl(var(--tc-ink));
   border-radius: var(--radius-2);
 }
-.noodle-tc input::placeholder, .noodle-tc textarea::placeholder { color: hsl(var(--tc-ink) / 0.6); }
+.noodle-tc input::placeholder, .noodle-tc textarea::placeholder { color: hsl(var(--tc-ink) / 0.45); }   /* gray (owner, 2026-10-26) */
 .noodle-tc input:focus, .noodle-tc textarea:focus { outline: 2px solid hsl(var(--tc-ink)); outline-offset: 2px; }
 
 .noodle-tc button:focus-visible, .noodle-tc a:focus-visible, .noodle-tc .nd-face:focus-visible {
@@ -334,6 +334,10 @@ body.noodle-tc {
 /* the gap under the sticky day names: solid, not the shared sheet's
    translucent ink, which let the ground through as a pale stripe */
 .noodle-tc .nd-hd { border-bottom-color: hsl(var(--tc-rust)); }
+
+/* the lines between weeks stop at the month column: its own gap is rust, so
+   the rust edge down the left runs unbroken (owner, 2026-10-26) */
+.noodle-tc .nd-wk { border-bottom-color: hsl(var(--tc-rust)); }
 .noodle-tc .nd-hd, .noodle-tc .nd-mlabel { font-family: var(--tc-serif); font-style: italic; }
 .noodle-tc .nd-mlabel, .noodle-tc .nd-mlabel span { color: hsl(var(--tc-cream)); text-transform: capitalize; }
 
@@ -494,14 +498,14 @@ body.noodle-tc {
 
   order: 1;
   position: static;
-  margin: var(--space-3) 0 0;
+  margin: var(--space-1) 0 0;
 }
 
+/* plain text on the ground, tight under the calendar: no box (owner, 2026-10-26) */
 .noodle-tc .nd-split {
-  padding: var(--space-2) var(--space-3);
+  padding: var(--space-1) 0;
   font-size: var(--tc-fs-small);
-  background: hsl(var(--tc-peach));
-  border-radius: var(--radius-2);
+  background: none;
 }
 
 /* the most popular times (noodle-top.js), under the page: a heading, and
