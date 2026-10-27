@@ -282,7 +282,7 @@ body.noodle-tc {
   border: 1px solid hsl(var(--tc-ink));
   border-radius: var(--radius-2);
 }
-.noodle-tc input::placeholder, .noodle-tc textarea::placeholder { color: hsl(var(--tc-ink) / 0.45); }   /* gray (owner, 2026-10-26) */
+.noodle-tc input::placeholder, .noodle-tc textarea::placeholder { color: hsl(var(--tc-ink) / 0.045); }   /* faint (owner, 2026-10-27: 10% of the 0.45 before) */
 .noodle-tc input:focus, .noodle-tc textarea:focus { outline: 2px solid hsl(var(--tc-ink)); outline-offset: 2px; }
 
 .noodle-tc button:focus-visible, .noodle-tc a:focus-visible, .noodle-tc .nd-face:focus-visible {
