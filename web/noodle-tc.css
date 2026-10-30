@@ -455,7 +455,6 @@ body.noodle-tc {
   border-radius: var(--radius-2);
 }
 .noodle-tc .nd-tc-legend[hidden] { display: none; }
-.noodle-tc .nd-tc-legend p { margin: 0 0 var(--space-2); }
 
 .noodle-tc .nd-tc-legend ul {
   display: flex;
