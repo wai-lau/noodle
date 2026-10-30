@@ -283,6 +283,10 @@ body.noodle-tc {
   border-radius: var(--radius-2);
 }
 .noodle-tc input::placeholder, .noodle-tc textarea::placeholder { color: hsl(var(--tc-ink) / 0.045); }   /* faint (owner, 2026-10-27: 10% of the 0.45 before) */
+
+/* except the ask box's: its hint is the EXAMPLE of what to type, and at 0.045
+   it could not be read (owner, 2026-10-30) */
+.noodle-tc #nd-ask::placeholder { color: hsl(var(--tc-ink) / 0.45); }
 .noodle-tc input:focus, .noodle-tc textarea:focus { outline: 2px solid hsl(var(--tc-ink)); outline-offset: 2px; }
 
 .noodle-tc button:focus-visible, .noodle-tc a:focus-visible, .noodle-tc .nd-face:focus-visible {
@@ -522,11 +526,11 @@ body.noodle-tc {
 }
 .noodle-tc .nd-top { font-size: var(--tc-fs-small); line-height: var(--lh-tight); }
 
-/* on a white card (owner, 2026-10-30), like the calendar's frame; a day's
+/* on a cream card (owner, 2026-10-30): the fields' peach; a day's
    two halves sit tight, the days apart (.nd-top tr:has(> th)) */
 .noodle-tc .nd-top-box {
   padding: var(--space-4) var(--space-6) var(--space-6);
-  background: hsl(var(--tc-cream));
+  background: hsl(var(--tc-peach));
   border-radius: var(--radius-2);
 }
 .noodle-tc .nd-top tr:has(> th) > * { padding-top: var(--space-3); }
