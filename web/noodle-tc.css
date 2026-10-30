@@ -381,7 +381,7 @@ body.noodle-tc {
 /* [P5] every day that can be TAPPED wears a 1px cream ring (owner,
    2026-10-23): inset, inside the 5px gap borders, so it never shifts a cell.
    Past and cropped-off (.out) and not-offered (.shut) days have none. */
-.noodle-tc .nd-d:not(.out, .shut) { box-shadow: inset 0 0 0 1px hsl(var(--tc-cream)); }
+.noodle-tc .nd-d:not(.out, .shut) { box-shadow: inset 0 0 0 1px hsl(var(--tc-cream) / 0.7); }
 
 /* a split day's diagonal, and a guest's half-day outlines: the same cream as
    the tappable-day ring (owner, 2026-10-23), not the shared sheet's ink */
@@ -393,7 +393,9 @@ body.noodle-tc {
     var(--top) calc(50% + 1px));
 }
 .noodle-tc .nd-grid:not(.host) .nd-d { background-image: none; }
-.noodle-tc .nd-tri::before { background: hsl(var(--tc-cream)); }
+
+/* the rings at 0.7, quieter than the cells they mark (owner, 2026-10-30) */
+.noodle-tc .nd-tri::before { background: hsl(var(--tc-cream) / 0.7); }
 
 /* TODAY: a rust tab across the top of its cell, and its number in rust */
 .noodle-tc .nd-d.today::before {

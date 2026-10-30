@@ -11,10 +11,13 @@
 }
 
 /* a table, so the dots start in one column; a day's date cell spans its
-   halves' rows and sits at their top. The glyph inks about two cells. */
+   halves' rows and sits at their top. */
 .nd-top th, .nd-top td { padding: 0 var(--space-1) 0 0; vertical-align: middle; white-space: pre; }
-.nd-top th { padding-right: var(--space-2); font-weight: inherit; text-align: left; vertical-align: top; }
-.nd-top-glyph { width: 2ch; }
+.nd-top th { padding-right: var(--space-4); font-weight: inherit; text-align: left; vertical-align: top; }
+
+/* the glyph inks wider than its 2ch box, out to the left: a fixed gutter
+   on each side keeps every column clear of the next, whatever the date */
+.nd-top-glyph { width: 2ch; padding: 0 var(--space-4) 0 var(--space-1); text-align: center; }
 .nd-top tr:has(> th) > * { padding-top: var(--space-1); }
 
 /* the calendar's dots, one fixed column per voter (noodle-cal.css .nd-dots) */
