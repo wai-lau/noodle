@@ -119,7 +119,7 @@ def test_the_ask_text_is_kept_per_poll_and_name(browser, base_url, noodle_slug):
 def test_the_top_dates_rank_and_line_up(browser, base_url, noodle_slug):
     """Every slot a non-host voter picked (cols[0] is the host), most voters
     first, soonest on a tie; a sun or moon only on a split poll; every row's
-    dots start at the same x."""
+    dots start at the same x; a day's halves share one date cell."""
     page = browser.new_page(viewport={"width": 430, "height": 932})
     try:
         page.goto(f"{base_url}/noodle/{noodle_slug}")
@@ -130,24 +130,33 @@ def test_the_top_dates_rank_and_line_up(browser, base_url, noodle_slug):
           const B = {slots: new Set([d(3)+':m', d(2)+':n', d(-1)+':m']), ink: '200 80% 70%'};
           window.ndtRender([A, B, {self: true, ink: null}], new Set([d(3)+':m']));
           const el = document.getElementById('nd-top');
-          return {hidden: el.parentNode.hidden, rows: [...el.children].map(li => ({
-            text: li.textContent,
-            x: li.querySelector('.nd-top-dots').getBoundingClientRect().left,
-            on: [...li.querySelectorAll('.nd-top-dots i')].map(i => i.classList.contains('on'))}))};
+          return {hidden: el.closest('.nd-top-box').hidden, rows: [...el.children].map(tr => ({
+            date: tr.querySelector('.nd-top-date')?.textContent,
+            glyph: tr.querySelector('.nd-top-glyph').textContent,
+            x: tr.querySelector('.nd-top-dots').getBoundingClientRect().left,
+            on: [...tr.querySelectorAll('.nd-top-dots i')].map(i => i.classList.contains('on'))}))};
         }""")
         assert not rows["hidden"]
         r = rows["rows"]
         # A is the host: its four slots nobody else picked are not results
         assert [x["on"] for x in r] == [[True, True, True], [True, True, False]]   # 3 voters, then 2
-        assert r[0]["text"][0] == "" and r[1]["text"][0] == ""             # sun midday, moon night
+        assert r[0]["glyph"] == "\uf185" and r[1]["glyph"] == "\uf186"   # sun midday, moon night
         assert len({round(x["x"], 1) for x in r}) == 1, "dots do not line up"
-        assert all(":" in x["text"] and len(x["text"].split(":")[0]) == len(r[0]["text"].split(":")[0]) for x in r)
+        assert all(x["date"] and len(x["date"]) == len(r[0]["date"]) for x in r)
+        # one day's two halves: ONE date cell over both rows, midday first
+        both = page.evaluate("""() => {
+          const P = window.NoodleCalParts, d = P.addDays(P.iso(new Date()), 2);
+          window.ndtRender([{slots: new Set(), ink: null}, {self: true, ink: null}], new Set([d+':n', d+':m']));
+          return [...document.getElementById('nd-top').children].map(tr => [
+            tr.querySelectorAll('th').length, tr.querySelector('th')?.rowSpan, tr.querySelector('.nd-top-glyph').textContent]); }""")
+        assert both == [[1, 2, "\uf185"], [0, None, "\uf186"]]
         # a whole-day poll: no glyph
         text = page.evaluate("""() => {
           const P = window.NoodleCalParts, d = P.addDays(P.iso(new Date()), 2);
           window.ndtRender([{slots: new Set([d+':d']), ink: null}, {self: true, ink: null}], new Set([d+':d']));
-          return document.getElementById('nd-top').textContent; }""")
-        assert text[0] not in "\uf185\uf186" and text.endswith(": ")
+          const el = document.getElementById('nd-top');
+          return [el.textContent, el.querySelectorAll('.nd-top-glyph').length]; }""")
+        assert text[1] == 0 and ":" not in text[0]
     finally:
         page.close()
 

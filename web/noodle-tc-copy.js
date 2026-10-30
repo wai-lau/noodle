@@ -96,9 +96,9 @@
     [/^note must be at most (\d+) characters$/, 'The note can be at most $1 characters.'],
     [/^remove (.+) and their vote\?$/, 'Remove $1 and their response?'],
     [/^noodle: (.+)$/, '$1'],   // the tab title of a plain poll
-    // [P10] the top-dates list (noodle-top.js ndtDate): "fri 23/10/2026: "
-    [/^(sun|mon|tue|wed|thu|fri|sat) (\d\d)\/(\d\d)\/\d{4}:$/, function (m, wd, d, mo) {
-      return NDTC_WEEKDAYS[wd] + ' ' + Number(d) + ' ' + NDTC_MONTHS[Number(mo) - 1] + ':';
+    // [P10] the top-dates table (noodle-top.js ndtDate): "fri 23/10/2026"
+    [/^(sun|mon|tue|wed|thu|fri|sat) (\d\d)\/(\d\d)\/\d{4}$/, function (m, wd, d, mo) {
+      return NDTC_WEEKDAYS[wd] + ' ' + Number(d) + ' ' + NDTC_MONTHS[Number(mo) - 1];
     }],
   ];
 

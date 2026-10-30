@@ -1,8 +1,8 @@
 // noodle's TOP DATES: every slot at least one GUEST picked (the host's own
 // offer alone is not a result), most voters first, soonest first on a tie,
-// drawn above "make another noodle". One text row per slot --
-// "<glyph> tue dd/mm/yyyy: " then the voters' dots -- and every row the same
-// width, so the dots line up in columns like the calendar's: each voter owns
+// drawn above "make another noodle". A table: one row per slot -- date
+// "tue dd/mm/yyyy" (once per day, rowspan), <glyph>, then the voters' dots --
+// so the dots line up in columns like the calendar's: each voter owns
 // one fixed column (vote order, in their seal ink), a gap where not free.
 // The glyph is there only on a SPLIT poll: sun = midday, moon = night (Font
 // Awesome U+F185 / U+F186 from noodle-seal.woff2, text glyphs, not emoji);
@@ -39,21 +39,39 @@ function ndtRank(cols, sel, today, crop) {
   });
 }
 
+// Ranked slots -> one group per DAY, in the order of each day's best slot,
+// its slots midday before night: a day's two halves sit one under the other.
+function ndtByDay(rows) {
+  var days = new Map();
+  rows.forEach(function (r) {
+    var d = r.slot.slice(0, 10);
+    if (!days.has(d)) days.set(d, []);
+    days.get(d).push(r);
+  });
+  return Array.from(days, function (e) {
+    return { day: e[0], rows: e[1].sort(function (a, b) { return a.slot < b.slot ? -1 : 1; }) };
+  });
+}
+
 function ndtRender(cols, sel) {
   var el = document.getElementById('nd-top');
   if (!el) return;
   var P = window.NoodleCalParts, crop = window.ndhCrop ? window.ndhCrop() : null;
   var rows = ndtRank(cols || [], sel || new Set(), P.iso(new Date()), crop);
-  el.parentNode.hidden = !rows.length;   // the box with its label
-  el.innerHTML = rows.map(function (r) {
-    var k = r.slot.slice(11), glyph = NDT_GLYPH[k];
-    var dots = r.cols.map(function (on, i) {
-      var ink = cols[i].ink;
-      return '<i' + (on ? ' class="on"' + (ink ? ' style="--seal-hsl:' + ink + '"' : '') : '') + '></i>';
+  el.closest('.nd-top-box').hidden = !rows.length;   // the box with its label
+  el.innerHTML = ndtByDay(rows).map(function (g) {
+    return g.rows.map(function (r, j) {
+      var k = r.slot.slice(11);
+      var dots = r.cols.map(function (on, i) {
+        var ink = cols[i].ink;
+        return '<i' + (on ? ' class="on"' + (ink ? ' style="--seal-hsl:' + ink + '"' : '') : '') + '></i>';
+      }).join('');
+      // the date once, spanning its day's rows; the glyph only on a split poll
+      return '<tr>' + (j ? '' : '<th class="nd-top-date" scope="row" rowspan="' + g.rows.length + '">' +
+        ndtDate(g.day) + '</th>') +
+        (k === 'd' ? '' : '<td class="nd-top-glyph">' + NDT_GLYPH[k] + '</td>') +
+        '<td><span class="nd-top-dots">' + dots + '</span></td></tr>';
     }).join('');
-    return '<li>' + (k === 'd' ? '' : '<span class="nd-top-glyph">' + glyph + '</span>') +
-      '<span class="nd-top-date">' + ndtDate(r.slot.slice(0, 10)) + ': </span>' +
-      '<span class="nd-top-dots">' + dots + '</span></li>';
   }).join('');
 }
 

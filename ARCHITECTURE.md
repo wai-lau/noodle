@@ -435,6 +435,8 @@ popup.
 **Top dates** (`noodle-top.js`): every slot at least one NON-host voter picked,
 ranked by vote count then soonest, read live off the calendar's dot columns; one
 row per slot (sun/moon glyph on split polls + date + one dot column per voter).
+A TABLE: a day's slots are grouped under one date cell (`rowspan`), midday
+above night, days ordered by their best slot.
 
 Foot: "make another noodle" (host) / "make your own noodle" (guest) + a `mailto:`
 bug link, driven by one class `.nd-as-host` (`ndhTitleMarks`), never per-string

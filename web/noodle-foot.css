@@ -5,18 +5,17 @@
 .nd-top-box { width: fit-content; margin: var(--space-10) auto 0; }
 
 .nd-top {
-  list-style: none;
-  margin: 0;
-  padding: 0;
+  border-collapse: collapse;
   font-size: var(--fs-2xs);
   color: hsl(var(--green-hsl) / 0.8);
 }
 
-/* every row the same width, so the dots start in one column: the date is
-   fixed-length text in a monospace face, and the glyph (which inks about two
-   cells) gets a fixed two-cell box */
-.nd-top li { display: flex; align-items: center; gap: var(--space-1); white-space: pre; }
-.nd-top-glyph { display: inline-block; width: 2ch; }
+/* a table, so the dots start in one column; a day's date cell spans its
+   halves' rows and sits at their top. The glyph inks about two cells. */
+.nd-top th, .nd-top td { padding: 0 var(--space-1) 0 0; vertical-align: middle; white-space: pre; }
+.nd-top th { padding-right: var(--space-2); font-weight: inherit; text-align: left; vertical-align: top; }
+.nd-top-glyph { width: 2ch; }
+.nd-top tr:has(> th) > * { padding-top: var(--space-1); }
 
 /* the calendar's dots, one fixed column per voter (noodle-cal.css .nd-dots) */
 .nd-top-dots { display: inline-flex; gap: var(--space-0-5); }
