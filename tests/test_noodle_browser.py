@@ -8,6 +8,7 @@ Votes as a fixed voter with a fixed passphrase on the session's fresh poll
 lean on it. Around the vote (Ask, storage, top dates, share link):
 test_noodle_browser_page.py; the host's tools: test_noodle_browser_host.py.
 """
+import re
 import pytest
 
 from noodle_helpers import can_commit as _can_commit, offer_one as _offer_one
@@ -41,11 +42,10 @@ def test_sign_in_browser_verify_on_server(browser, base_url, noodle_slug):
 
         seal = page.inner_text("#nd-seal").split("\n")
         assert len(seal) == 6 and all(len(row) == 9 for row in seal), seal
-        # ink is any hue from the key, carried as --seal-hsl "<h> <s>% <l>%" with l >= 62
+        # ink is a palette slot (noodle-ink.js), carried as --seal-hsl var(--nd-ink-N)
         assert "inked" in page.get_attribute("#nd-seal", "class").split()
         ink = page.evaluate("document.getElementById('nd-seal').style.getPropertyValue('--seal-hsl')")
-        h, sat, light = ink.split()
-        assert 0 <= int(h) < 360 and 60 <= int(sat[:-1]) <= 100 and 62 <= int(light[:-1]) <= 82
+        assert re.fullmatch(r"var\(--nd-ink-[0-7]\)", ink.strip()), ink
 
         # an open day other than the one a host is offering (flipping that one
         # off would leave nothing to commit), a WEEK down: the first open row

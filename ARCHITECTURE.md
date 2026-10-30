@@ -91,9 +91,8 @@ made or shared on a front end stays on it -- and any link opens on either.
   and past the page's ends, so the two meet. Edge strips for the bars to
   sample did nothing on iOS 26 but draw a line.
 - **The calendar**: picked days are PEACH (not ink-filled), offered days a
-  soft peach wash, so one set of pips reads on every cell. Pips: N voters share the
-  hue circle EQUALLY (a triangle for 3, a square for 4) from a host hue seeded
-  by the slug, one dark earthy tone, no outline; past 6 voters they also take
+  soft peach wash, so one set of pips reads on every cell. Pips wear the shared ink
+  palette (below) in this skin's DARK set, no outline; past 8 voters they also take
   a shape (circle / square / triangle), carried IN the ink string as
   `--tc-pip-r` / `--tc-pip-clip` (`noodle-tc-legend.js` wraps `NoodleSeal.seal`); a number badge was tried and was too small. NOT
   `:has()` on the pips' pseudo-elements: WebKit does not re-check it when
@@ -199,6 +198,15 @@ deterministically from `SHA-256(raw pubkey)` byte by byte (border: 256/32, eyes
 modulo of their bytes, a negligible bias). Ink lightness is floored (62-82%) so it reads on black; it reaches CSS as the
 page-local `--seal-hsl` token (`scripts/lint-colors.py` `LOCAL_ACCENTS` in
 exec-fn) and colours that voter's calendar dots.
+
+**Inks on the page** (`noodle-ink.js`, 2026-10-30) REPLACE the seal's hashed
+HSL: a free hue let two voters land on near-identical colours. A fixed
+8-colour palette (`--nd-ink-0..7`: light in `noodle.css` for black, dark in
+`noodle-tc.css` for sand). Each key hashes (FNV-1a) to a HOME slot, so a person
+keeps their colour across polls; voters claim in vote order and a clash steps
+to the next free slot; voter 9+ starts a new round (tc: a new pip shape). The
+ink string is `var(--nd-ink-N)`, so every `--seal-hsl` consumer works as-is.
+`ndInk` still colours the unnamed "you" placeholder seal.
 
 **One section edits at a time** (`ndvStep`/`ndvPaintStep`, `noodle-identity.js`):
 `NDV.step` is `'you'|'pick'`. YOU = name + passphrase + seal; PICK = calendar,

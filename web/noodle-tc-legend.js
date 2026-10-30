@@ -10,50 +10,22 @@
 // every change to it. It never writes shared state, and builds every name
 // with textContent: a name is a voter's own text.
 //
-// PIP COLOURS (owner, 2026-10-23): N voters share the hue circle EQUALLY --
-// 3 voters sit at a triangle's corners, 4 at a square's -- starting from a
-// hue drawn at random for the host, seeded by the poll so every viewer sees
-// the same colours. All in one dark, earthy tone that sits in this palette
-// with no outline. Past NDTC_HUES voters the hues would crowd, so pips also
-// take a SHAPE: circle, square, triangle. Your own seat, before your first
-// Save, takes the next place round the circle.
-//
-// It wraps the shared seal maker (noodle-seal.js NoodleSeal.seal) so every
-// seal the page makes carries this ink, and re-inks your own (NDV.seal) once
-// the poll is known. The shape rides IN the ink string as two more custom
-// properties: the shared code drops the ink into a style attribute
-// verbatim, and noodle-tc.css reads them (--tc-pip-r, --tc-pip-clip).
-var NDTC_HUES = 6;
+// PIP COLOURS: the shared palette (noodle-ink.js; this skin's dark
+// --nd-ink-* in noodle-tc.css). Past its length colours repeat, so each
+// ROUND of 8 voters takes a SHAPE: circle, square, triangle. The shape rides IN the ink
+// string as two more custom properties: the shared code drops the ink into a
+// style attribute verbatim, and noodle-tc.css reads them (--tc-pip-r,
+// --tc-pip-clip). A poll that loaded before this (deferred) script ran is
+// re-inked here.
 var NDTC_SHAPES = ['', ';--tc-pip-r:0', ';--tc-pip-r:0;--tc-pip-clip:polygon(50% 0,100% 100%,0 100%)'];
 
-function ndtcSeed(slug) {   // FNV-1a: the same host hue for everyone on this poll
-  var h = 2166136261;
-  for (var i = 0; i < slug.length; i++) { h ^= slug.charCodeAt(i); h = Math.imul(h, 16777619); }
-  return (h >>> 0) % 360;
-}
-
-function ndtcInk(pub) {
-  var voters = window.NDV && NDV.poll ? NDV.poll.voters : [];
-  var at = voters.map(function (v) { return v.pub; }).indexOf(pub);
-  var n = voters.length + (at < 0 ? 1 : 0), i = at < 0 ? voters.length : at;
-  var shapes = Math.min(NDTC_SHAPES.length, Math.ceil(n / NDTC_HUES)), hues = Math.ceil(n / shapes);
-  var hue = Math.round(ndtcSeed(NDV.slug || '') + (i % hues) * 360 / hues) % 360;
-  return hue + ' 42% 34%' + NDTC_SHAPES[Math.floor(i / hues) % NDTC_SHAPES.length];
-}
-
 (function () {
-  var S = window.NoodleSeal, R = window.NoodleRoster;
-  if (!S || !R || !window.NDV) return;
-  var seal = S.seal, seals = R.seals;
-  S.seal = async function (pub) { return Object.assign({}, await seal(pub), { ink: ndtcInk(pub) }); };
-  R.seals = async function (voters) {
-    var out = await seals(voters);
-    // your own seal was made before the poll (and its order) was known
-    var mine = NDV.kdf && NDV.kdf.ready() ? NDV.kdf.pub() : null;
-    if (NDV.seal && mine) NDV.seal = Object.assign({}, NDV.seal, { ink: ndtcInk(mine) });
-    return out;
+  var I = window.NoodleInk, R = window.NoodleRoster;
+  if (!I || !R || !window.NDV) return;
+  var of = I.of;
+  I.of = function (pub) {
+    return of(pub) + NDTC_SHAPES[I.place(pub).round % NDTC_SHAPES.length];
   };
-  // a poll that loaded before this (deferred) script ran: ink it now
   if (NDV.poll) R.seals(NDV.poll.voters).then(function (out) { NDV.seals = out; window.ndvRefreshBinding(window.ndvPub()); });
 })();
 

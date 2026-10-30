@@ -513,6 +513,20 @@ body.noodle-tc {
   background: none;
 }
 
+/* VOTER INKS (noodle-ink.js: a key's hashed home colour; the shared set in noodle.css is
+   for black): dark and saturated, to read on sand and on a picked day's
+   peach, neighbours far apart in hue (a clash steps to the next) (owner, 2026-10-30) */
+body.noodle.noodle-tc {
+  --nd-ink-0: 140 60% 25%;    /* green */
+  --nd-ink-1: 222 65% 38%;    /* blue */
+  --nd-ink-2: 6 70% 40%;      /* brick */
+  --nd-ink-3: 280 50% 35%;    /* purple */
+  --nd-ink-4: 185 80% 22%;    /* teal */
+  --nd-ink-5: 40 90% 28%;     /* ochre */
+  --nd-ink-6: 330 65% 40%;    /* magenta */
+  --nd-ink-7: 210 20% 28%;    /* slate */
+}
+
 /* the most popular times (noodle-top.js), under the page: a heading, and
    the dates at a readable size (worded in full by noodle-tc-copy.js) */
 .noodle-tc .nd-top-box::before {

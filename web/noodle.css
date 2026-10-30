@@ -30,6 +30,18 @@ body.noodle {
   margin: 0;
   background: hsl(var(--bg-hsl) / 1);
   font-family: 'Noodle Glyphs', var(--font-mono);
+
+  /* VOTER INKS (noodle-ink.js: a key's hashed home colour), light for the black ground:
+     Okabe-Ito / Paul Tol style hues, neighbours far apart (a clash steps
+     to the next) (owner, 2026-10-30). /noodle-tc sets its own, dark, set. */
+  --nd-ink-0: 33 100% 60%;    /* orange */
+  --nd-ink-1: 200 80% 65%;    /* sky */
+  --nd-ink-2: 150 65% 50%;    /* green */
+  --nd-ink-3: 326 75% 70%;    /* pink */
+  --nd-ink-4: 55 90% 62%;     /* yellow */
+  --nd-ink-5: 265 80% 75%;    /* lavender */
+  --nd-ink-6: 8 90% 62%;      /* vermillion */
+  --nd-ink-7: 0 0% 78%;       /* silver */
 }
 
 /* no nav bar on a poll page; the /noodle page carries the site's
