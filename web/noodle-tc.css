@@ -523,14 +523,19 @@ body.noodle-tc {
   font-style: italic;
   font-size: var(--fs-xl);
 }
-.noodle-tc .nd-top { font-size: var(--tc-fs-small); line-height: var(--lh-tight); }
 
-/* on a cream card (owner, 2026-10-30): the fields' peach; a day's
-   two halves sit tight, the days apart (.nd-top tr:has(> th)) */
-.noodle-tc .nd-top-box {
-  padding: var(--space-4) var(--space-6) var(--space-6);
+/* on a cream card (owner, 2026-10-30): the fields' peach; a day's two
+   halves sit tight, the days apart (.nd-top tr:has(> th)). The card is the
+   TABLE, so the heading (the box's ::before) sits above it; separate
+   borders, since a collapsed table ignores its own padding. */
+.noodle-tc .nd-top {
+  padding: var(--space-1) var(--space-6) var(--space-4);
+  border-collapse: separate;
+  border-spacing: 0;
   background: hsl(var(--tc-peach));
   border-radius: var(--radius-2);
+  font-size: var(--tc-fs-small);
+  line-height: var(--lh-tight);
 }
 .noodle-tc .nd-top tr:has(> th) > * { padding-top: var(--space-3); }
 .noodle-tc .nd-top-glyph + td { padding-left: var(--space-2); }
