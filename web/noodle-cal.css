@@ -335,6 +335,9 @@ html:has(#nd-cal)::-webkit-scrollbar { display: none; }
 
 .nd-dots i { width: 6px; height: 6px; border-radius: var(--radius-pill); }
 
+/* free both halves: one bar through the column's two dot rows (ndDotsHtml) */
+.nd-dots i.both { grid-row: span 2; height: 100%; }
+
 .nd-dots i.on {
   background: hsl(var(--green-hsl) / 1);
   outline: 2px solid hsl(var(--bg-hsl) / 1);

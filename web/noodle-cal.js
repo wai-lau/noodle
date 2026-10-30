@@ -134,9 +134,13 @@ function ndDotsHtml(iso, cols, fit, sel, halves) {
   for (var i = 0; i < shown.length; i++) {
     var c = shown[i], s = c.self ? sel : c.slots;
     var lit = ' class="on"' + (c.ink ? ' style="--seal-hsl:' + c.ink + '"' : '');
-    if (halves) {
-      h += '<i' + (s.has(iso + ':m') ? lit : '') + '></i>' +
-        '<i' + (s.has(iso + ':n') ? lit : '') + '></i>';
+    var m = halves && s.has(iso + ':m'), n = halves && s.has(iso + ':n');
+    if (m && n) {
+      // free BOTH halves: one bar down the column, so a voter reads as one
+      // mark and the day's head count is the number of marks
+      h += '<i' + lit.replace('"on"', '"on both"') + '></i>';
+    } else if (halves) {
+      h += '<i' + (m ? lit : '') + '></i><i' + (n ? lit : '') + '></i>';
     } else {
       h += '<i' + (s.has(iso + ':d') ? lit : '') + '></i>'; // one dot a day
     }

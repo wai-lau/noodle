@@ -38,9 +38,9 @@
     'make another noodle': 'Create another poll', 'make your own noodle': 'Create your own poll',
     'I found a bug!': 'Report a problem (opens your email)', 'link copied to clipboard': 'Link copied',
     'host': 'Host', 'remove': 'Remove', 'you': 'You',
-    // [P10] month names in full (the calendar's week column)
-    'jan': 'January', 'feb': 'February', 'mar': 'March', 'apr': 'April', 'may': 'May', 'jun': 'June',
-    'jul': 'July', 'aug': 'August', 'sep': 'September', 'oct': 'October', 'nov': 'November', 'dec': 'December',
+    // no month names here: the week column fits the longest of "october 2026"
+    // / "october" / "oct" to its run (ndcPaintLabels), and expanding the short
+    // one AFTER that fit overflowed a one-week run ("Novembe"); CSS capitalizes
     // placeholders, tooltips, labels
     'please help the host know who you are': 'Enter your name',
     'how shall the guests address you, host?': 'Enter your name',
