@@ -92,10 +92,10 @@ function ndtcInk(pub) {
     box.replaceChildren();
     box.hidden = !faces.length;
     if (!faces.length) return;
-    var intro = document.createElement('p'), list = document.createElement('ul');
-    intro.textContent = 'Each dot is one person who is free then:';
+    // no intro line (owner, 2026-10-30): the pips beside names say it
+    var list = document.createElement('ul');
     faces.forEach(function (f) { list.append(entry(f)); });
-    box.append(intro, list);
+    box.append(list);
   }
 
   new MutationObserver(draw).observe(roster, { childList: true, subtree: true, attributes: true });
