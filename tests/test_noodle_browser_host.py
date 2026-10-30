@@ -217,7 +217,7 @@ def test_name_and_passphrase_keep_only_letters_digits_and_spaces(browser, base_u
         assert page.get_attribute("#nd-pass", "placeholder") == "you'll need this to change your vote"
         page.type("#nd-name", "Jane.Doe-2!")
         page.type("#nd-pass", "p@ss w0rd?")
-        assert page.input_value("#nd-name") == "janedoe2"
+        assert page.input_value("#nd-name") == "JaneDoe2"   # capitals kept since 2026-10-23
         assert page.input_value("#nd-pass") == "pss w0rd"
     finally:
         page.close()
