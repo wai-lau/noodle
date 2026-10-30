@@ -520,7 +520,17 @@ body.noodle-tc {
   font-style: italic;
   font-size: var(--fs-xl);
 }
-.noodle-tc .nd-top { font-size: var(--tc-fs-small); line-height: var(--tc-lh); }
+.noodle-tc .nd-top { font-size: var(--tc-fs-small); line-height: var(--lh-tight); }
+
+/* on a white card (owner, 2026-10-30), like the calendar's frame; a day's
+   two halves sit tight, the days apart (.nd-top tr:has(> th)) */
+.noodle-tc .nd-top-box {
+  padding: var(--space-4) var(--space-6) var(--space-6);
+  background: hsl(var(--tc-cream));
+  border-radius: var(--radius-2);
+}
+.noodle-tc .nd-top tr:has(> th) > * { padding-top: var(--space-3); }
+.noodle-tc .nd-top-glyph + td { padding-left: var(--space-2); }
 .noodle-tc .nd-top-dots i { width: 8px; height: 8px; }
 
 /* ── the host's crop [P12]: a photo editor's frame (owner, 2026-10-23) ──────
