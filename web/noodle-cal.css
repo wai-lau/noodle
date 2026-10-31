@@ -376,6 +376,11 @@ html:has(#nd-cal)::-webkit-scrollbar { display: none; }
 .nd-tight .nd-dots i.on { outline-width: 1px; }
 .nd-tight .nd-more { border-width: 1px; }
 
+/* TIGHTER (ndDotsFit): the tight dots with no gap -- 8 columns, not 7. No
+   outline either: with nothing between columns it would bite the next dot. */
+.nd-tighter .nd-dots { gap: 0; }
+.nd-tighter .nd-dots i.on { outline: none; }
+
 
 /* ── crop (noodle-crop.js): the host's first and last week, always shown to
    the host as two handles on the grid; the days outside are greyed ───── */

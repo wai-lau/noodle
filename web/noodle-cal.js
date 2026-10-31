@@ -125,10 +125,13 @@ function ndDotsCols(cell, dot, gap) {
   return Math.max(1, Math.floor((w + gap) / (dot + gap)));
 }
 
+// Still too many: TIGHTER, the same small dots touching, no gap at all
+// (owner, 2026-10-31) -- 8 columns at phone width.
 function ndDotsFit(cell, count) {
-  var cap = ndDotsCols(cell, ND_DOT, ND_DOT_GAP), tight = false;
+  var cap = ndDotsCols(cell, ND_DOT, ND_DOT_GAP), tight = false, tighter = false;
   if (count > cap) { cap = ndDotsCols(cell, ND_DOT_TIGHT, ND_DOT_TIGHT_GAP); tight = true; }
-  return { cap: cap, tight: tight };
+  if (count > cap) { cap = ndDotsCols(cell, ND_DOT_TIGHT, 0); tighter = true; }
+  return { cap: cap, tight: tight, tighter: tighter };
 }
 
 // The columns with a dot on `iso`: only the people free that day, in vote
