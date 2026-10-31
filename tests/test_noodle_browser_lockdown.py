@@ -117,7 +117,7 @@ def test_a_lockdown_seat_uses_pbkdf2_everywhere_and_keeps_it(browser, base_url):
 
         # back in Lockdown: the renamed seat opens; so does the Argon2id one,
         # the slow way (noble's plain-JS Argon2id, the SAME key), with its
-        # progress and the Lockdown tip on screen while it runs
+        # progress on screen while it runs, saying Lockdown Mode is why
         again = open_(True)
         _join(again, link, RENAMED, "host pass two")
         assert _method(again) == "pbkdf2" and again.evaluate("NDV.mine")

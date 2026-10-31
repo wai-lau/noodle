@@ -44,7 +44,8 @@ function ndvMaybeReveal() {
 function ndvReady() { return !!NDV.kdf && NDV.kdf.ready(); }
 
 // The slow key (plain-JS Argon2id, no WebAssembly: noodle-kdf-worker.js):
-// how far it has got, and the Lockdown tip that makes it fast. done = null
+// how far it has got. No "turn Lockdown off" tip: where Safari keeps that
+// switch moves between iOS versions (owner, 2026-10-31). done = null
 // hides it -- a new derive, a key made, an error.
 function ndvSlow(done) {
   var el = ndv$('nd-slow');

@@ -204,7 +204,7 @@ still opens, the SLOW way. The worker runs @noble/hashes' plain-JS Argon2id
 recipe in its header, pinned as `NDK_NOBLE_SRC` and fetched only when there is
 no WebAssembly. It makes the same key as hash-wasm, which was checked in node
 on the poll's real parameters. It reports progress, and `#nd-slow` shows the
-percentage beside the Lockdown tip that makes it fast. It runs once per device,
+percentage and says Lockdown Mode is why (no "turn it off" tip: the switch moves between iOS versions). It runs once per device,
 after which the kept key signs. We did not write our own Argon2: the owner
 vetoed that (2026-10-31), so a published, widely used library was vendored
 instead. Why not drop Argon2 entirely: a
