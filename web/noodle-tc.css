@@ -459,7 +459,7 @@ body.noodle-tc {
 .noodle-tc .nd-d.mid .nd-tri.m::after, .noodle-tc .nd-d.nit .nd-tri.n::after,
 .noodle-tc .nd-d.mid .nd-tri.d::after { background: hsl(var(--tc-peach)); }
 
-/* [P3] ONE peach card under Save (noodle-tc-legend.js, owner 2026-10-31):
+/* [P3] ONE peach card under the calendar, Save under it (noodle-tc-legend.js, owner 2026-10-31):
    the pip legend -- whose pip is whose, a swatch in the pip's own colour
    beside each name -- then the most popular times. Empty, it is not drawn. */
 .noodle-tc .nd-tc-card {
@@ -470,8 +470,8 @@ body.noodle-tc {
 }
 .noodle-tc .nd-tc-card:not(:has(> :not([hidden]))) { display: none; }
 
-/* errors sit with Save, just above the card */
-.noodle-tc .nd-tc-card ~ .nd-banner, .noodle-tc .nd-banner:has(+ .nd-tc-card) { margin: var(--space-3) 0 0; }
+/* errors sit with Save, under its status */
+.noodle-tc #nd-dirty + .nd-banner, .noodle-tc .nd-banner:has(+ .nd-tc-card) { margin: var(--space-3) 0 0; }
 
 .noodle-tc .nd-tc-legend {
   font-size: var(--tc-fs-small);
@@ -572,10 +572,8 @@ body.noodle.noodle-tc {
   text-align: center;
 }
 
-/* the host picks from it; a guest, once the host has, sees only the choice
-   (noodle-top.js) */
+/* only the host has the table (noodle-top.js), and picks from it */
 .noodle-tc .nd-top-box.nd-top-host::before { content: 'Select final time(s)'; }
-.noodle-tc .nd-top-box.nd-top-chosen::before { content: 'The host has chosen'; }
 
 .noodle-tc .nd-top {
   font-size: var(--tc-fs-small);
@@ -598,13 +596,25 @@ body.noodle.noodle-tc {
 }
 .noodle-tc .nd-top-tick input:checked { background: hsl(var(--tc-ink)); background-clip: content-box; }
 
-/* the event time under the title, in the title's cream */
+/* the event time under the title, in the title's cream, under a heading in
+   the "Most popular times" serif: "The host has chosen" (a guest) or
+   "You have chosen" (the host) */
 .noodle-tc .nd-event {
   margin: 0 0 var(--space-2);
   font-size: var(--tc-fs-body);
   font-weight: var(--fw-bold);
   color: hsl(var(--tc-cream));
 }
+
+.noodle-tc .nd-event::before {
+  content: 'The host has chosen';
+  display: block;
+  font-family: var(--tc-serif);
+  font-style: italic;
+  font-weight: var(--fw-normal);
+  font-size: var(--fs-xl);
+}
+.noodle-tc .nd-as-host .nd-event::before { content: 'You have chosen'; }
 .noodle-tc .nd-top tr:has(> th) > * { padding-top: var(--space-3); }
 .noodle-tc .nd-top-glyph + td { padding-left: var(--space-2); }
 .noodle-tc .nd-top-dots i { width: 8px; height: 8px; }

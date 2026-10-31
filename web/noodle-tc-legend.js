@@ -37,18 +37,23 @@ var NDTC_SHAPES = ['', ';--tc-pip-r:0', ';--tc-pip-r:0;--tc-pip-clip:polygon(50%
   box.className = 'nd-tc-legend';
   box.setAttribute('aria-label', 'Who each dot belongs to');
 
-  // ONE card (owner, 2026-10-31): the legend and the most popular times,
-  // merged; above it Save, its status and any error (the banner, otherwise at
-  // the top of the page). On the pick step it sits right under Save; on the
-  // name step (the pick hidden) under Continue, so the results still show.
+  // ONE card (owner, 2026-10-31): the legend and the host's top dates,
+  // merged. On the pick step it sits right under the calendar, with Save,
+  // its status and any error (the banner, otherwise at the top of the page)
+  // under it; on the name step (the pick hidden) under Continue, the banner
+  // between them.
   var root = document.getElementById('noodle'), banner = document.getElementById('nd-banner');
   var card = document.createElement('section'), top = document.getElementById('nd-top-box');
   card.className = 'nd-tc-card';
   card.append(box);
   if (top) card.append(top);
   function place() {
-    var at = root.classList.contains('nd-step-pick') ? document.getElementById('nd-dirty') : document.getElementById('nd-you');
-    if (at && (at.nextSibling !== banner || banner.nextSibling !== card)) at.after(banner, card);
+    var pick = root.classList.contains('nd-step-pick');
+    var cal = document.getElementById('nd-cal'), dirty = document.getElementById('nd-dirty');
+    var you = document.getElementById('nd-you');
+    if (pick && cal.nextSibling !== card) cal.after(card);
+    if (pick && dirty.nextSibling !== banner) dirty.after(banner);
+    if (!pick && (you.nextSibling !== banner || banner.nextSibling !== card)) you.after(banner, card);
   }
   new MutationObserver(place).observe(root, { attributes: true, attributeFilter: ['class'] });
   place();

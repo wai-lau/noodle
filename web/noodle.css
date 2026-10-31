@@ -131,6 +131,8 @@ body.noodle:not(.with-nav) { --nav-h: 0px; }
   color: hsl(var(--green-hsl) / 1);
 }
 .nd-event[hidden] { display: none; }
+.nd-event::before { content: 'the host chose'; display: block; color: hsl(var(--green-hsl) / 0.8); }
+.nd-as-host .nd-event::before { content: 'you chose'; }
 
 /* no dashed line of its own: two stacked under the title read as noise (UI
    audit 2026-10-03); the grey "add a note" already says tap me */

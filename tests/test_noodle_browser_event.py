@@ -1,7 +1,7 @@
 """The host's EVENT TIME (noodle-event.js), in the real engine: the host ticks
 a top date, Save seals it in the head, and a guest sees it under the title;
-a guest gets no boxes. And /noodle-tc's layout around it: Save, then any
-error, then ONE card holding the legend and the most popular times."""
+a guest gets no table. And /noodle-tc's layout around it: ONE card holding
+the legend and the host's top dates, then Save, its status and any error."""
 import hashlib
 
 import pytest
@@ -61,7 +61,7 @@ def test_the_host_picks_an_event_time_and_everyone_sees_it(browser, base_url):
         _commit(guest)
         assert guest.locator(".nd-top-pick").count() == 0, "a guest picks no event time"
         assert guest.is_hidden("#nd-event")
-        assert guest.evaluate("document.querySelectorAll('#nd-top tr').length") == 2, "both days, nothing chosen yet"
+        assert guest.is_hidden("#nd-top-box"), "the most popular times are the host's alone"
 
         # the host ticks the first top date; it shows at once, unsaved
         host.reload()
@@ -75,11 +75,11 @@ def test_the_host_picks_an_event_time_and_everyone_sees_it(browser, base_url):
         _commit(host)
         assert host.evaluate("NDV.poll.event") == [slot]
 
-        # /noodle-tc's order: Save, its status, then the one card
+        # /noodle-tc's order: the one card, then Save and its status
         order = host.evaluate("""() => {
           const ids = ['nd-submit', 'nd-dirty'], card = document.querySelector('.nd-tc-card');
           const y = el => el.getBoundingClientRect().top;
-          return [y(document.getElementById('nd-submit')) < y(card), y(document.getElementById('nd-dirty')) < y(card),
+          return [y(card) < y(document.getElementById('nd-submit')), y(card) < y(document.getElementById('nd-dirty')),
             card.contains(document.querySelector('.nd-tc-legend')), card.contains(document.getElementById('nd-top'))]; }""")
         assert order == [True, True, True, True]
 
@@ -87,9 +87,9 @@ def test_the_host_picks_an_event_time_and_everyone_sees_it(browser, base_url):
         guest.wait_for_function("NDV.poll", timeout=10000)
         guest.wait_for_selector("#nd-event:not([hidden])", timeout=10000)
         assert guest.evaluate("NDV.poll.event") == [slot]
-        # the guest sees ONLY the chosen row, under "The host has chosen"
-        assert guest.evaluate("[...document.querySelectorAll('#nd-top tr')].length") == 1
-        assert guest.evaluate("document.getElementById('nd-top-box').classList.contains('nd-top-chosen')")
+        # the guest sees the choice under the title, no table
+        assert guest.is_hidden("#nd-top-box")
+        assert guest.evaluate("getComputedStyle(document.getElementById('nd-event'), '::before').content") == '"The host has chosen"'
         text = guest.inner_text("#nd-event")
         assert text.strip() and "/" not in text, "worded in full on /noodle-tc"
     finally:

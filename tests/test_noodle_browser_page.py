@@ -124,6 +124,7 @@ def test_the_top_dates_rank_and_line_up(browser, base_url, noodle_slug):
     try:
         page.goto(f"{base_url}/noodle/{noodle_slug}")
         page.wait_for_function("window.ndtRender && window.NoodleCalParts")
+        page.evaluate("window.ndxIsHost = () => true")   # only the host has the table
         rows = page.evaluate("""() => {
           const P = window.NoodleCalParts, d = n => P.addDays(P.iso(new Date()), n);
           const A = {slots: new Set([d(1)+':m', d(2)+':n', d(3)+':m', d(4)+':m', d(5)+':n', d(6)+':m']), ink: '10 80% 70%'};
