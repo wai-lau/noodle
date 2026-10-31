@@ -25,6 +25,9 @@
    skin centres text) slid the shorter rows right */
 .nd-top td:has(> .nd-top-dots) { text-align: left; }
 
+/* how many are free that half, before the dots */
+.nd-top .nd-top-count { padding-right: var(--space-2); text-align: right; }
+
 /* the host's event-time box, first in the row (noodle-event.js) */
 .nd-top .nd-top-tick { padding-right: var(--space-3); }
 .nd-top-tick input { margin: 0; vertical-align: middle; accent-color: hsl(var(--green-hsl) / 1); }

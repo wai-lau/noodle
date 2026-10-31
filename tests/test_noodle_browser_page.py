@@ -117,8 +117,8 @@ def test_the_ask_text_is_kept_per_poll_and_name(browser, base_url, noodle_slug):
 
 
 def test_the_top_dates_rank_and_line_up(browser, base_url, noodle_slug):
-    """Every slot a non-host voter picked (cols[0] is the host), most voters
-    first, soonest on a tie; a sun or moon only on a split poll; every row's
+    """Every slot a non-host voter picked (cols[0] is the host), earliest
+    first, with its count; a sun or moon only on a split poll; every row's
     dots start at the same x; a day's halves share one date cell."""
     page = browser.new_page(viewport={"width": 430, "height": 932})
     try:
@@ -134,15 +134,18 @@ def test_the_top_dates_rank_and_line_up(browser, base_url, noodle_slug):
           return {hidden: el.closest('.nd-top-box').hidden, rows: [...el.children].map(tr => ({
             date: tr.querySelector('.nd-top-date')?.textContent,
             glyph: tr.querySelector('.nd-top-glyph').textContent,
+            count: tr.querySelector('.nd-top-count').textContent,
             x: tr.querySelector('.nd-top-dots').getBoundingClientRect().left,
             on: [...tr.querySelectorAll('.nd-top-dots i')].map(i => i.classList.contains('on'))}))};
         }""")
         assert not rows["hidden"]
         r = rows["rows"]
         # A is the host: its four slots nobody else picked are not results
-        # 3 voters, then 2 -- and the day you are not free gives you no column
-        assert [x["on"] for x in r] == [[True, True, True], [True, True]]
-        assert r[0]["glyph"] == "\uf185" and r[1]["glyph"] == "\uf186"   # sun midday, moon night
+        # earliest first, each with its count -- and the day you are not free
+        # gives you no column
+        assert [x["on"] for x in r] == [[True, True], [True, True, True]]
+        assert [x["count"] for x in r] == ["(2)", "(3)"]
+        assert r[0]["glyph"] == "\uf186" and r[1]["glyph"] == "\uf185"   # moon night, sun midday
         assert len({round(x["x"], 1) for x in r}) == 1, "dots do not line up"
         assert all(x["date"] and len(x["date"]) == len(r[0]["date"]) for x in r)
         # one day's two halves: ONE date cell over both rows, midday first

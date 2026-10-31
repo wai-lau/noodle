@@ -477,10 +477,11 @@ the link, started inside the tap (Safari revokes clipboard permission after an
 popup.
 
 **Top dates** (`noodle-top.js`): every slot at least one NON-host voter picked,
-ranked by vote count then soonest, read live off the calendar's dot columns; one
-row per slot (sun/moon glyph on split polls + date + one dot column per voter).
-A TABLE: a day's slots are grouped under one date cell (`rowspan`), midday
-above night, days ordered by their best slot. A day's rows give a column only
+read live off the calendar's dot columns, EARLIEST FIRST (owner, 2026-10-31;
+it was ranked by vote count, which `ndtRank` still sorts by before the
+re-sort). One row per slot: sun/moon glyph on split polls, the date, the count
+of voters free "(n)", then the dots. A TABLE: a day's slots are grouped under
+one date cell (`rowspan`), midday above night. A day's rows give a column only
 to voters free that day.
 
 **Event time** (`noodle-event.js`, owner 2026-10-31): the HOST ticks one or more

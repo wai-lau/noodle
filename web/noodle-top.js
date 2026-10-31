@@ -1,5 +1,5 @@
 // noodle's TOP DATES: every slot at least one GUEST picked (the host's own
-// offer alone is not a result), most voters first, soonest first on a tie,
+// offer alone is not a result), earliest first, each with its count "(n)",
 // drawn above "make another noodle". A table: one row per slot -- date
 // "tue dd/mm/yyyy" (once per day, rowspan), <glyph>, then the voters' dots --
 // so the dots line up in columns like the calendar's: each voter free that
@@ -68,6 +68,9 @@ function ndtRender(cols, sel) {
   var box = el.closest('.nd-top-box');
   box.hidden = !host || !rows.length;   // the box with its label
   box.classList.toggle('nd-top-host', !!pick);   // "Select final time(s)" on /noodle-tc
+  // earliest first (owner, 2026-10-31: the host is choosing a date, and reads
+  // them as a calendar); how many are free is the count beside each row
+  rows.sort(function (a, b) { return a.slot < b.slot ? -1 : 1; });
   el.innerHTML = ndtByDay(rows).map(function (g) {
     // only the voters free some part of THIS day get a column, as in the
     // calendar's cell (noodle-cal.js ndDotsLit): no empty columns
@@ -87,6 +90,7 @@ function ndtRender(cols, sel) {
           r.slot + '"' + (chosen.has(r.slot) ? ' checked' : '') + '></td>' : '') +
         (j ? '' : '<th class="nd-top-date" scope="row" rowspan="' + g.rows.length + '">' + ndtDate(g.day) + '</th>') +
         (k === 'd' ? '' : '<td class="nd-top-glyph">' + NDT_GLYPH[k] + '</td>') +
+        '<td class="nd-top-count">(' + r.cols.filter(Boolean).length + ')</td>' +
         '<td><span class="nd-top-dots">' + dots + '</span></td></tr>';
     }).join('');
   }).join('');

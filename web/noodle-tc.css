@@ -204,7 +204,9 @@ body.noodle-tc {
   border: 1px solid hsl(var(--tc-ink));
   border-radius: var(--radius-2);
 }
-.noodle-tc .nd-pick-note { margin: 0 0 var(--space-4); }
+
+/* no "Everyone with the link can see responses." line (owner, 2026-10-31) */
+.noodle-tc .nd-pick-note { display: none; }
 
 /* ONE step on screen at a time: the pick (calendar, Ask, Save) is HIDDEN
    until the name step is done, not shown greyed out (owner, 2026-10-23).
@@ -446,6 +448,11 @@ body.noodle-tc {
   clip-path: var(--tc-pip-clip, none);
 }
 .noodle-tc .nd-dots i.on:not([style]), .noodle-tc .nd-top-dots i.on:not([style]) { background: hsl(var(--tc-ink)); }
+
+/* the months' alternating shade, FAINT here (owner, 2026-10-31: the shared
+   two layers of green read as two different grounds on sand); the crop's
+   dimming outside it stays as strong as it was */
+.noodle-tc .nd-d.alt::after { background: hsl(var(--tc-ink) / 0.045); }
 
 /* a PICKED day is light (peach), not ink-filled, so the same dark pips and
    the ink number read on it as on any other day */
