@@ -235,6 +235,7 @@ function NoodleCal(wrap, opts) {
 
   function paintDots() {
     var fit = P.dotsFit(cells[0], others.length);
+    grid.classList.toggle('nd-tight', fit.tight);
     cells.forEach(function (c) {
       c.querySelector('.nd-dots').innerHTML = others.length ? P.dotsHtml(c.dataset.day, others, fit, sel, opts.halves) : '';
     });

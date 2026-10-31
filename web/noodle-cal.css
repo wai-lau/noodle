@@ -357,6 +357,24 @@ html:has(#nd-cal)::-webkit-scrollbar { display: none; }
   border-radius: var(--radius-pill);
 }
 
+/* TIGHT (noodle-cal.js ndDotsFit): more voters than the normal dots fit, so
+   smaller dots on a hairline gap -- 7 columns in a phone-width cell, not 5 --
+   before anyone is hidden behind the ring. The bg outline thins to match, or
+   it would bite the next column. Sizes mirror ND_DOT_TIGHT(_GAP). The box
+   keeps its normal HEIGHT: going tight happens inside the width watcher
+   (noodle-cal-view.js ndcOnWidth), and a row that shrank there looped the
+   ResizeObserver. */
+.nd-tight .nd-dots {
+  grid-template-rows: 5px 5px;
+  grid-auto-columns: 5px;
+  gap: var(--space-px);
+}
+.nd-tight.single .nd-dots { grid-template-rows: 5px; }
+.nd-tight .nd-dots i, .nd-tight .nd-more { width: 5px; height: 5px; }
+.nd-tight .nd-dots i.both { height: 100%; }
+.nd-tight .nd-dots i.on { outline-width: 1px; }
+.nd-tight .nd-more { border-width: 1px; }
+
 
 /* ── crop (noodle-crop.js): the host's first and last week, always shown to
    the host as two handles on the grid; the days outside are greyed ───── */

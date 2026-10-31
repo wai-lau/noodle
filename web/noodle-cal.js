@@ -20,6 +20,7 @@
 var ND_DOW = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 var ND_TAN30 = Math.tan(Math.PI / 6);
 var ND_DOT = 6, ND_DOT_GAP = 2; // px; mirrors .nd-dots in noodle-cal.css (6px, --space-0-5)
+var ND_DOT_TIGHT = 5, ND_DOT_TIGHT_GAP = 1; // px; mirrors .nd-tight .nd-dots (5px, --space-px)
 
 function ndIso(d) {
   return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' +
@@ -115,10 +116,18 @@ function ndGroupAdd(groups, wk, bound, halves) {
 }
 
 // How many dot columns fit a cell; one is given up to the overflow ring.
-function ndDotsFit(cell, count) {
+// Too many for the normal dots, the calendar goes TIGHT (smaller dots, a
+// hairline gap) before it hides anyone: at phone width that is 5 -> 7
+// columns (a real 5-voter poll lost two people behind the ring, 2026-10-31).
+function ndDotsCols(cell, dot, gap) {
   var w = cell ? cell.clientWidth - 2 * ND_DOT_GAP : 0;
-  var fit = Math.max(1, Math.floor((w + ND_DOT_GAP) / (ND_DOT + ND_DOT_GAP)));
-  return count > fit ? { shown: fit - 1, more: true } : { shown: count, more: false };
+  return Math.max(1, Math.floor((w + gap) / (dot + gap)));
+}
+
+function ndDotsFit(cell, count) {
+  var fit = ndDotsCols(cell, ND_DOT, ND_DOT_GAP), tight = false;
+  if (count > fit) { fit = ndDotsCols(cell, ND_DOT_TIGHT, ND_DOT_TIGHT_GAP); tight = true; }
+  return count > fit ? { shown: fit - 1, more: true, tight: tight } : { shown: count, more: false, tight: tight };
 }
 
 // A dot in the voter's seal ink where they are free that half, a GAP where not
