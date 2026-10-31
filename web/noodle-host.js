@@ -140,13 +140,28 @@ async function ndhCommitSettings(ts) {
 }
 
 // The TITLE and the NOTE under it, one mechanism: the host taps one and types;
-// Enter (or tapping away) ends the edit, and like the split and the crop it
-// is sent with Commit. The title may not be emptied (it snaps back); the note
-// may (that clears it).
+// tapping away ends the edit, and like the split and the crop it is sent with
+// Commit. The title may not be emptied (it snaps back); the note may (that
+// clears it). Enter ends a title edit; in the note it is a NEW LINE, like a
+// textarea (owner, 2026-10-31) -- the note keeps its lines, at most one blank
+// one between them.
 var NDH_TEXT = {
-  title: { el: 'nd-title', pending: 'pendingTitle', empty: false },
-  note: { el: 'nd-note', pending: 'pendingNote', empty: true },
+  title: { el: 'nd-title', pending: 'pendingTitle', empty: false, lines: false },
+  note: { el: 'nd-note', pending: 'pendingNote', empty: true, lines: true },
 };
+
+function ndhTidy(text, lines) {
+  var one = function (s) { return s.split(/\s+/).filter(Boolean).join(' '); };
+  if (!lines) return one(text);
+  return text.split('\n').map(one).join('\n').replace(/\n{3,}/g, '\n\n').trim();
+}
+
+// The field's text, tidied; a note is read as RENDERED (innerText), where the
+// lines Enter made are "\n" -- textContent drops them
+function ndhText(k) {
+  var el = ndh$(NDH_TEXT[k].el);
+  return ndhTidy(NDH_TEXT[k].lines ? el.innerText : el.textContent, NDH_TEXT[k].lines);
+}
 
 function ndhTextTap(k) {
   return function () {
@@ -165,7 +180,7 @@ function ndhTextTap(k) {
 
 function ndhTextEdit(k) {
   return function () {
-    var t = ndh$(NDH_TEXT[k].el).textContent.split(/\s+/).filter(Boolean).join(' ');
+    var t = ndhText(k);
     var saved = NDV.poll[k] || '';
     NDV[NDH_TEXT[k].pending] = (t || NDH_TEXT[k].empty) && t !== saved ? t : undefined;
     ndhTitleMarks(ndhRole(ndvReady() ? ndvPub() : null));
@@ -176,8 +191,11 @@ function ndhTextEdit(k) {
 function ndhTextDone(k) {
   return function (e) {
     var el = ndh$(NDH_TEXT[k].el);
-    if (e.type === 'keydown' && e.key !== 'Enter') return;
+    if (e.type === 'keydown' && (e.key !== 'Enter' || NDH_TEXT[k].lines)) return;
     if (e.type === 'keydown') e.preventDefault();
+    // Enter in an editable makes <div>/<br> (WebKit even for an inserted "\n"):
+    // flatten them back to plain lines, the form the note is saved in
+    if (NDH_TEXT[k].lines) el.textContent = ndhText(k);
     el.contentEditable = 'false';
     if (!el.textContent.trim()) {
       el.textContent = NDH_TEXT[k].empty ? '' : NDV.poll[k];

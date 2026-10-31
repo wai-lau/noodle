@@ -20,7 +20,7 @@
     // [P6] says a link leaves the page -- but NOT for the encryption link,
     // whose "(opens GitHub)" the owner dropped (2026-10-23)
     'end-to-end encrypted': 'End-to-end encrypted',
-    'you are': 'Responding as', 'edit': 'Change', 'change': 'Change',
+    'you are': 'Responding as', 'hosting as': 'Hosting as','edit': 'Change', 'change': 'Change',
     'your name': 'Your name', 'passphrase (optional)': 'Passphrase (optional)',
     'no passphrase: anyone can change your vote': 'Without a passphrase, anyone can change your response.',
     'no passphrase: anyone can change the entire poll, what a chaotic host':

@@ -113,6 +113,7 @@ body.noodle:not(.with-nav) { --nav-h: 0px; }
   margin: calc(-1 * var(--space-4)) auto var(--space-6);
   padding: 0 1.5ch;
   overflow-wrap: anywhere;
+  white-space: pre-line;   /* the note keeps its lines (noodle-host.js NDH_TEXT) */
   text-align: center;
   font-size: var(--fs-sm);
   color: hsl(var(--green-hsl) / 0.8);

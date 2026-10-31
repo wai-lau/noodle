@@ -171,10 +171,12 @@ body.noodle-tc {
 .noodle-tc .nd-title.untitled { text-decoration: none; }
 .noodle-tc .nd-title.untitled:not(:focus) { font-size: 0; }
 
+/* hints are FAINT, so they never read as text already there (owner,
+   2026-10-31: "Add a title" looked like a title) */
 .noodle-tc .nd-title.untitled:not(:focus)::after {
   content: 'Add a title';
   font-size: clamp(2rem, 9vw, 3.25rem);
-  color: hsl(var(--tc-cream));
+  color: hsl(var(--tc-cream) / 0.45);
 }
 
 .noodle-tc .nd-subnote, .noodle-tc .nd-pick-note, .noodle-tc .nd-ask-label {
@@ -188,7 +190,20 @@ body.noodle-tc {
   color: hsl(var(--tc-ink));
 }
 .noodle-tc .nd-subnote { margin-top: var(--space-2); color: hsl(var(--tc-cream)); }
-.noodle-tc .nd-subnote.editable:empty::before { content: 'Add a description'; color: hsl(var(--tc-cream)); }
+.noodle-tc .nd-subnote.editable:empty::before { content: 'Add a description'; color: hsl(var(--tc-cream) / 0.45); }
+
+/* the HOST's description is a box like the title's, three lines tall: it
+   reads as a textarea to type into, and Enter makes a new line in it (owner,
+   2026-10-31). A guest sees plain text, no box. */
+.noodle-tc .nd-subnote.editable {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: calc(3lh + 2 * var(--space-3));
+  margin-bottom: var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid hsl(var(--tc-ink));
+  border-radius: var(--radius-2);
+}
 .noodle-tc .nd-pick-note { margin: 0 0 var(--space-4); }
 
 /* ONE step on screen at a time: the pick (calendar, Ask, Save) is HIDDEN
