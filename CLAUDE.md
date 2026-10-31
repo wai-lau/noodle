@@ -43,8 +43,11 @@ in the `#k=` fragment, never sent). §21d, §21m.
 **Code is verifiable** (no build step → served `.js` == the public repo; both repos public). The vote page pins every script with SRI (`pages._apply_sri`) AND mirrors its strict CSP into a `<meta>` (`config.VOTE_CSP`/`VOTE_CSP_META`, injected in `pages.vote_page` — vote page only; CSP intersects so it only tightens, never breaks a poll) so "no inline/eval scripts" is visible in the served HTML, not just a strippable header (adversarial audit 2026-10-17, noodle imports no app module). Voter recipe: `VERIFY.md` → the GitHub-Pages verifier `docs/verify.html` (`wai-lau.github.io/noodle/verify.html`; paste the DevTools Network Response, NOT view-source: which re-fetches; it checks pins-vs-repo + the CSP meta + no inline script, from a neutral origin). The `/noodle` create page and the vote page's e2e note both link to it. The KDF Web Worker + its Argon2 (`new Worker`/`importScripts`, unpinnable by SRI) are pinned by a `sha384` hard-coded in the SRI-pinned `noodle-kdf.js` (`NDK_PIN`) and run from a verified Blob — needs CSP `worker-src 'self' blob:` + `script-src 'wasm-unsafe-eval'` (wasm only, not eval/inline); `test_noodle_kdf_pin.py`. Sealed objects are padded to 256-byte buckets (`ndePad`) so size stops leaking name length / pick count — trailing spaces `JSON.parse` ignores, so old records open unchanged. §21m.
 
 **The `<link>`/`<script>` ORDER in the noodle templates is the cascade and the
-init order** (`noodle-vote.js` runs `ndvInit` as it loads). One CSS/JS file per
-page part.
+load order.** `noodle-vote.js` runs `ndvInit` at **DOMContentLoaded**, after every
+script, so the poll never lands before a later file (2026-10-31: it did, and the
+host's chosen time vanished). A file needing the started page (`NDV.slug`, key)
+waits for DOMContentLoaded too, or asks lazily (`noodle-share.js`). Pinned by
+`test_the_poll_loads_only_after_every_script`. One CSS/JS file per page part.
 
 **Owner key reset** (the package now lives in the submodule, so run it there):
 `docker compose exec -w /app/apps/noodle/api api python -m noodle.reset <slug> "<name>"`.

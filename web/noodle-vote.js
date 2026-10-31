@@ -308,4 +308,11 @@ function ndvInit() {
 }
 
 window.ndvOnIdentityInput = ndvOnIdentityInput;
-ndvInit();
+
+// Start only once EVERY script on the page has run (the ones after this file,
+// and a front end's deferred ones): starting as this file loaded, the poll's
+// fetch could land before them, and whatever they add to a loaded poll was
+// skipped -- the host's chosen time vanished on reload in Chrome
+// (2026-10-31). tests/test_noodle_browser_event.py checks the order.
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', ndvInit);
+else ndvInit();

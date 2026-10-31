@@ -8,14 +8,20 @@ function ndsIcon(btn, which) {
   btn.innerHTML = which === 'copy' ? '<i class="nd-copy-ic">\uf0c5</i>' : '\u2713';
 }
 
+// The link as it is NOW: an end-to-end poll's carries its key
+// (noodle-e2e.js ndeLink), known only once noodle-vote.js has started -- so
+// it is asked for when needed, never fixed as this file loads.
+function ndsUrl(root) {
+  return window.NDV && NDV.slug ? ndeLink() : location.origin + (document.body.dataset.base || '/noodle') + '/' + root.dataset.slug;
+}
+
 function ndsShare(root) {
-  // an end-to-end poll's link carries its key (noodle-e2e.js ndeLink)
-  var url = window.NDV && NDV.slug ? ndeLink() : location.origin + (document.body.dataset.base || '/noodle') + '/' + root.dataset.slug;
   var box = document.getElementById('nd-url'), btn = document.getElementById('nd-copy');
-  box.value = url;
+  box.value = ndsUrl(root);
   ndsIcon(btn, 'copy');
-  box.addEventListener('focus', function () { box.select(); });
+  box.addEventListener('focus', function () { box.value = ndsUrl(root); box.select(); });
   btn.addEventListener('click', async function () {
+    var url = box.value = ndsUrl(root);
     try {
       await navigator.clipboard.writeText(url);
       ndsIcon(btn, 'done');   // copied
@@ -27,7 +33,11 @@ function ndsShare(root) {
   });
 }
 
-(function () {
+// after noodle-vote.js's start (it waits for DOMContentLoaded too, and was
+// registered first, so it runs first): only then does the poll know its key
+function ndsStart() {
   var root = document.getElementById('noodle');
   if (root && root.dataset.slug && document.getElementById('nd-copy')) ndsShare(root);
-})();
+}
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', ndsStart);
+else ndsStart();

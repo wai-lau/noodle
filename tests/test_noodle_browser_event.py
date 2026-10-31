@@ -97,3 +97,27 @@ def test_the_host_picks_an_event_time_and_everyone_sees_it(browser, base_url):
             c.close()
         if slug:
             httpx.delete(f"{base_url}/api/noodle-polls/{slug}", headers={"Authorization": f"Bearer {API_KEY}"})
+
+
+def test_the_poll_loads_only_after_every_script(browser, base_url, noodle_slug):
+    """noodle-vote.js must not fetch the poll while the page is still loading
+    scripts: a poll that landed before noodle-event.js lost the host's chosen
+    time on reload (Chrome, 2026-10-31). Every fetch of the poll records the
+    document's readyState at the moment it is made."""
+    ctx = browser.new_context(viewport={"width": 430, "height": 932})
+    ctx.add_init_script("""
+      window.__pollFetches = [];
+      const f = window.fetch;
+      window.fetch = function (url, o) {
+        if (String(url).indexOf('/api/noodle/') >= 0) window.__pollFetches.push(document.readyState);
+        return f.apply(this, arguments);
+      };""")
+    page = ctx.new_page()
+    try:
+        page.goto(f"{base_url}/noodle-tc/{noodle_slug}")
+        page.wait_for_function("window.NDV && NDV.poll", timeout=10000)
+        seen = page.evaluate("window.__pollFetches")
+        assert seen and "loading" not in seen, f"the poll was fetched mid-load: {seen}"
+        assert page.evaluate("typeof window.ndevShow") == "function"
+    finally:
+        ctx.close()
