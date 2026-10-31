@@ -48,9 +48,13 @@ async function noodleSalt(slug, norm) {
 // Kept honest by tests/test_noodle_kdf_pin.py (recomputes these from the files).
 var NDK_WORKER_SRC = '/noodle-kdf-worker.js';
 var NDK_VENDOR_SRC = '/vendor/hash-wasm-argon2-4.12.0.min.js';
+// Argon2id in plain JS, for a browser with no WebAssembly (see NDK_ARGON2
+// below); fetched only there
+var NDK_NOBLE_SRC = '/vendor/noble-argon2id-1.8.0.js';
 var NDK_PIN = {};
-NDK_PIN[NDK_WORKER_SRC] = 'sha384-EpiVdvLx8FYdsG/Yb22AngCrJF79hQo+A0mDb4Y1cEvkReSMhjZq5Zd6ZltE9qy4';
+NDK_PIN[NDK_WORKER_SRC] = 'sha384-kAFFIjqttslpseHYPjtggJK73SBEuwDyC44OoxQrwfbzzziKGRm2YiGiKWZEKZf0';
 NDK_PIN[NDK_VENDOR_SRC] = 'sha384-tP0Wy54CKmng7i9EoTlPySD0hBx6Octj0VS6MfwlnUu111MPa+JLm0CCbep6XJ1W';
+NDK_PIN[NDK_NOBLE_SRC] = 'sha384-HMA22nYxEMcRbxuzCzPRbetR2Jx4GgVkjAUi2qBTrx9xESOYgEfBTmvKKXJSVzNT';
 
 function ndkB64(buf) {
   var b = new Uint8Array(buf), s = '';
@@ -87,8 +91,9 @@ async function ndkFetchPinned(url, pinKey) {
 // (noodle/config.py VOTE_CSP).
 async function ndkPinnedUrl(workerUrl) {
   var vendor = await ndkFetchPinned(NDK_VENDOR_SRC, NDK_VENDOR_SRC);
+  var noble = ndkCanArgon2() ? '' : await ndkFetchPinned(NDK_NOBLE_SRC, NDK_NOBLE_SRC);
   var work = await ndkFetchPinned(workerUrl, NDK_WORKER_SRC);
-  return URL.createObjectURL(new Blob([vendor, '\n;\n', work], { type: 'text/javascript' }));
+  return URL.createObjectURL(new Blob([vendor, '\n;\n', noble, '\n;\n', work], { type: 'text/javascript' }));
 }
 
 // The two ways a passphrase becomes a key (owner, 2026-10-31). ARGON2ID is the
@@ -104,7 +109,8 @@ function ndkCanArgon2() { return typeof WebAssembly === 'object'; }
 
 function ndkDefaultMethod() { return ndkCanArgon2() ? NDK_ARGON2 : NDK_PBKDF2; }
 
-// opts: {slug, kdf:{m,t,p,len,iter,debounce}, workerUrl, method(norm), onStart(info), onDerived(info), onError(msg)}
+// opts: {slug, kdf:{m,t,p,len,iter,debounce}, workerUrl, method(norm), onStart(info), onDerived(info),
+//        onError(msg), onProgress(done 0..1: only the slow plain-JS Argon2id reports it)}
 // method(norm) -> the method for that name's key; default: what this browser can run
 function NoodleKdf(opts) {
   var worker = null, timer = null, gen = 0, busy = false, signId = 0;
@@ -133,7 +139,9 @@ function NoodleKdf(opts) {
 
   function onMessage(e) {
     var m = e.data;
-    if (m.op === 'derived' && m.gen === gen) {
+    if (m.op === 'progress' && m.gen === gen) {
+      if (opts.onProgress) opts.onProgress(m.done);
+    } else if (m.op === 'derived' && m.gen === gen) {
       busy = false;
       current = { norm: current && current.pendingNorm, pub: m.pub, method: current && current.pendingMethod };
       opts.onDerived({ pub: m.pub, ms: m.ms });

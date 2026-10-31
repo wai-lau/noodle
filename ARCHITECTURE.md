@@ -199,7 +199,15 @@ never changes method**, not on a new passphrase and not on a rename (owner's
 call): mid change, the method is the OLD seat's. If the poll loads after a key
 was already made the other way, the key is made again (`ndvKdfStale`). An Argon2id
 seat (every older seat, and every seat on a plain poll) opened in Lockdown
-says to turn Lockdown off for the site. Why not drop Argon2 entirely: a
+still opens, the SLOW way. The worker runs @noble/hashes' plain-JS Argon2id
+(`web/vendor/noble-argon2id-1.8.0.js`). It is one esbuild IIFE with the rebuild
+recipe in its header, pinned as `NDK_NOBLE_SRC` and fetched only when there is
+no WebAssembly. It makes the same key as hash-wasm, which was checked in node
+on the poll's real parameters. It reports progress, and `#nd-slow` shows the
+percentage beside the Lockdown tip that makes it fast. It runs once per device,
+after which the kept key signs. We did not write our own Argon2: the owner
+vetoed that (2026-10-31), so a published, widely used library was vendored
+instead. Why not drop Argon2 entirely: a
 passphrase is checkable offline against the public key, and PBKDF2 is roughly
 100× cheaper to guess on graphics cards. Speeds measured on the droplet: Argon2id
 in plain JS with no JIT took 85s, against 2.7s with JIT.

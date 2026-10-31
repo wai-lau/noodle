@@ -7,7 +7,7 @@
 //               {op:'use', gen, key, pub}    -- a key kept in IndexedDB (noodle-keystore.js)
 //               {op:'sign', id, text}
 //               {op:'key', id}               -- the CryptoKey itself, to be kept
-// Messages out: {op:'derived', gen, pub, ms} | {op:'signed', id, sig}
+// Messages out: {op:'derived', gen, pub, ms} | {op:'signed', id, sig} | {op:'progress', gen, done}
 //               {op:'key', id, key} | {op:'error', gen|id, detail}
 // The CryptoKey crosses postMessage as a structured clone and STAYS
 // non-extractable: whoever holds it can sign, nobody can read it out.
@@ -42,12 +42,23 @@ function b64(buf) {
 function secret(pass) { return pass === '' ? new Uint8Array([0]) : new TextEncoder().encode(pass); }
 
 // m.kdf 'pbkdf2' (noodle-kdf.js NDK_PBKDF2): PBKDF2-SHA256 in WebCrypto, for a
-// browser with no WebAssembly; anything else is Argon2id, as it always was
+// NEW seat in a browser with no WebAssembly; anything else is Argon2id, as it
+// always was -- by hash-wasm, or, with no WebAssembly, by noble's plain-JS
+// Argon2id (the same key, about a minute: Lockdown also turns off the JIT),
+// reporting how far it has got as {op:'progress', gen, done 0..1}.
 async function seedOf(m) {
   if (m.kdf === 'pbkdf2') {
     var base = await crypto.subtle.importKey('raw', secret(m.pass), 'PBKDF2', false, ['deriveBits']);
     return new Uint8Array(await crypto.subtle.deriveBits(
       { name: 'PBKDF2', hash: 'SHA-256', salt: m.salt, iterations: m.iter }, base, m.len * 8));
+  }
+  if (typeof WebAssembly === 'undefined' && self.nobleArgon2id) {
+    var shown = -1;
+    return self.nobleArgon2id(secret(m.pass), m.salt, { t: m.t, m: m.m, p: m.p, dkLen: m.len,
+      onProgress: function (done) {
+        var pct = Math.floor(done * 100);
+        if (pct !== shown) { shown = pct; self.postMessage({ op: 'progress', gen: m.gen, done: done }); }
+      } });
   }
   return self.hashwasm.argon2id({
     password: m.pass === '' ? secret(m.pass) : m.pass,

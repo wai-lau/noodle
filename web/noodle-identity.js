@@ -4,6 +4,7 @@
 // global scope as noodle-vote.js; loaded before it, called once it has run.
 
 function ndvOnStart(info) {
+  ndvSlow(null);
   ndvSyncSubmit();
   var seal = ndv$('nd-seal');
   if (NDV.seal) NDV.lastSeal = NDV.seal;
@@ -15,6 +16,7 @@ function ndvOnStart(info) {
 
 async function ndvOnDerived(d) {
   var seal = ndv$('nd-seal');
+  ndvSlow(null);
   seal.classList.remove('pending');
   NDV.seal = await window.NoodleSeal.seal(d.pub);
   window.NoodleSeal.stamp(seal, NDV.seal);

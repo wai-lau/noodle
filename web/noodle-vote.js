@@ -43,8 +43,14 @@ function ndvMaybeReveal() {
 
 function ndvReady() { return !!NDV.kdf && NDV.kdf.ready(); }
 
-var NDV_LOCKDOWN = 'this name was made in a browser with WebAssembly, which Lockdown Mode turns off. ' +
-  'in Safari: aA > Website Settings > turn Lockdown Mode off for this site.';
+// The slow key (plain-JS Argon2id, no WebAssembly: noodle-kdf-worker.js):
+// how far it has got, and the Lockdown tip that makes it fast. done = null
+// hides it -- a new derive, a key made, an error.
+function ndvSlow(done) {
+  var el = ndv$('nd-slow');
+  el.hidden = done == null;
+  if (done != null) ndv$('nd-slow-pct').textContent = Math.floor(done * 100) + '%';
+}
 
 // How the key for `norm` is made (noodle-kdf.js NoodleKdfMethods): the
 // seat's own method when the name is already on the poll -- mid change, the
@@ -262,14 +268,12 @@ function ndvInit() {
   ndv$('nd-ask').addEventListener('input', ndvSaveAsk);
   NDV.kdf = window.NoodleKdf({
     slug: ndeScope(), kdf: NDV.kdfCfg, workerUrl: root.dataset.worker, pin: true, method: ndvKdfMethod,
-    onStart: ndvOnStart, onDerived: ndvOnDerived,
+    onStart: ndvOnStart, onDerived: ndvOnDerived, onProgress: ndvSlow,
     onError: function (msg) {
       NDV.keyError = true;
+      ndvSlow(null);
       ndvSyncSubmit();
-      // no WebAssembly is Lockdown Mode: a seat made with Argon2id (every seat
-      // before 2026-10-31, and every plain poll's) can only be opened with it
-      if (!window.NoodleKdfMethods.canArgon2()) ndvStatus(NDV_LOCKDOWN, 'err');
-      else ndvStatus('could not make a key in this browser (' + msg + '). a current Safari, Chrome or Firefox is needed.', 'err');
+      ndvStatus('could not make a key in this browser (' + msg + '). a current Safari, Chrome or Firefox is needed.', 'err');
     },
   });
   ndv$('nd-name').addEventListener('input', ndvOnIdentityInput);

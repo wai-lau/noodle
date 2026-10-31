@@ -3,7 +3,7 @@ it makes a new seat's key with PBKDF2 instead of Argon2id (noodle-kdf.js), the
 seat's method is sealed in its vote, and from then on EVERY browser makes that
 seat's key the same way -- so the name + passphrase work on any device, a
 passphrase or name change keeps the method, and an Argon2id seat opened in
-Lockdown says how to get in rather than "not supported"."""
+Lockdown still opens, slowly, with plain-JS Argon2id (the same key)."""
 import pytest
 
 pytestmark = pytest.mark.browser
@@ -12,14 +12,17 @@ UNLOCK = ("(NDV.step !== 'pick' && ndvCanNext() && ndvStep('pick'),"
           " !document.getElementById('nd-cal').classList.contains('nd-readonly'))")
 HOST, GUEST, RENAMED = "lockdown host", "lockdown guest", "lockdown renamed"
 
-# Lockdown Mode's missing WebAssembly, in the page AND the key worker (a Blob
-# the page builds from verified bytes, so it is wrapped rather than edited)
+# Lockdown Mode's missing WebAssembly, in the page AND the key worker: the
+# worker runs from a Blob the page builds out of verified bytes, so the Blob
+# gets one line in front. (Wrapping the Worker in a second Blob that
+# importScripts the first breaks under the real CSP, which does not allow
+# blob: scripts.)
 NO_WASM = """
 delete window.WebAssembly;
-const W = window.Worker;
-window.Worker = function (url, o) {
-  const pre = 'self.WebAssembly = undefined; importScripts(' + JSON.stringify(String(url)) + ');';
-  return new W(URL.createObjectURL(new Blob([pre], {type: 'text/javascript'})), o);
+const B = window.Blob;
+window.Blob = function (parts, o) {
+  if (o && o.type === 'text/javascript') parts = ['self.WebAssembly = undefined;'].concat(parts);
+  return new B(parts, o);
 };
 """
 
@@ -112,17 +115,24 @@ def test_a_lockdown_seat_uses_pbkdf2_everywhere_and_keeps_it(browser, base_url):
         _commit(normal)
         assert normal.evaluate("NDV.poll.voters.map(v => [v.name, v.kdf])") == [[RENAMED, "pbkdf2"], [GUEST, "argon2id"]]
 
-        # back in Lockdown: the renamed seat opens; the Argon2id one says how
+        # back in Lockdown: the renamed seat opens; so does the Argon2id one,
+        # the slow way (noble's plain-JS Argon2id, the SAME key), with its
+        # progress and the Lockdown tip on screen while it runs
         again = open_(True)
         _join(again, link, RENAMED, "host pass two")
         assert _method(again) == "pbkdf2" and again.evaluate("NDV.mine")
+        guest_pub = guest.evaluate("NDV.kdf.pub()")
         locked = open_(True)
         locked.goto(link)
         locked.wait_for_function("NDV.poll", timeout=10000)
         locked.fill("#nd-name", GUEST)
         locked.fill("#nd-pass", "guest pass")
-        locked.wait_for_function("NDV.keyError", timeout=20000)
-        assert "Lockdown Mode" in locked.inner_text("#nd-banner")
+        locked.wait_for_selector("#nd-slow:not([hidden])", timeout=20000)
+        assert "Lockdown Mode" in locked.inner_text("#nd-slow")
+        locked.wait_for_function("NDV.kdf.ready()", timeout=180000)
+        assert locked.evaluate("NDV.kdf.pub()") == guest_pub, "the same key hash-wasm made"
+        assert _method(locked) == "argon2id" and locked.evaluate("NDV.mine && !NDV.keyError")
+        assert locked.is_hidden("#nd-slow")
     finally:
         for c in ctxs:
             c.close()

@@ -36,7 +36,7 @@ def _pin(src: str, varname: str) -> str:
 
 def test_kdf_pins_match_the_served_files():
     src = _src()
-    for varname in ("NDK_WORKER_SRC", "NDK_VENDOR_SRC"):
+    for varname in ("NDK_WORKER_SRC", "NDK_VENDOR_SRC", "NDK_NOBLE_SRC"):
         path = _const(src, varname)
         f = WEB / path.lstrip("/")
         assert f.is_file(), f"{path} does not resolve to a served file"
@@ -57,6 +57,16 @@ def test_kdf_runs_the_worker_from_a_verified_blob_and_fails_closed():
     src = _src()
     assert "URL.createObjectURL(new Blob(" in src, "worker must run from a Blob of verified bytes"
     assert "integrity mismatch" in src, "a hash mismatch must be a hard, non-retried failure"
+
+
+def test_the_noble_bundle_is_its_published_build():
+    """web/vendor/noble-argon2id-*.js is noble's argon2id + an esbuild IIFE
+    wrapper and nothing else: no network, no eval, one global out."""
+    raw = (WEB / "vendor" / "noble-argon2id-1.8.0.js").read_text(encoding="utf-8")
+    js = "\n".join(line for line in raw.splitlines() if not line.lstrip().startswith("//"))   # the code, not the recipe
+    for bad in ("fetch(", "XMLHttpRequest", "eval(", "Function(", "importScripts", "postMessage", "require("):
+        assert bad not in js, f"the vendored noble bundle contains {bad!r}"
+    assert js.count("self.") == 1 and "self.nobleArgon2id = argon2id;" in js
 
 
 def test_vote_and_rekey_opt_into_pinning():
