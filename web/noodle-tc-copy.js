@@ -133,9 +133,25 @@
 
   function skipped(el) { return !!(el && el.closest && el.closest(NDTC_SKIP)); }
 
+  // the chosen time under the title (noodle-event.js) is a date in FULL:
+  // "Tuesday, November 3rd, 2026" (owner, 2026-10-31), where the top dates
+  // say "Tuesday 3 November"
+  var NDTC_LONG = /^(sun|mon|tue|wed|thu|fri|sat) (\d\d)\/(\d\d)\/(\d{4})$/;
+
+  function ordinal(n) {
+    var t = n % 100, u = n % 10;
+    return n + (t > 10 && t < 14 ? 'th' : u === 1 ? 'st' : u === 2 ? 'nd' : u === 3 ? 'rd' : 'th');
+  }
+
+  function longDate(v) {
+    var m = NDTC_LONG.exec(v.trim());
+    return m && NDTC_WEEKDAYS[m[1]] + ', ' + NDTC_MONTHS[Number(m[3]) - 1] + ' ' + ordinal(Number(m[2])) + ', ' + m[4];
+  }
+
   function text(node) {
     if (skipped(node.parentElement)) return;
-    var v = node.nodeValue, to = said(v);
+    var long = node.parentElement && node.parentElement.closest('.nd-event-date');
+    var v = node.nodeValue, to = (long && longDate(v)) || said(v);
     if (to === null || to === v.trim()) return;
     // keep the spacing around it ("you are " runs into the <b>name</b> after it)
     node.nodeValue = v.match(/^\s*/)[0] + to + v.match(/\s*$/)[0];
