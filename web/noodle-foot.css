@@ -20,6 +20,11 @@
 .nd-top-glyph { width: 2ch; padding: 0 var(--space-4) 0 var(--space-1); text-align: center; }
 .nd-top tr:has(> th) > * { padding-top: var(--space-1); }
 
+/* the dots start at the cell's left edge: rows hold different numbers of
+   columns (only voters free that day get one), and a centred cell (the tc
+   skin centres text) slid the shorter rows right */
+.nd-top td:last-child { text-align: left; }
+
 /* the calendar's dots, one fixed column per voter (noodle-cal.css .nd-dots) */
 .nd-top-dots { display: inline-flex; gap: var(--space-0-5); }
 .nd-top-dots i { width: 4px; height: 4px; border-radius: var(--radius-pill); }

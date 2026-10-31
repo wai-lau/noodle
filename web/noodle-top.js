@@ -2,8 +2,9 @@
 // offer alone is not a result), most voters first, soonest first on a tie,
 // drawn above "make another noodle". A table: one row per slot -- date
 // "tue dd/mm/yyyy" (once per day, rowspan), <glyph>, then the voters' dots --
-// so the dots line up in columns like the calendar's: each voter owns
-// one fixed column (vote order, in their seal ink), a gap where not free.
+// so the dots line up in columns like the calendar's: each voter free that
+// DAY owns one column (vote order, in their seal ink), a gap in the half they
+// are not; nobody free that day takes a column (2026-10-31).
 // The glyph is there only on a SPLIT poll: sun = midday, moon = night (Font
 // Awesome U+F185 / U+F186 from noodle-seal.woff2, text glyphs, not emoji);
 // they ink about two cells, so they sit in a fixed two-cell box (noodle.css).
@@ -60,9 +61,13 @@ function ndtRender(cols, sel) {
   var rows = ndtRank(cols || [], sel || new Set(), P.iso(new Date()), crop);
   el.closest('.nd-top-box').hidden = !rows.length;   // the box with its label
   el.innerHTML = ndtByDay(rows).map(function (g) {
+    // only the voters free some part of THIS day get a column, as in the
+    // calendar's cell (noodle-cal.js ndDotsLit): no empty columns
+    var free = cols.map(function (_, i) { return g.rows.some(function (r) { return r.cols[i]; }); });
     return g.rows.map(function (r, j) {
       var k = r.slot.slice(11);
       var dots = r.cols.map(function (on, i) {
+        if (!free[i]) return '';
         var ink = cols[i].ink;
         return '<i' + (on ? ' class="on"' + (ink ? ' style="--seal-hsl:' + ink + '"' : '') : '') + '></i>';
       }).join('');

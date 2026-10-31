@@ -139,7 +139,8 @@ def test_the_top_dates_rank_and_line_up(browser, base_url, noodle_slug):
         assert not rows["hidden"]
         r = rows["rows"]
         # A is the host: its four slots nobody else picked are not results
-        assert [x["on"] for x in r] == [[True, True, True], [True, True, False]]   # 3 voters, then 2
+        # 3 voters, then 2 -- and the day you are not free gives you no column
+        assert [x["on"] for x in r] == [[True, True, True], [True, True]]
         assert r[0]["glyph"] == "\uf185" and r[1]["glyph"] == "\uf186"   # sun midday, moon night
         assert len({round(x["x"], 1) for x in r}) == 1, "dots do not line up"
         assert all(x["date"] and len(x["date"]) == len(r[0]["date"]) for x in r)
