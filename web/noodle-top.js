@@ -59,7 +59,20 @@ function ndtRender(cols, sel) {
   if (!el) return;
   var P = window.NoodleCalParts, crop = window.ndhCrop ? window.ndhCrop() : null;
   var rows = ndtRank(cols || [], sel || new Set(), P.iso(new Date()), crop);
-  el.closest('.nd-top-box').hidden = !rows.length;   // the box with its label
+  // the EVENT TIME (noodle-event.js): the host ticks it here; once it is
+  // chosen, everyone else sees only those rows (owner, 2026-10-31)
+  var pick = window.ndevPickable && window.ndevPickable();
+  var event = window.ndevChosen ? window.ndevChosen() : [], chosen = new Set(event);
+  if (!pick && event.length) {
+    rows = event.map(function (s) {
+      return { slot: s, cols: (cols || []).map(function (c) { return (c.self ? sel : c.slots).has(s); }) };
+    });
+  }
+  var box = el.closest('.nd-top-box');
+  box.hidden = !rows.length;   // the box with its label
+  // which heading a front end gives it: the host's, or the host's choice
+  box.classList.toggle('nd-top-host', !!pick);
+  box.classList.toggle('nd-top-chosen', !pick && event.length > 0);
   el.innerHTML = ndtByDay(rows).map(function (g) {
     // only the voters free some part of THIS day get a column, as in the
     // calendar's cell (noodle-cal.js ndDotsLit): no empty columns
@@ -71,9 +84,13 @@ function ndtRender(cols, sel) {
         var ink = cols[i].ink;
         return '<i' + (on ? ' class="on"' + (ink ? ' style="--seal-hsl:' + ink + '"' : '') : '') + '></i>';
       }).join('');
-      // the date once, spanning its day's rows; the glyph only on a split poll
-      return '<tr>' + (j ? '' : '<th class="nd-top-date" scope="row" rowspan="' + g.rows.length + '">' +
-        ndtDate(g.day) + '</th>') +
+      // the host's box FIRST, one per slot (the date's rowspan leaves the
+      // night row's first column free for its own); the date once, spanning
+      // its day's rows; the glyph only on a split poll
+      return '<tr>' +
+        (pick ? '<td class="nd-top-tick"><input type="checkbox" class="nd-top-pick" aria-label="event time" data-slot="' +
+          r.slot + '"' + (chosen.has(r.slot) ? ' checked' : '') + '></td>' : '') +
+        (j ? '' : '<th class="nd-top-date" scope="row" rowspan="' + g.rows.length + '">' + ndtDate(g.day) + '</th>') +
         (k === 'd' ? '' : '<td class="nd-top-glyph">' + NDT_GLYPH[k] + '</td>') +
         '<td><span class="nd-top-dots">' + dots + '</span></td></tr>';
     }).join('');

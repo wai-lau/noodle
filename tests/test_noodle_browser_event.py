@@ -1,0 +1,99 @@
+"""The host's EVENT TIME (noodle-event.js), in the real engine: the host ticks
+a top date, Save seals it in the head, and a guest sees it under the title;
+a guest gets no boxes. And /noodle-tc's layout around it: Save, then any
+error, then ONE card holding the legend and the most popular times."""
+import hashlib
+
+import pytest
+
+pytestmark = pytest.mark.browser
+
+UNLOCK = ("(NDV.step !== 'pick' && ndvCanNext() && ndvStep('pick'),"
+          " !document.getElementById('nd-cal').classList.contains('nd-readonly'))")
+
+
+def _commit(page):
+    page.wait_for_function("!document.querySelector('#nd-submit').disabled", timeout=20000)
+    page.evaluate("NDV.committed = 0")
+    page.click("#nd-submit")
+    page.wait_for_function("NDV.committed > 0", timeout=20000)
+
+
+def _join(page, link, name, pw):
+    page.goto(link)
+    page.wait_for_function("NDV.poll", timeout=10000)
+    page.fill("#nd-name", name)
+    page.fill("#nd-pass", pw)
+    page.wait_for_function(UNLOCK, timeout=20000)
+
+
+def test_the_host_picks_an_event_time_and_everyone_sees_it(browser, base_url):
+    import httpx
+    from conftest import API_KEY, TURNSTILE_SECRET
+    if not API_KEY or not TURNSTILE_SECRET:
+        pytest.skip("API_KEY / TURNSTILE_SECRET not set")
+    cookie = hashlib.sha256(f"guest:{TURNSTILE_SECRET}".encode()).hexdigest()
+    slug, ctxs = None, []
+
+    def open_():
+        ctx = browser.new_context(viewport={"width": 430, "height": 932})
+        ctx.add_cookies([{"name": "guest_session", "url": base_url, "value": cookie}])
+        ctxs.append(ctx)
+        return ctx.new_page()
+
+    try:
+        host = open_()
+        host.goto(f"{base_url}/noodle-tc")
+        host.click("#nd-create button")
+        host.wait_for_function("window.NDV && NDV.keyStr", timeout=10000)
+        key, slug = host.evaluate("[NDV.keyStr, NDV.slug]")
+        host.fill("#nd-name", "event host")
+        host.fill("#nd-pass", "host pass")
+        host.wait_for_function(UNLOCK, timeout=20000)
+        host.evaluate("NDV.cal.setSel(new Set([...NDV.cal.openSlots('0', '9')].slice(0, 2))); ndvSaveDraft()")
+        _commit(host)
+        link = f"{base_url}/noodle-tc/{slug}#k={key}"
+        offer = host.evaluate("NDV.poll.voters[0].slots")
+
+        guest = open_()
+        _join(guest, link, "event guest", "guest pass")
+        guest.evaluate(f"NDV.cal.setSel(new Set({offer!r})); ndvSaveDraft()")
+        _commit(guest)
+        assert guest.locator(".nd-top-pick").count() == 0, "a guest picks no event time"
+        assert guest.is_hidden("#nd-event")
+        assert guest.evaluate("document.querySelectorAll('#nd-top tr').length") == 2, "both days, nothing chosen yet"
+
+        # the host ticks the first top date; it shows at once, unsaved
+        host.reload()
+        host.wait_for_function("NDV.poll && NDV.poll.voters.length === 2", timeout=10000)
+        host.wait_for_function(UNLOCK, timeout=20000)
+        assert host.evaluate("document.getElementById('nd-top-box').classList.contains('nd-top-host')")
+        box = host.locator(".nd-top-pick").first
+        slot = box.get_attribute("data-slot")
+        box.check()
+        assert host.is_visible("#nd-event") and host.evaluate("ndvDirty()")
+        _commit(host)
+        assert host.evaluate("NDV.poll.event") == [slot]
+
+        # /noodle-tc's order: Save, its status, then the one card
+        order = host.evaluate("""() => {
+          const ids = ['nd-submit', 'nd-dirty'], card = document.querySelector('.nd-tc-card');
+          const y = el => el.getBoundingClientRect().top;
+          return [y(document.getElementById('nd-submit')) < y(card), y(document.getElementById('nd-dirty')) < y(card),
+            card.contains(document.querySelector('.nd-tc-legend')), card.contains(document.getElementById('nd-top'))]; }""")
+        assert order == [True, True, True, True]
+
+        guest.reload()
+        guest.wait_for_function("NDV.poll", timeout=10000)
+        guest.wait_for_selector("#nd-event:not([hidden])", timeout=10000)
+        assert guest.evaluate("NDV.poll.event") == [slot]
+        # the guest sees ONLY the chosen row, under "The host has chosen"
+        assert guest.evaluate("[...document.querySelectorAll('#nd-top tr')].length") == 1
+        assert guest.evaluate("document.getElementById('nd-top-box').classList.contains('nd-top-chosen')")
+        text = guest.inner_text("#nd-event")
+        assert text.strip() and "/" not in text, "worded in full on /noodle-tc"
+    finally:
+        for c in ctxs:
+            c.close()
+        if slug:
+            httpx.delete(f"{base_url}/api/noodle-polls/{slug}", headers={"Authorization": f"Bearer {API_KEY}"})

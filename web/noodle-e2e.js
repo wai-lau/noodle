@@ -15,6 +15,13 @@ var NDE_TITLE_MAX = 80;   // noodle/config.py TITLE_MAX
 var NDE_NOTE_MAX = 280;   // noodle/config.py NOTE_MAX
 var NDE_SLOT_RE = /^\d{4}-\d{2}-\d{2}:[dmn]$/;
 var NDE_DAY_RE = /^\d{4}-\d{2}-\d{2}$/;
+var NDE_EVENT_MAX = 8;   // the host's event slots (noodle-event.js NDEV_MAX)
+
+// a sealed list of slots, trusted for nothing: well-formed, distinct, sorted, capped
+function ndeSlots(a, max) {
+  if (!Array.isArray(a)) return [];
+  return Array.from(new Set(a.filter(function (s) { return typeof s === 'string' && NDE_SLOT_RE.test(s); }))).sort().slice(0, max);
+}
 // at most this many seats are opened (the server seats 200 -- noodle/config.py
 // MAX_VOTERS): a flooded poll must not freeze the page decrypting it
 var NDE_MAX_SEATS = 250;
@@ -138,7 +145,8 @@ function ndeHeadOf(h) {
   var ok = function (d) { return typeof d === 'string' && NDE_DAY_RE.test(d); };
   var title = typeof h.title === 'string' && h.title.trim() ? h.title.slice(0, NDE_TITLE_MAX) : 'title';
   return { title: title, note: typeof h.note === 'string' ? h.note.slice(0, NDE_NOTE_MAX) : '',
-    halves: h.halves === true, crop: ok(h.from) && ok(h.to) && h.from <= h.to ? { from: h.from, to: h.to } : null };
+    halves: h.halves === true, crop: ok(h.from) && ok(h.to) && h.from <= h.to ? { from: h.from, to: h.to } : null,
+    event: ndeSlots(h.event, NDE_EVENT_MAX) };
 }
 
 // The settings the host is committing, sealed whole -> {ct} or {error}.
@@ -148,7 +156,7 @@ async function ndeSealHead(head) {
   var note = String(head.note || '').trim();
   if (note.length > NDE_NOTE_MAX) return { error: 'note must be at most ' + NDE_NOTE_MAX + ' characters' };
   return { ct: await ndeSeal('head', '', { title: title, note: note, halves: !!head.halves,
-    from: head.from || null, to: head.to || null }) };
+    from: head.from || null, to: head.to || null, event: ndeSlots(head.event, NDE_EVENT_MAX) }) };
 }
 
 // ── signatures, checked HERE ────────────────────────────────────────────────
@@ -226,6 +234,7 @@ async function ndeView(raw) {
     voters.slice(1).forEach(function (v) { v.slots = v.slots.filter(function (s) { return offer.has(s); }); });
   }
   return { slug: raw.slug, e2e: true, title: head.title, note: head.note, halves: head.halves, crop: head.crop,
+    event: ndeConvert(head.event, head.halves),   // the host's event time, in the split as it is now
     voters: voters, host: voters.length ? voters[0].name : null,
     sealed: all.length + (raw.head ? 1 : 0), opened: opened };
 }
@@ -238,6 +247,7 @@ function ndeShowTexts() {
     if (!el.isContentEditable && NDV[x[2]] === undefined) el.textContent = p[x[1]] || '';
   });
   document.title = 'noodle: ' + p.title;
+  if (window.ndevShow) window.ndevShow();
   if (p.sealed && !p.opened) ndvBanner("this link's key does not open this poll. ask whoever sent it for the whole link.");
 }
 

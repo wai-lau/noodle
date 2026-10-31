@@ -459,15 +459,23 @@ body.noodle-tc {
 .noodle-tc .nd-d.mid .nd-tri.m::after, .noodle-tc .nd-d.nit .nd-tri.n::after,
 .noodle-tc .nd-d.mid .nd-tri.d::after { background: hsl(var(--tc-peach)); }
 
-/* [P3] the pip legend under the calendar (noodle-tc-legend.js): whose
-   pip is whose, a swatch in the pip's own colour beside each name */
-.noodle-tc .nd-tc-legend {
-  margin: var(--space-2) 0 0;
-  padding: var(--space-3);
-  font-size: var(--tc-fs-small);
-  line-height: var(--tc-lh);
+/* [P3] ONE peach card under Save (noodle-tc-legend.js, owner 2026-10-31):
+   the pip legend -- whose pip is whose, a swatch in the pip's own colour
+   beside each name -- then the most popular times. Empty, it is not drawn. */
+.noodle-tc .nd-tc-card {
+  margin: var(--space-4) 0 0;
+  padding: var(--space-3) var(--space-4) var(--space-4);
   background: hsl(var(--tc-peach));
   border-radius: var(--radius-2);
+}
+.noodle-tc .nd-tc-card:not(:has(> :not([hidden]))) { display: none; }
+
+/* errors sit with Save, just above the card */
+.noodle-tc .nd-tc-card ~ .nd-banner, .noodle-tc .nd-banner:has(+ .nd-tc-card) { margin: var(--space-3) 0 0; }
+
+.noodle-tc .nd-tc-legend {
+  font-size: var(--tc-fs-small);
+  line-height: var(--tc-lh);
 }
 .noodle-tc .nd-tc-legend[hidden] { display: none; }
 
@@ -504,21 +512,26 @@ body.noodle-tc {
    not across the month column (owner, 2026-10-23) */
 .noodle-tc .nd-grid .nd-crop-h, .noodle-tc .nd-shade { left: var(--tc-weekcol); }
 
-/* the host's SPLIT switch UNDER the calendar (owner, 2026-10-23), not laid
-   over its first row: --nd-split-in-grid tells noodle-host.js ndhPlaceSplit
-   to leave it out of the grid, and the pick step becomes a column whose
-   order puts the switch right after the calendar, before the legend */
+/* the host's SPLIT switch is not laid over the calendar's first row:
+   --nd-split-in-grid tells noodle-host.js ndhPlaceSplit to leave it out of
+   the grid, and the pick step becomes a column whose order places it
+   (under the calendar from 2026-10-23, under the step line since 2026-10-31) */
 .noodle-tc #nd-pick { display: flex; flex-direction: column; }
 .noodle-tc #nd-pick > * { order: 0; }
 .noodle-tc #nd-pick > #nd-cal ~ * { order: 2; }
 .noodle-tc #nd-pick > .nd-submit { align-self: center; }
 
+/* ... and then, right under the "Step 2 of 2" line, above everything else
+   on the step (owner, 2026-10-31): that line is the column's ::before, an
+   item of its own, so it goes first and the switch second */
+.noodle-tc #nd-pick::before { order: -2; }
+
 .noodle-tc #nd-split-slot {
   --nd-split-in-grid: no;
 
-  order: 1;
+  order: -1;
   position: static;
-  margin: var(--space-1) 0 0;
+  margin: 0 0 var(--space-3);
 }
 
 /* plain text on the ground, tight under the calendar: no box (owner, 2026-10-26) */
@@ -542,29 +555,55 @@ body.noodle.noodle-tc {
   --nd-ink-7: 210 20% 28%;    /* slate */
 }
 
-/* the most popular times (noodle-top.js), under the page: a heading, and
-   the dates at a readable size (worded in full by noodle-tc-copy.js) */
+/* the most popular times (noodle-top.js), in the card under the legend: a
+   heading, and the dates at a readable size (worded in full by
+   noodle-tc-copy.js); a day's two halves sit tight, the days apart
+   (.nd-top tr:has(> th)) */
+.noodle-tc .nd-tc-card .nd-top-box { margin: var(--space-4) auto 0; }
+.noodle-tc .nd-tc-legend[hidden] + .nd-top-box { margin-top: 0; }
+
 .noodle-tc .nd-top-box::before {
   content: 'Most popular times';
   display: block;
-  margin: 0 0 var(--space-2);
+  margin: 0 0 var(--space-1);
   font-family: var(--tc-serif);
   font-style: italic;
   font-size: var(--fs-xl);
+  text-align: center;
 }
 
-/* on a cream card (owner, 2026-10-30): the fields' peach; a day's two
-   halves sit tight, the days apart (.nd-top tr:has(> th)). The card is the
-   TABLE, so the heading (the box's ::before) sits above it; separate
-   borders, since a collapsed table ignores its own padding. */
+/* the host picks from it; a guest, once the host has, sees only the choice
+   (noodle-top.js) */
+.noodle-tc .nd-top-box.nd-top-host::before { content: 'Select final time(s)'; }
+.noodle-tc .nd-top-box.nd-top-chosen::before { content: 'The host has chosen'; }
+
 .noodle-tc .nd-top {
-  padding: var(--space-1) var(--space-6) var(--space-4);
-  border-collapse: separate;
-  border-spacing: 0;
-  background: hsl(var(--tc-peach));
-  border-radius: var(--radius-2);
   font-size: var(--tc-fs-small);
   line-height: var(--lh-tight);
+}
+
+/* the host's event-time boxes: a ring in the ink, like a pip, that fills
+   with an ink dot when ticked (the browser's square box read as a form) */
+.noodle-tc .nd-top-tick input {
+  appearance: none;
+  box-sizing: border-box;
+  width: 18px;
+  height: 18px;
+  padding: var(--space-0-5);
+  border: 2px solid hsl(var(--tc-ink));
+  border-radius: var(--radius-pill);
+  background: none;
+  background-clip: content-box;
+  cursor: pointer;
+}
+.noodle-tc .nd-top-tick input:checked { background: hsl(var(--tc-ink)); background-clip: content-box; }
+
+/* the event time under the title, in the title's cream */
+.noodle-tc .nd-event {
+  margin: 0 0 var(--space-2);
+  font-size: var(--tc-fs-body);
+  font-weight: var(--fw-bold);
+  color: hsl(var(--tc-cream));
 }
 .noodle-tc .nd-top tr:has(> th) > * { padding-top: var(--space-3); }
 .noodle-tc .nd-top-glyph + td { padding-left: var(--space-2); }

@@ -103,7 +103,10 @@ made or shared on a front end stays on it -- and any link opens on either.
   the skin's 18px pushed the pips out of the cell.
 - **No roster row**: the name cards and the host's guide are hidden (owner);
   with them go tap-a-name-to-fill-it and the host's Remove-guest button.
-  The names live in the PIP LEGEND under the calendar (`noodle-tc-legend.js`):
+  The names live in the PIP LEGEND (`noodle-tc-legend.js`), in ONE card with
+  the top dates (`.nd-tc-card`, 2026-10-31). That card sits under Save and its
+  status, with the error banner moved to just above it. On the name step,
+  with the pick hidden, the card sits under Continue. The legend:
   it reads the hidden roster the shared JS still renders (`.nd-face`
   data-name + the ink on its `.nd-seal`), redraws on every change, builds
   names with `textContent`, and the wording layer skips it (a voter named
@@ -476,7 +479,19 @@ popup.
 ranked by vote count then soonest, read live off the calendar's dot columns; one
 row per slot (sun/moon glyph on split polls + date + one dot column per voter).
 A TABLE: a day's slots are grouped under one date cell (`rowspan`), midday
-above night, days ordered by their best slot.
+above night, days ordered by their best slot. A day's rows give a column only
+to voters free that day.
+
+**Event time** (`noodle-event.js`, owner 2026-10-31): the HOST ticks one or more
+top-date rows as the final time (a checkbox per row, last cell). It is sealed in
+the head as `event` (a list of slot strings, at most 8, validated by
+`ndeSlots`), beside title and note, and sent with Commit. Until then it is
+`NDV.pendingEvent`, kept in the draft and counted as unsaved. Everyone sees it
+under the title (`#nd-event`). Once one is chosen, a guest's table shows ONLY
+those rows (`.nd-top-chosen`: "The host has chosen" on /noodle-tc); the host's
+table keeps every row (`.nd-top-host`: "Select final time(s)"). Only end-to-end
+polls have it: the head is opaque to the server, so the server needed no change.
+`tests/test_noodle_browser_event.py`.
 
 Foot: "make another noodle" (host) / "make your own noodle" (guest) + a `mailto:`
 bug link, driven by one class `.nd-as-host` (`ndhTitleMarks`), never per-string

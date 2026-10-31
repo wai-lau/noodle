@@ -120,20 +120,22 @@ async function ndhSend(path, fields, ts) {
 // needs a newer ts.
 async function ndhCommitSettings(ts) {
   if (NDV.pendingHalves == null && NDV.pendingCrop === undefined && NDV.pendingTitle === undefined &&
-      NDV.pendingNote === undefined) return { ok: true };
+      NDV.pendingNote === undefined && NDV.pendingEvent === undefined) return { ok: true };
   var c = ndhCrop(), f = { kind: 'settings', halves: ndhHalves(), from: c ? c.from : null, to: c ? c.to : null };
   if (NDV.pendingTitle !== undefined) f.title = NDV.pendingTitle;
   if (NDV.pendingNote !== undefined) f.note = NDV.pendingNote;
   if (NDV.e2e) {
     // end-to-end: the WHOLE settings, sealed (the server keeps no copy to merge into)
     var head = await ndeSealHead({ title: f.title !== undefined ? f.title : NDV.poll.title,
-      note: f.note !== undefined ? f.note : NDV.poll.note, halves: f.halves, from: f.from, to: f.to });
+      note: f.note !== undefined ? f.note : NDV.poll.note, halves: f.halves, from: f.from, to: f.to,
+      event: NDV.pendingEvent !== undefined ? NDV.pendingEvent : NDV.poll.event });   // noodle-event.js
     if (head.error) return { ok: false, data: { error: head.error } };
     f = { kind: 'e2e-head', ct: head.ct };
   }
   var res = await ndhSend('/settings', f, ts);
   if (res.ok) {
     NDV.pendingHalves = null; NDV.pendingCrop = undefined; NDV.pendingTitle = undefined; NDV.pendingNote = undefined;
+    NDV.pendingEvent = undefined;
     res.sent = true;
   }
   return res;

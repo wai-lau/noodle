@@ -73,6 +73,7 @@
     'noodle could not be reached': 'The assistant is unavailable right now.',
     'this browser cannot make a key -- a current Safari, Chrome or Firefox is needed':
       'This browser is not supported. Please use a current version of Safari, Chrome or Firefox.',
+    'event time': 'Event time', 'when': 'When',
     'Lockdown Mode needs extra setup on this device, about a minute':
       'Lockdown Mode requires additional setup on this device. This takes about a minute',
     'this link is missing its key (the part after #). ask whoever sent it for the whole link.':

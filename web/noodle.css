@@ -120,6 +120,18 @@ body.noodle:not(.with-nav) { --nav-h: 0px; }
 }
 .nd-subnote:empty:not(.editable) { display: none; }
 
+/* the host's EVENT TIME under the title (noodle-event.js): one line per
+   chosen slot, the date and, on a split poll, its sun or moon */
+.nd-event {
+  margin: calc(-1 * var(--space-4)) 0 var(--space-4);
+  padding: 0;
+  list-style: none;
+  text-align: center;
+  font-size: var(--fs-sm);
+  color: hsl(var(--green-hsl) / 1);
+}
+.nd-event[hidden] { display: none; }
+
 /* no dashed line of its own: two stacked under the title read as noise (UI
    audit 2026-10-03); the grey "add a note" already says tap me */
 .nd-subnote.editable { cursor: text; }

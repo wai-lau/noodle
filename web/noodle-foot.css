@@ -23,7 +23,11 @@
 /* the dots start at the cell's left edge: rows hold different numbers of
    columns (only voters free that day get one), and a centred cell (the tc
    skin centres text) slid the shorter rows right */
-.nd-top td:last-child { text-align: left; }
+.nd-top td:has(> .nd-top-dots) { text-align: left; }
+
+/* the host's event-time box, first in the row (noodle-event.js) */
+.nd-top .nd-top-tick { padding-right: var(--space-3); }
+.nd-top-tick input { margin: 0; vertical-align: middle; accent-color: hsl(var(--green-hsl) / 1); }
 
 /* the calendar's dots, one fixed column per voter (noodle-cal.css .nd-dots) */
 .nd-top-dots { display: inline-flex; gap: var(--space-0-5); }

@@ -1,5 +1,5 @@
-// noodle-tc's PIPS: their colours and shapes, and the LEGEND under the
-// calendar -- whose pip is whose, a swatch in each voter's pip colour and
+// noodle-tc's PIPS: their colours and shapes, and the LEGEND (in one card with
+// the most popular times) -- whose pip is whose, a swatch in each voter's pip colour and
 // shape beside their name (owner, 2026-10-23). /noodle-tc hides the roster
 // row (the name cards), so this is where the names live. Loaded only by the
 // /noodle-tc shell (deferred); on a page with no calendar it does nothing.
@@ -36,7 +36,22 @@ var NDTC_SHAPES = ['', ';--tc-pip-r:0', ';--tc-pip-r:0;--tc-pip-clip:polygon(50%
   var box = document.createElement('div');
   box.className = 'nd-tc-legend';
   box.setAttribute('aria-label', 'Who each dot belongs to');
-  cal.after(box);
+
+  // ONE card (owner, 2026-10-31): the legend and the most popular times,
+  // merged; above it Save, its status and any error (the banner, otherwise at
+  // the top of the page). On the pick step it sits right under Save; on the
+  // name step (the pick hidden) under Continue, so the results still show.
+  var root = document.getElementById('noodle'), banner = document.getElementById('nd-banner');
+  var card = document.createElement('section'), top = document.getElementById('nd-top-box');
+  card.className = 'nd-tc-card';
+  card.append(box);
+  if (top) card.append(top);
+  function place() {
+    var at = root.classList.contains('nd-step-pick') ? document.getElementById('nd-dirty') : document.getElementById('nd-you');
+    if (at && (at.nextSibling !== banner || banner.nextSibling !== card)) at.after(banner, card);
+  }
+  new MutationObserver(place).observe(root, { attributes: true, attributeFilter: ['class'] });
+  place();
 
   function entry(face) {
     var name = face.dataset.name, seal = face.querySelector('.nd-seal');
