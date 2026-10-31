@@ -316,8 +316,9 @@ html:has(#nd-cal)::-webkit-scrollbar { display: none; }
 .nd-readonly .nd-d, .nd-readonly .nd-hd, .nd-readonly .nd-wk { cursor: default; }
 
 
-/* Voters, you included: ONE fixed column per person, the same position in
-   every cell -- top dot midday, bottom dot night, NO dot where not free.
+/* Voters, you included: one column per person FREE THAT DAY, in vote order,
+   packed -- nobody's empty column (2026-10-31) -- top dot midday, bottom dot
+   night, a bar for both.
    Sizes mirror ND_DOT / ND_DOT_GAP in noodle-cal.js (6px, --space-0-5): six
    columns in a phone-width cell. They were 4px and read as specks over a
    picked half (feedback 2026-10-03). */

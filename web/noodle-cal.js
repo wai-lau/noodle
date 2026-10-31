@@ -115,51 +115,62 @@ function ndGroupAdd(groups, wk, bound, halves) {
   groups.rows.push(row);
 }
 
-// How many dot columns fit a cell; one is given up to the overflow ring.
-// Too many for the normal dots, the calendar goes TIGHT (smaller dots, a
-// hairline gap) before it hides anyone: at phone width that is 5 -> 7
-// columns (a real 5-voter poll lost two people behind the ring, 2026-10-31).
+// How many dot columns fit a cell. Too many for the normal dots, the calendar
+// goes TIGHT (smaller dots, a hairline gap) before it hides anyone: at phone
+// width that is 5 -> 7 columns (a real 5-voter poll lost two people behind
+// the ring, 2026-10-31). `count` is the most people free on any ONE day, the
+// only columns a cell draws.
 function ndDotsCols(cell, dot, gap) {
   var w = cell ? cell.clientWidth - 2 * ND_DOT_GAP : 0;
   return Math.max(1, Math.floor((w + gap) / (dot + gap)));
 }
 
 function ndDotsFit(cell, count) {
-  var fit = ndDotsCols(cell, ND_DOT, ND_DOT_GAP), tight = false;
-  if (count > fit) { fit = ndDotsCols(cell, ND_DOT_TIGHT, ND_DOT_TIGHT_GAP); tight = true; }
-  return count > fit ? { shown: fit - 1, more: true, tight: tight } : { shown: count, more: false, tight: tight };
+  var cap = ndDotsCols(cell, ND_DOT, ND_DOT_GAP), tight = false;
+  if (count > cap) { cap = ndDotsCols(cell, ND_DOT_TIGHT, ND_DOT_TIGHT_GAP); tight = true; }
+  return { cap: cap, tight: tight };
 }
 
-// A dot in the voter's seal ink where they are free that half, a GAP where not
-// -- the gap keeps the column's position, so a column reads as one person all
-// the way down. A `self` column shows the live selection `sel` rather than a
-// stored vote, so your own dots follow your taps.
+// The columns with a dot on `iso`: only the people free that day, in vote
+// order -- nobody's empty column (owner, 2026-10-31; a column used to keep
+// its place in every cell, gaps and all). A `self` column shows the live
+// selection `sel` rather than a stored vote, so your own dots follow your taps.
+function ndDotsLit(iso, cols, sel, halves) {
+  return cols.filter(function (c) {
+    var s = c.self ? sel : c.slots;
+    return halves ? s.has(iso + ':m') || s.has(iso + ':n') : s.has(iso + ':d');
+  });
+}
+
+// A dot in the voter's seal ink for each half they are free. More people
+// than fit: all but one place, then the overflow ring.
 function ndDotsHtml(iso, cols, fit, sel, halves) {
-  var h = '', shown = cols.slice(0, fit.shown);
+  var h = '', lit = ndDotsLit(iso, cols, sel, halves), more = lit.length > fit.cap;
+  var shown = more ? lit.slice(0, Math.max(0, fit.cap - 1)) : lit;
   // when columns overflow, YOUR column is never the one cut: it takes the
   // last visible place, the rest stay in vote order
-  var mine = cols.find(function (c) { return c.self; });
-  if (fit.more && mine && shown.indexOf(mine) < 0 && shown.length) shown[shown.length - 1] = mine;
+  var mine = lit.find(function (c) { return c.self; });
+  if (more && mine && shown.indexOf(mine) < 0 && shown.length) shown[shown.length - 1] = mine;
   for (var i = 0; i < shown.length; i++) {
     var c = shown[i], s = c.self ? sel : c.slots;
-    var lit = ' class="on"' + (c.ink ? ' style="--seal-hsl:' + c.ink + '"' : '');
+    var lit1 = ' class="on"' + (c.ink ? ' style="--seal-hsl:' + c.ink + '"' : '');
     var m = halves && s.has(iso + ':m'), n = halves && s.has(iso + ':n');
     if (m && n) {
       // free BOTH halves: one bar down the column, so a voter reads as one
       // mark and the day's head count is the number of marks
-      h += '<i' + lit.replace('"on"', '"on both"') + '></i>';
+      h += '<i' + lit1.replace('"on"', '"on both"') + '></i>';
     } else if (halves) {
-      h += '<i' + (m ? lit : '') + '></i><i' + (n ? lit : '') + '></i>';
+      h += '<i' + (m ? lit1 : '') + '></i><i' + (n ? lit1 : '') + '></i>';
     } else {
-      h += '<i' + (s.has(iso + ':d') ? lit : '') + '></i>'; // one dot a day
+      h += '<i' + lit1 + '></i>'; // one dot a day
     }
   }
-  return fit.more ? h + '<b class="nd-more"></b>' : h;
+  return more ? h + '<b class="nd-more"></b>' : h;
 }
 
 if (typeof window !== 'undefined') {
   window.NoodleCalParts = { iso: ndIso, date: ndDate, half: ndHalf, addDays: ndAddDays,
     sunday: ndSunday, weeksFrom: ndWeeksFrom, open: ndOpen, headHtml: ndHeadHtml,
     rowHtml: ndRowHtml, groupAdd: ndGroupAdd, codes: ndCodes,
-    dotsFit: ndDotsFit, dotsHtml: ndDotsHtml };
+    dotsFit: ndDotsFit, dotsLit: ndDotsLit, dotsHtml: ndDotsHtml };
 }

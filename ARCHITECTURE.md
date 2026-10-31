@@ -396,11 +396,15 @@ bottom-right=night) on the **host's** grid, hit-tested the same way. A
 **guest's** cell draws two right-angle triangles (`.nd-tri`, `clip-path`) for the
 halves actually offered.
 
-**Dots**: every voter — you included — owns ONE fixed column by vote order (top
-dot midday, bottom night, gap where not free). Dots are **6px** (`ND_DOT` in
-noodle-cal.js mirrors `.nd-dots` in noodle-cal.css — change both). Your own
-column is a `self` entry showing your LIVE selection. Overflow gets /rd's hollow
-ring; your own column is never the one cut.
+**Dots**: a cell draws one column per voter FREE THAT DAY — you included — in
+vote order, packed (top dot midday, bottom night, one bar for both halves).
+Until 2026-10-31 every voter kept a fixed column in every cell, with gaps; the
+owner had the empty columns dropped, so each person is now picked out by
+colour (`ndDotsLit`). Dots are **6px** (`ND_DOT` in noodle-cal.js mirrors
+`.nd-dots` in noodle-cal.css, so change both), going **5px on a 1px gap**
+(`.nd-tight`) when the busiest day has more people than 6px dots fit. Your own
+column is a `self` entry showing your LIVE selection. Overflow gets /rd's
+hollow ring, and your own column is never the one cut.
 
 **Months**: a name runs vertically in the week column, right of the fill/erase
 buttons (`ndcPaintLabels`, `.nd-mlabel`; column 56px = 40px buttons + 16px name),

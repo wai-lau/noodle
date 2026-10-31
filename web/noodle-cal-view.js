@@ -234,7 +234,9 @@ function NoodleCal(wrap, opts) {
   }
 
   function paintDots() {
-    var fit = P.dotsFit(cells[0], others.length);
+    // sized for the busiest day: a cell draws only who is free that day
+    var most = cells.reduce(function (n, c) { return Math.max(n, P.dotsLit(c.dataset.day, others, sel, opts.halves).length); }, 0);
+    var fit = P.dotsFit(cells[0], most);
     grid.classList.toggle('nd-tight', fit.tight);
     cells.forEach(function (c) {
       c.querySelector('.nd-dots').innerHTML = others.length ? P.dotsHtml(c.dataset.day, others, fit, sel, opts.halves) : '';
