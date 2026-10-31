@@ -58,4 +58,12 @@ function ndevShow() {
   window.ndevShow = ndevShow;
   window.ndevChosen = ndevChosen;
   window.ndevPickable = ndevPickable;
+  // the poll can land BEFORE this file does (noodle-vote.js starts loading it
+  // as it runs, and the scripts after it are still arriving): then nothing
+  // showed the choice -- the time "vanished" on reload in Chrome (2026-10-31).
+  // So catch up here: the line, and the host's boxes in the top dates.
+  if (window.NDV && NDV.poll) {
+    ndevShow();
+    if (NDV.cal && NDV.cols && window.ndtRender) window.ndtRender(NDV.cols, NDV.cal.getSel());
+  }
 })();
