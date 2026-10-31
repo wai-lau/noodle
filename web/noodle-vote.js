@@ -43,6 +43,29 @@ function ndvMaybeReveal() {
 
 function ndvReady() { return !!NDV.kdf && NDV.kdf.ready(); }
 
+var NDV_LOCKDOWN = 'this name was made in a browser with WebAssembly, which Lockdown Mode turns off. ' +
+  'in Safari: aA > Website Settings > turn Lockdown Mode off for this site.';
+
+// How the key for `norm` is made (noodle-kdf.js NoodleKdfMethods): the
+// seat's own method when the name is already on the poll -- mid change, the
+// OLD seat's, so neither a new passphrase nor a new name ever switches it --
+// else whatever this browser can run. Only an end-to-end poll can record a
+// method, so a plain poll is always Argon2id.
+function ndvKdfMethod(norm) {
+  var M = window.NoodleKdfMethods;
+  if (!NDV.e2e) return M.ARGON2;
+  if (window.NDR && NDR.active) norm = window.noodleNormName(NDR.oldName);
+  var seat = (NDV.poll ? NDV.poll.voters : []).find(function (v) { return v.name === norm; });
+  return seat ? seat.kdf : M.byDefault();
+}
+
+// The poll can land AFTER a key was made for a name it turns out to hold
+// under the other method: make it again, the seat's way.
+function ndvKdfStale() {
+  var made = NDV.kdf && NDV.kdf.method(), norm = window.noodleNormName(ndv$('nd-name').value);
+  return !!made && !NDV.usingKept && !!norm && made !== ndvKdfMethod(norm);
+}
+
 // This voter's key as the server knows it (the old one mid passphrase change).
 function ndvPub() {
   var p = ndvReady() ? NDV.kdf.pub() : null;
@@ -72,6 +95,7 @@ function ndvSyncLock() {
 // Which voter (if any) the typed name already belongs to, and everyone else
 // as dot columns. A name sealed by a different key blocks submit.
 function ndvRefreshBinding(pub) {
+  if (pub && ndvKdfStale()) { ndvOnIdentityInput(true); return; }
   if (window.ndrAs) pub = window.ndrAs(pub);   // mid change: still the old key
   var typed = window.noodleNormName(ndv$('nd-name').value), mine = null, cols = [];
   var changing = !!(window.NDR && NDR.active);
@@ -237,12 +261,15 @@ function ndvInit() {
   ndvStepInit();
   ndv$('nd-ask').addEventListener('input', ndvSaveAsk);
   NDV.kdf = window.NoodleKdf({
-    slug: ndeScope(), kdf: NDV.kdfCfg, workerUrl: root.dataset.worker, pin: true,
+    slug: ndeScope(), kdf: NDV.kdfCfg, workerUrl: root.dataset.worker, pin: true, method: ndvKdfMethod,
     onStart: ndvOnStart, onDerived: ndvOnDerived,
     onError: function (msg) {
       NDV.keyError = true;
       ndvSyncSubmit();
-      ndvStatus('could not make a key in this browser (' + msg + '). a current Safari, Chrome or Firefox is needed.', 'err');
+      // no WebAssembly is Lockdown Mode: a seat made with Argon2id (every seat
+      // before 2026-10-31, and every plain poll's) can only be opened with it
+      if (!window.NoodleKdfMethods.canArgon2()) ndvStatus(NDV_LOCKDOWN, 'err');
+      else ndvStatus('could not make a key in this browser (' + msg + '). a current Safari, Chrome or Firefox is needed.', 'err');
     },
   });
   ndv$('nd-name').addEventListener('input', ndvOnIdentityInput);

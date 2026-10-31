@@ -3,7 +3,7 @@
 // Ed25519 private key as a NON-EXTRACTABLE CryptoKey. The passphrase and the
 // private key never leave this worker; only the public key and signatures do.
 //
-// Messages in:  {op:'derive', gen, pass, salt, m, t, p, len}
+// Messages in:  {op:'derive', gen, kdf, pass, salt, m, t, p, len, iter}
 //               {op:'use', gen, key, pub}    -- a key kept in IndexedDB (noodle-keystore.js)
 //               {op:'sign', id, text}
 //               {op:'key', id}               -- the CryptoKey itself, to be kept
@@ -35,17 +35,30 @@ function b64(buf) {
   return btoa(s);
 }
 
-async function derive(m) {
-  var t0 = performance.now();
-  var seed = await self.hashwasm.argon2id({
-    // hash-wasm refuses an empty password, and an empty passphrase is allowed
-    // (the page warns it can be impersonated): it becomes one NUL byte, which
-    // no text input can produce, so it collides with no typed passphrase and
-    // every non-empty one derives exactly as before.
-    password: m.pass === '' ? new Uint8Array([0]) : m.pass,
+// hash-wasm refuses an empty password, and an empty passphrase is allowed
+// (the page warns it can be impersonated): it becomes one NUL byte, which no
+// text input can produce, so it collides with no typed passphrase and every
+// non-empty one derives exactly as before. PBKDF2 takes the same bytes.
+function secret(pass) { return pass === '' ? new Uint8Array([0]) : new TextEncoder().encode(pass); }
+
+// m.kdf 'pbkdf2' (noodle-kdf.js NDK_PBKDF2): PBKDF2-SHA256 in WebCrypto, for a
+// browser with no WebAssembly; anything else is Argon2id, as it always was
+async function seedOf(m) {
+  if (m.kdf === 'pbkdf2') {
+    var base = await crypto.subtle.importKey('raw', secret(m.pass), 'PBKDF2', false, ['deriveBits']);
+    return new Uint8Array(await crypto.subtle.deriveBits(
+      { name: 'PBKDF2', hash: 'SHA-256', salt: m.salt, iterations: m.iter }, base, m.len * 8));
+  }
+  return self.hashwasm.argon2id({
+    password: m.pass === '' ? secret(m.pass) : m.pass,
     salt: m.salt, parallelism: m.p, iterations: m.t,
     memorySize: m.m, hashLength: m.len, outputType: 'binary',
   });
+}
+
+async function derive(m) {
+  var t0 = performance.now();
+  var seed = await seedOf(m);
   var pk8 = new Uint8Array(PKCS8_PREFIX.length + seed.length);
   pk8.set(PKCS8_PREFIX); pk8.set(seed, PKCS8_PREFIX.length);
   // An extractable copy exists only long enough to read the public half out

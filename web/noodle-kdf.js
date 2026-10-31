@@ -49,7 +49,7 @@ async function noodleSalt(slug, norm) {
 var NDK_WORKER_SRC = '/noodle-kdf-worker.js';
 var NDK_VENDOR_SRC = '/vendor/hash-wasm-argon2-4.12.0.min.js';
 var NDK_PIN = {};
-NDK_PIN[NDK_WORKER_SRC] = 'sha384-YRCDPHEZMQ0+0Jw/Kk87bGslN9UUusLoFtXGRO+u812cRQtjssHhKKVg/Rd+2c9p';
+NDK_PIN[NDK_WORKER_SRC] = 'sha384-EpiVdvLx8FYdsG/Yb22AngCrJF79hQo+A0mDb4Y1cEvkReSMhjZq5Zd6ZltE9qy4';
 NDK_PIN[NDK_VENDOR_SRC] = 'sha384-tP0Wy54CKmng7i9EoTlPySD0hBx6Octj0VS6MfwlnUu111MPa+JLm0CCbep6XJ1W';
 
 function ndkB64(buf) {
@@ -91,11 +91,26 @@ async function ndkPinnedUrl(workerUrl) {
   return URL.createObjectURL(new Blob([vendor, '\n;\n', work], { type: 'text/javascript' }));
 }
 
-// opts: {slug, kdf:{m,t,p,len,debounce}, workerUrl, onStart(info), onDerived(info), onError(msg)}
+// The two ways a passphrase becomes a key (owner, 2026-10-31). ARGON2ID is the
+// one everybody uses; it needs WebAssembly, which Safari's Lockdown Mode turns
+// off. A browser without it makes a NEW seat's key with PBKDF2-SHA256 instead
+// (WebCrypto, native, no WebAssembly): weaker against guessing on graphics
+// cards, so only the seats made there use it. A seat's method is sealed in its
+// vote (noodle-e2e.js) and NEVER changes -- not on a passphrase change either --
+// so the same name + passphrase make the same key on every device.
+var NDK_ARGON2 = 'argon2id', NDK_PBKDF2 = 'pbkdf2';
+
+function ndkCanArgon2() { return typeof WebAssembly === 'object'; }
+
+function ndkDefaultMethod() { return ndkCanArgon2() ? NDK_ARGON2 : NDK_PBKDF2; }
+
+// opts: {slug, kdf:{m,t,p,len,iter,debounce}, workerUrl, method(norm), onStart(info), onDerived(info), onError(msg)}
+// method(norm) -> the method for that name's key; default: what this browser can run
 function NoodleKdf(opts) {
   var worker = null, timer = null, gen = 0, busy = false, signId = 0;
   var pendingSigns = {};
-  var current = null; // {norm, pub} of the key the worker holds now
+  var current = null; // {norm, pub, method} of the key the worker holds now
+  var methodOf = opts.method || ndkDefaultMethod;
   var workerUrl = opts.workerUrl;   // replaced by a pinned blob url when opts.pin
   var urlP = null;
 
@@ -120,7 +135,7 @@ function NoodleKdf(opts) {
     var m = e.data;
     if (m.op === 'derived' && m.gen === gen) {
       busy = false;
-      current = { norm: current && current.pendingNorm, pub: m.pub };
+      current = { norm: current && current.pendingNorm, pub: m.pub, method: current && current.pendingMethod };
       opts.onDerived({ pub: m.pub, ms: m.ms });
     } else if ((m.op === 'signed' || m.op === 'key') && pendingSigns[m.id]) {
       pendingSigns[m.id].resolve(m.op === 'key' ? m.key : m.sig); delete pendingSigns[m.id];
@@ -138,10 +153,11 @@ function NoodleKdf(opts) {
     if (!worker) spawn();
     if (busy) { worker.terminate(); spawn(); } // cancel the in-flight derive
     busy = true;
-    current = { pendingNorm: norm, pub: null };
+    var how = methodOf(norm);
+    current = { pendingNorm: norm, pendingMethod: how, pub: null };
     opts.onStart({ salt: ndHex(salt), norm: norm });
-    worker.postMessage({ op: 'derive', gen: myGen, pass: pass, salt: salt,
-      m: opts.kdf.m, t: opts.kdf.t, p: opts.kdf.p, len: opts.kdf.len });
+    worker.postMessage({ op: 'derive', gen: myGen, kdf: how, pass: pass, salt: salt,
+      m: opts.kdf.m, t: opts.kdf.t, p: opts.kdf.p, len: opts.kdf.len, iter: opts.kdf.iter });
   }
 
   // Call on every keystroke in either field.
@@ -181,7 +197,8 @@ function NoodleKdf(opts) {
       if (!worker) spawn();
       if (busy) { worker.terminate(); spawn(); }
       busy = true;
-      current = { pendingNorm: norm, pub: null };
+      // a kept key is a seat's: its method is the seat's
+      current = { pendingNorm: norm, pendingMethod: methodOf(norm), pub: null };
       opts.onStart({ salt: '', norm: norm });
       worker.postMessage({ op: 'use', gen: myGen, key: kept.key, pub: kept.pub });
     }, function () { if (myGen === gen) opts.onError('could not verify the key helper -- reload the page'); });
@@ -192,11 +209,14 @@ function NoodleKdf(opts) {
     stop: function () { gen++; clearTimeout(timer); if (worker) worker.terminate(); },
     ready: function () { return !!(current && current.pub) && !busy; },
     pub: function () { return current && current.pub; },
+    // how the key held now was made (NDK_ARGON2 / NDK_PBKDF2), or null
+    method: function () { return current && current.pub ? current.method : null; },
   };
 }
 
 if (typeof window !== 'undefined') {
   window.NoodleKdf = NoodleKdf;
+  window.NoodleKdfMethods = { ARGON2: NDK_ARGON2, PBKDF2: NDK_PBKDF2, canArgon2: ndkCanArgon2, byDefault: ndkDefaultMethod };
   window.noodleNormName = noodleNormName;
   window.noodleShownName = noodleShownName;
   window.noodleSalt = noodleSalt;

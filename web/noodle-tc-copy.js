@@ -73,6 +73,8 @@
     'noodle could not be reached': 'The assistant is unavailable right now.',
     'this browser cannot make a key -- a current Safari, Chrome or Firefox is needed':
       'This browser is not supported. Please use a current version of Safari, Chrome or Firefox.',
+    'this name was made in a browser with WebAssembly, which Lockdown Mode turns off. in Safari: aA > Website Settings > turn Lockdown Mode off for this site.':
+      'This name needs a feature that Lockdown Mode turns off. In Safari, tap aA, then Website Settings, and turn off Lockdown Mode for this site.',
     'this link is missing its key (the part after #). ask whoever sent it for the whole link.':
       'This link is incomplete. Ask the sender for the full link, including the part after #.',
   };

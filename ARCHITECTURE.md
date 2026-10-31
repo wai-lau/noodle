@@ -185,6 +185,26 @@ and a generation counter drops stale results. KDF params (`config.KDF_*`:
 m=65536 KiB, t=2, p=1, len=32) reach the page as `data-kdf`, so page and config
 can't disagree; retune `KDF_T` after measuring on a phone.
 
+**A seat made without WebAssembly uses PBKDF2** (2026-10-31). Safari's Lockdown
+Mode turns WebAssembly off, so hash-wasm's Argon2id cannot run and the page used
+to say "browser not supported" to everyone. Now each seat on an end-to-end poll
+has a METHOD: a new seat in a browser with no WebAssembly derives its seed with
+PBKDF2-SHA256 (`KDF_PBKDF2_ITER` 600k, WebCrypto in the same worker, same salt,
+same NUL-byte empty passphrase), and the vote seals `kdf: "pbkdf2"` beside the
+slots (`noodle-e2e.js ndeBody`; an Argon2id record carries no field, so old
+records are unchanged). The method is inside the signed ciphertext, so nobody
+can flip it. Every browser then derives that seat's key the seat's way
+(`noodle-vote.js ndvKdfMethod`), so the passphrase works on any device. **A seat
+never changes method**, not on a new passphrase and not on a rename (owner's
+call): mid change, the method is the OLD seat's. If the poll loads after a key
+was already made the other way, the key is made again (`ndvKdfStale`). An Argon2id
+seat (every older seat, and every seat on a plain poll) opened in Lockdown
+says to turn Lockdown off for the site. Why not drop Argon2 entirely: a
+passphrase is checkable offline against the public key, and PBKDF2 is roughly
+100× cheaper to guess on graphics cards. Speeds measured on the droplet: Argon2id
+in plain JS with no JIT took 85s, against 2.7s with JIT.
+`tests/test_noodle_browser_lockdown.py`.
+
 **Name normalization must match byte for byte** between `slots.normalize_name`
 and `noodleNormName` (`noodle-kdf.js`): NFKC, reject `Cc`/`Cf`, collapse
 whitespace, lowercase, then ASCII letters/digits/spaces only (the page strips

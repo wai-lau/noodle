@@ -215,7 +215,10 @@ async function ndeView(raw) {
     // the name as typed (capitals), only if it IS this seat's name -- a record
     // cannot show one name over another's seat
     var shown = o.display && window.noodleNormName(o.display) === name ? window.noodleShownName(o.display) : name;
-    voters.push({ name: name, display: shown, pub: v.pub, slots: slots, order: v.order });
+    // how this seat's key is made (noodle-kdf.js): sealed + signed with the
+    // vote, so nobody can switch it; absent = Argon2id, as every seat before
+    var kdf = o.kdf === window.NoodleKdfMethods.PBKDF2 ? o.kdf : window.NoodleKdfMethods.ARGON2;
+    voters.push({ name: name, display: shown, pub: v.pub, slots: slots, order: v.order, kdf: kdf });
   });
   // the host's picks ARE the offer: a guest's dots show only within it
   if (voters.length) {
@@ -238,9 +241,18 @@ function ndeShowTexts() {
   if (p.sealed && !p.opened) ndvBanner("this link's key does not open this poll. ask whoever sent it for the whole link.");
 }
 
+// A vote's sealed body: name, typed name, slots, and -- only for a PBKDF2 seat,
+// so every Argon2id record stays as it was -- the key's method. A rename or a
+// new passphrase (noodle-rekey.js) seals the SAME method: a seat keeps it.
+function ndeBody(name, slots) {
+  var o = { name: window.noodleNormName(name), display: window.noodleShownName(name), slots: slots };
+  if (NDV.kdf.method() === window.NoodleKdfMethods.PBKDF2) o.kdf = window.NoodleKdfMethods.PBKDF2;
+  return o;
+}
+
 async function ndeSendVote(name, slots, ts) {
   var pub = NDV.kdf.pub();
-  var ct = await ndeSeal('vote', pub, { name: window.noodleNormName(name), display: window.noodleShownName(name), slots: slots });
+  var ct = await ndeSeal('vote', pub, ndeBody(name, slots));
   var sig = await NDV.kdf.sign(ndeCanon({ ct: ct, kind: 'e2e-vote', poll: NDV.slug, ts: ts }));
   var body = { pub: pub, ts: ts, ct: ct, sig: sig };
   // nothing sealed on the poll yet (a draft, or a poll whose first vote

@@ -99,7 +99,7 @@ def _apply_sri(page: str) -> str:
 
 def _kdf_attrs() -> str:
     kdf = {"m": config.KDF_M_KIB, "t": config.KDF_T, "p": config.KDF_P,
-           "len": config.KDF_LEN, "debounce": config.KDF_DEBOUNCE_MS}
+           "len": config.KDF_LEN, "iter": config.KDF_PBKDF2_ITER, "debounce": config.KDF_DEBOUNCE_MS}
     return html.escape(json.dumps(kdf), quote=True)
 
 

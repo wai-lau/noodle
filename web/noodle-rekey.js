@@ -73,7 +73,8 @@ function ndrBegin() {
   NDR.oldPass = ndr$('nd-pass').value;
   NDR.oldPub = NDV.kdf.pub();
   NDR.keeperPub = new Promise(function (resolve, reject) {
-    NDR.keeper = window.NoodleKdf({ slug: ndeScope(), kdf: cfg, workerUrl: root.dataset.worker, pin: true,
+    // the OLD key, so the old seat's method (noodle-vote.js ndvKdfMethod)
+    NDR.keeper = window.NoodleKdf({ slug: ndeScope(), kdf: cfg, workerUrl: root.dataset.worker, pin: true, method: ndvKdfMethod,
       onStart: function () {}, onDerived: function (d) { resolve(d.pub); }, onError: reject });
   });
   NDR.keeperPub.catch(function () {});   // surfaced at Commit, not as an unhandled rejection
@@ -143,8 +144,7 @@ async function ndrCommit(ts) {
 // End-to-end: no names on the server. The old key signs the record over to
 // the new one, with the vote re-sealed to the new key (and new name).
 async function ndrSealed(newpub, newname, ts) {
-  var ct = await ndeSeal('vote', newpub, { name: window.noodleNormName(newname),
-    display: window.noodleShownName(newname), slots: Array.from(NDV.cal.getSel()).sort() });
+  var ct = await ndeSeal('vote', newpub, ndeBody(newname, Array.from(NDV.cal.getSel()).sort()));
   var sig = await NDR.keeper.sign(ndeCanon({ ct: ct, kind: 'e2e-rekey', newpub: newpub, poll: NDV.slug, ts: ts }));
   return ndvPost('/rekey', { pub: NDR.oldPub, ts: ts, sig: sig, newpub: newpub, ct: ct });
 }

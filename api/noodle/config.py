@@ -52,6 +52,10 @@ KDF_T = 2
 KDF_P = 1
 KDF_LEN = 32          # bytes -> the Ed25519 seed
 KDF_DEBOUNCE_MS = 1000
+# PBKDF2-SHA256 rounds, for a seat made in a browser without WebAssembly
+# (Safari Lockdown Mode; web/noodle-kdf.js NDK_PBKDF2). OWASP's 2023 figure.
+# Changing it orphans every such seat's key.
+KDF_PBKDF2_ITER = 600_000
 
 # A signed vote's timestamp must be this close to server time, AND strictly
 # newer than the voter's last accepted one (so a captured request cannot be
