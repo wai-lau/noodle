@@ -175,16 +175,19 @@ function ndcFirstSunday(P, endless, from, today) {
 // fn() whenever any of els changes WIDTH -- never on height alone: the
 // repaint itself resizes the scroller's height (ndcCapHeight), and reacting
 // to that looped ("ResizeObserver loop completed with undelivered
-// notifications").
+// notifications"). And on the NEXT frame, never inside the callback: the
+// repaint can still move a width (the scrollbar arriving with the new
+// height), and a resize made inside the callback is the same loop error --
+// it came back on /noodle's monospace, 2026-11-10.
 function ndcOnWidth(els, fn) {
-  var seen = new WeakMap();
+  var seen = new WeakMap(), queued = 0;
   var ro = new ResizeObserver(function (entries) {
     var changed = entries.some(function (en) {
       var w = en.contentRect.width, was = seen.get(en.target);
       seen.set(en.target, w);
       return was !== w;
     });
-    if (changed) fn();
+    if (changed && !queued) queued = requestAnimationFrame(function () { queued = 0; fn(); });
   });
   els.forEach(function (el) { ro.observe(el); });
   return ro;
