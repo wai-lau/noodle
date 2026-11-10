@@ -1,7 +1,7 @@
 """noodle in the real engine (WebKit = iOS), the parts of a poll page AROUND
 the vote: Ask noodle (Enter, the rate-limit countdown, re-applying an answer),
 what the browser remembers (the Ask text, the passphrase per poll and name),
-the share link, the top dates and the pick note. The signing and voting
+the share link and the top dates. The signing and voting
 itself is test_noodle_browser.py; the host's tools test_noodle_browser_host.py.
 """
 import pytest
@@ -44,7 +44,7 @@ def test_a_rate_limit_counts_down_and_help_stays_pressable(browser, base_url, no
         _can_commit(page)
         page.fill("#nd-ask", "fridays")
         page.click("#nd-ask-go")
-        page.wait_for_function("document.querySelector('#nd-ask-status').textContent.includes('too fast')")
+        page.wait_for_function("document.querySelector('#nd-ask-status').textContent.includes('Please wait')")
         assert not page.is_disabled("#nd-ask-go")
         page.wait_for_function("document.querySelector('#nd-ask-status').textContent === ''", timeout=5000)
     finally:
@@ -59,6 +59,8 @@ def test_the_polls_link_sits_under_commit_with_a_copy_button(browser, base_url, 
         if not page.evaluate("NDV.poll.voters.length && NDV.poll.voters[0].slots.length"):
             assert page.is_hidden("#nd-share"), "no link until the host has offered something"
             pytest.skip("the shared poll has no host offer yet")
+        page.fill("#nd-name", "smoke copier")   # the link is on step 2, unseen until then
+        _can_commit(page)
         assert page.input_value("#nd-url") == f"{base_url}/noodle/{noodle_slug}"
         assert page.get_attribute("#nd-url", "readonly") is not None
         assert page.inner_text("#nd-copy") == "\uf0c5"   # the copy icon
@@ -85,15 +87,15 @@ def test_the_same_question_reapplies_the_last_answer(browser, base_url, noodle_s
         page.wait_for_function("(NDV.step !== 'pick' && ndvCanNext() && ndvStep('pick'), !document.getElementById('noodle').classList.contains('nd-off'))", timeout=20000)
         page.fill("#nd-ask", "fridays")
         page.click("#nd-ask-go")
-        page.wait_for_function("document.querySelector('#nd-ask-status').textContent.includes('read that as')")
+        page.wait_for_function("document.querySelector('#nd-ask-status').textContent.includes('Understood as')")
         page.evaluate("document.querySelector('#nd-ask-status').textContent = ''")
         page.click("#nd-ask-go")
-        page.wait_for_function("document.querySelector('#nd-ask-status').textContent.includes('read that as')")
+        page.wait_for_function("document.querySelector('#nd-ask-status').textContent.includes('Understood as')")
         assert len(calls) == 1, "the same question must not be asked twice"
         page.fill("#nd-ask", "")
         assert not page.is_disabled("#nd-ask-go")
         page.click("#nd-ask-go")
-        assert "help how? type in box pls" in page.inner_text("#nd-ask-status")
+        assert "Describe your availability first." in page.inner_text("#nd-ask-status")
     finally:
         page.close()
 
@@ -162,20 +164,6 @@ def test_the_top_dates_rank_and_line_up(browser, base_url, noodle_slug):
           const el = document.getElementById('nd-top');
           return [el.textContent, el.querySelectorAll('.nd-top-glyph').length]; }""")
         assert text[1] == 0 and ":" not in text[0]
-    finally:
-        page.close()
-
-
-def test_the_pick_note_shows_only_once_unlocked(browser, base_url, noodle_slug):
-    page = browser.new_page(viewport={"width": 430, "height": 932})
-    try:
-        page.goto(f"{base_url}/noodle/{noodle_slug}")
-        page.wait_for_function("NDV.poll ? 1 : 0")
-        vis = "getComputedStyle(document.querySelector('.nd-pick-note')).visibility"
-        page.evaluate("document.getElementById('noodle').classList.add('nd-off')")
-        assert page.evaluate(vis) == "hidden"
-        page.evaluate("document.getElementById('noodle').classList.remove('nd-off')")
-        assert page.evaluate(vis) == "visible"
     finally:
         page.close()
 

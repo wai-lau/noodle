@@ -115,10 +115,6 @@ body.noodle-tc {
   /* noodle's ink tokens -> the deep green: every text, line and lit cell the
      shared sheets draw turns over here at once */
   --green-hsl: var(--tc-ink);
-  --gray-hsl: var(--tc-ink);
-  --cyan-hsl: var(--tc-ink);
-  --orange-hsl: var(--tc-ink);
-  --orange-glow-hsl: var(--tc-ink);
   --bg-hsl: var(--tc-peach);
   --radius-2: 10px;   /* taridchange.com's corner: every noodle box rounds to it */
 
@@ -130,6 +126,15 @@ body.noodle-tc {
   line-height: var(--tc-lh);
   color: hsl(var(--tc-ink));
   background: transparent;   /* the ground is html's (above) */
+}
+
+/* ... and the accent tokens too -- except on /noodle's black (noodle-dark.css),
+   which keeps noodle's gray, cyan and orange */
+body.noodle-tc:not(.noodle-dark) {
+  --gray-hsl: var(--tc-ink);
+  --cyan-hsl: var(--tc-ink);
+  --orange-hsl: var(--tc-ink);
+  --orange-glow-hsl: var(--tc-ink);
 }
 
 /* EVERYTHING centred -- text, labels, fields, buttons (owner, 2026-10-23);
@@ -554,8 +559,9 @@ body.noodle-tc {
 
 /* VOTER INKS (noodle-ink.js: a key's hashed home colour; the shared set in noodle.css is
    for black): dark and saturated, to read on sand and on a picked day's
-   peach, neighbours far apart in hue (a clash steps to the next) (owner, 2026-10-30) */
-body.noodle.noodle-tc {
+   peach, neighbours far apart in hue (a clash steps to the next) (owner, 2026-10-30).
+   Not on /noodle's black (noodle-dark.css): the shared set is for it. */
+body.noodle.noodle-tc:not(.noodle-dark) {
   --nd-ink-0: 140 60% 25%;    /* green */
   --nd-ink-1: 222 65% 38%;    /* blue */
   --nd-ink-2: 6 70% 40%;      /* brick */

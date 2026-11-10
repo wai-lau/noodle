@@ -125,7 +125,7 @@ def test_rename_and_rekey_over_a_kept_key(browser, base_url):
         page.evaluate("ndvStep('you')")
         page.click("#nd-rename")
         assert not page.is_disabled("#nd-pass")
-        assert page.get_attribute("#nd-pass", "placeholder") == "your passphrase (same or new)"
+        assert page.get_attribute("#nd-pass", "placeholder") == "Passphrase (current or new)"
         page.fill("#nd-name", "renamed")
         page.fill("#nd-pass", "pass one")
         _commit(page)

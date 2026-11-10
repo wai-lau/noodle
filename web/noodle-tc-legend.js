@@ -1,8 +1,8 @@
 // noodle-tc's PIPS: their colours and shapes, and the LEGEND (in one card with
 // the most popular times) -- whose pip is whose, a swatch in each voter's pip colour and
 // shape beside their name (owner, 2026-10-23). /noodle-tc hides the roster
-// row (the name cards), so this is where the names live. Loaded only by the
-// /noodle-tc shell (deferred); on a page with no calendar it does nothing.
+// row (the name cards), so this is where the names live. Loaded by the
+// /noodle-tc and /noodle shells (deferred); on a page with no calendar it does nothing.
 //
 // The legend READS the roster the shared JS still renders, hidden (noodle-roster.js
 // ndrRender: one button.nd-face per voter, data-name, the ink as --seal-hsl on

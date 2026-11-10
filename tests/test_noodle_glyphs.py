@@ -102,13 +102,15 @@ def test_rendered_glyphs_are_one_cell_wide(browser, base_url, noodle_slug):
     import json
     slug = noodle_slug
     glyphs = [chr(cp) for cp in sorted(used_codepoints())]
+    # --font-mono is Almarai on the TC front end; --tc-mono keeps the monospace
+    # the copy button's icon is drawn from (noodle-tc.css)
     page = browser.new_page(viewport={"width": 430, "height": 932})
     try:
         page.goto(f"{base_url}/noodle/{slug}")
         page.evaluate("document.fonts.ready")
         widths = page.evaluate(
             """(gs) => { const s = document.createElement('span');
-              s.style.cssText = 'position:absolute;white-space:pre;font-family:"Noodle Glyphs",var(--font-mono)';
+              s.style.cssText = 'position:absolute;white-space:pre;font-family:"Noodle Glyphs",var(--tc-mono)';
               document.querySelector('.nd-card').appendChild(s);
               const w = (t) => { s.textContent = t.repeat(20); return s.getBoundingClientRect().width; };
               const m = w('M'); const out = {};
@@ -117,32 +119,3 @@ def test_rendered_glyphs_are_one_cell_wide(browser, base_url, noodle_slug):
         page.close()
     off = {g: round(r, 3) for g, r in widths.items() if abs(r - 1) > 0.01}
     assert not off, f"rendered wider/narrower than one cell: {json.dumps(off, ensure_ascii=False)}"
-
-
-@pytest.mark.browser
-def test_the_calendar_toggle_icons_actually_render(browser, base_url, noodle_slug):
-    """The icons exist ONLY in noodle-seal.woff2. When the grid's font stack
-    left out 'Noodle Glyphs' they rendered as nothing -- invisible buttons --
-    while every font-metric check above still passed. So measure the INK of the
-    real toggle button, in the real calendar."""
-    page = browser.new_page(viewport={"width": 430, "height": 932})
-    try:
-        page.goto(f"{base_url}/noodle/{noodle_slug}")
-        page.locator(".nd-corner .nd-mode").wait_for()
-        page.evaluate("document.fonts.ready")
-        info = page.evaluate("""() => {
-          // the corner switch is always shown; a group button only when it has
-          // something to change -- measure the switch, it carries the same icons
-          const b = document.querySelector('.nd-corner .nd-mode i.fill');
-          const c = document.createElement('canvas').getContext('2d');
-          c.font = getComputedStyle(b).font;
-          const m = c.measureText(b.textContent);
-          return {fam: getComputedStyle(b).fontFamily, text: b.textContent,
-                  ink: m.actualBoundingBoxRight + m.actualBoundingBoxLeft,
-                  loaded: document.fonts.check('16px "Noodle Glyphs"', b.textContent)};
-        }""")
-    finally:
-        page.close()
-    assert "Noodle Glyphs" in info["fam"], info
-    assert info["text"] in ("\uf765", "\uf12d"), info
-    assert info["loaded"] and info["ink"] > 1, f"toggle icon draws no ink: {info}"

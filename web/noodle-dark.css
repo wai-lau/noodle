@@ -1,0 +1,48 @@
+/* noodle-dark -- /noodle's PALETTE over the Tarid Change front end (pages.SKINS,
+   owner 2026-11-10: "replace noodle with noodle-tc, except with the current
+   noodle color-scheme"). /noodle loads noodle-tc.css (layout, type, steps,
+   legend) and then this sheet, which puts noodle's own colours back: black
+   ground, green ink, cyan weekends, orange today. Colour only -- every size,
+   order and shape is noodle-tc.css's.
+
+   noodle-tc.css draws everything from its --tc-* tokens, so most of the work
+   is re-pointing them at noodle's: ink and cream (the type) -> green, peach
+   and rust (fields, buttons, cards, calendar heads) -> the black. Where a tc
+   rule paints a fill a black would erase (a picked day, today), it is put
+   back to noodle-cal.css's own rule below. */
+
+/* set on html, where chrome.css's tokens hold, and inherited as those values.
+   gray, cyan and orange are never re-pointed here (noodle-tc.css skips
+   .noodle-dark) */
+html:has(body.noodle-dark) {
+  --tc-ink: var(--green-hsl);
+  --tc-cream: var(--green-hsl);
+  --tc-peach: var(--bg-hsl);
+  --tc-rust: var(--bg-hsl);
+  --tc-ground-foot: var(--bg-hsl);
+}
+
+/* no sand ground: the flat black under it (html's) shows */
+body.noodle-tc.noodle-dark::before { display: none; }
+
+/* an error in noodle's orange, as noodle-actions.css draws it */
+.noodle-tc.noodle-dark .nd-banner {
+  background: hsl(var(--bg-hsl) / 1);
+  color: hsl(var(--orange-glow-hsl) / 0.8);
+  border-color: hsl(var(--orange-glow-hsl) / 0.8);
+}
+
+/* the cards tc fills peach would vanish on black: a line marks them instead */
+.noodle-tc.noodle-dark .nd-tc-card, .noodle-tc.noodle-dark .nd-event { border: 1px solid hsl(var(--green-hsl) / 0.45); }
+
+/* the calendar, as noodle-cal.css colours it: a PICKED half green, no peach
+   wash on offered days, the months' green shade, the numbers lifted off a
+   fill, today orange, the crop's outside grey and dim */
+.noodle-tc.noodle-dark .nd-d.mid { --top: hsl(var(--green-hsl) / 0.45); }
+.noodle-tc.noodle-dark .nd-d.nit { --bot: hsl(var(--green-hsl) / 0.45); }
+.noodle-tc.noodle-dark .nd-tri::after { display: none; }
+.noodle-tc.noodle-dark .nd-d.alt::after { background: hsl(var(--green-hsl) / 0.12); }
+.noodle-tc.noodle-dark .nd-n { text-shadow: 0 0 3px hsl(var(--bg-hsl) / 1), 0 0 6px hsl(var(--bg-hsl) / 1); }
+.noodle-tc.noodle-dark .nd-d.today::before { background: hsl(var(--orange-hsl) / 1); }
+.noodle-tc.noodle-dark .nd-cal-wrap .nd-grid .nd-d.today .nd-n { color: hsl(var(--orange-hsl) / 1); }
+.noodle-tc.noodle-dark .nd-shade { backdrop-filter: grayscale(1) brightness(0.55); }

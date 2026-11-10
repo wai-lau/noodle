@@ -1,6 +1,6 @@
 // noodle-tc's WORDING: the same pages as /noodle, said plainly and
-// professionally (owner, 2026-10-23). Loaded ONLY by the /noodle-tc shell, in
-// the <head>, so it sees every node as the parser and the shared JS add them.
+// professionally (owner, 2026-10-23). Loaded by the /noodle-tc and (since
+// 2026-11-10) /noodle shells (pages.SKINS), in the <head>, so it sees every node as the parser and the shared JS add them.
 // It rewrites what the shared code writes rather than forking that code:
 //   - a text node (or placeholder / title / aria-label) whose WHOLE trimmed text
 //     is a key in NDTC_EXACT becomes its value;

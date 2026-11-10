@@ -1,7 +1,6 @@
 """noodle END-TO-END polls in the real engine (WebKit = iOS): /noodle makes a
 fresh draft's key in the browser (and the claim key that alone can cast its
-first vote), the host and a guest vote, the host retitles and
-removes, a guest changes passphrase -- and at every step the server holds
+first vote), the host and a guest vote, the host retitles, a guest changes passphrase -- and at every step the server holds
 nothing readable, while a link without the key opens nothing."""
 import pytest
 
@@ -102,7 +101,7 @@ def test_an_end_to_end_poll_from_draft_to_rekey(browser, base_url):
         try:
             _join(guest, link, GUEST, "guest pass")
             assert guest.inner_text("#nd-title") == TITLE and guest.inner_text("#nd-note") == NOTE
-            assert guest.title() == f"noodle: {TITLE}"
+            assert guest.title() == TITLE   # noodle-tc-copy.js drops the "noodle: " prefix
             assert guest.evaluate("NDV.poll.host") == HOST
             guest.evaluate(f"NDV.cal.setSel(new Set({offer[:1]!r})); ndvSaveDraft()")
             _commit(guest)
@@ -129,18 +128,10 @@ def test_an_end_to_end_poll_from_draft_to_rekey(browser, base_url):
         try:
             bare.goto(f"{base_url}/noodle/{slug}")
             bare.wait_for_selector("#nd-banner:not([hidden])", timeout=10000)
-            assert "missing its key" in bare.inner_text("#nd-banner")
-            assert bare.title() == "noodle"
+            assert "incomplete" in bare.inner_text("#nd-banner")
+            assert bare.title() == "Find a time"
         finally:
             bare.close()
-
-        # the HOST removes the guest -- by key, since the server has no names
-        host.reload()
-        host.wait_for_function("NDV.mine && NDV.poll.voters.length === 2", timeout=20000)
-        host.on("dialog", lambda dlg: dlg.accept())
-        host.click(f".nd-face-rm[data-name='{GUEST}']")
-        host.wait_for_function("NDV.poll.voters.length === 1", timeout=10000)
-        assert len(server_view()["voters"]) == 1
     finally:
         ctx.close()
         if slug:

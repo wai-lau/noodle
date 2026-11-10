@@ -5,7 +5,8 @@ noodle/sig.py's canonical() would show.
 
 Votes as a fixed voter with a fixed passphrase on the session's fresh poll
 (conftest.py noodle_slug): the first test seals that name and later ones
-lean on it. Around the vote (Ask, storage, top dates, share link):
+lean on it. /noodle wears the TC front end (pages.SKINS), so every string
+asserted here is noodle-tc-copy.js's. Around the vote (Ask, storage, top dates, share link):
 test_noodle_browser_page.py; the host's tools: test_noodle_browser_host.py.
 """
 import re
@@ -27,7 +28,7 @@ def _ready(page):
         page.fill("#nd-name", NAME)
         page.fill("#nd-pass", PASS)
     page.wait_for_function("(NDV.step !== 'pick' && ndvCanNext() && ndvStep('pick'), !document.getElementById('nd-cal').classList.contains('nd-readonly'))"
-                           " || document.querySelector('#nd-why').textContent.includes('different')", timeout=20000)
+                           " || document.querySelector('#nd-why').textContent.includes('does not match')", timeout=20000)
     _offer_one(page)
     page.wait_for_function("!document.querySelector('#nd-submit').disabled", timeout=20000)
 
@@ -63,7 +64,7 @@ def test_sign_in_browser_verify_on_server(browser, base_url, noodle_slug):
         page.click("#nd-submit")
         page.wait_for_function("NDV.committed > 0",
                                timeout=10000)
-        assert page.inner_text(".nd-approved-by") == f"approved by {NAME}"
+        assert page.inner_text(".nd-approved-by") == f"Response saved for {NAME}"
         voters = page.evaluate(f"fetch('/api/noodle/{noodle_slug}').then(r => r.json())")["voters"]
         mine = [v for v in voters if v["name"].lower() == NAME]
         assert len(mine) == 1 and mine[0]["pub"]
@@ -82,10 +83,8 @@ def test_same_name_other_passphrase_is_blocked(browser, base_url, noodle_slug):
         assert page.input_value("#nd-name") == NAME.upper()
         page.fill("#nd-pass", "not the passphrase")
         page.wait_for_function(
-            "document.querySelector('#nd-why').textContent.includes('different passphrase')", timeout=20000)
+            "document.querySelector('#nd-why').textContent.includes('does not match')", timeout=20000)
         assert page.is_disabled("#nd-submit")
-        assert page.inner_text("#nd-seal-cap") == f"NOT {NAME.upper()}'s seal of approval"
-        assert page.evaluate("getComputedStyle(document.getElementById('nd-seal-cap')).fontWeight") == "700"
         assert page.evaluate("document.getElementById('nd-cal').classList.contains('nd-readonly')")
         assert page.evaluate("document.querySelector('.nd-ask').inert")
         label = "getComputedStyle(document.getElementById('nd-pass-label')).color"
@@ -94,7 +93,6 @@ def test_same_name_other_passphrase_is_blocked(browser, base_url, noodle_slug):
         page.fill("#nd-name", "smoke unique name")
         _can_commit(page)
         assert not page.evaluate("document.getElementById('nd-cal').classList.contains('nd-readonly')")
-        assert page.inner_text("#nd-seal-cap") == "smoke unique name's seal of approval"
         assert page.evaluate(label) != locked_colour, "the passphrase label must lose its warning colour"
     finally:
         page.close()
@@ -106,11 +104,9 @@ def test_form_is_remembered_locally_never_in_a_cookie(browser, base_url, noodle_
     try:
         page.goto(f"{base_url}/noodle/{noodle_slug}")
         _ready(page)
-        assert page.inner_text("#nd-seal-cap") == "smoke bot's seal of approval"
         assert page.inner_text("#nd-why") == ""   # enabled: no reason shown
-        # the roster is on this page now, and voters' dots wear their seal's ink
-        assert page.locator("#nd-voters .nd-face").count() >= 1
-        assert page.is_visible("#nd-who")
+        # the voters are named in the pip legend under the calendar (noodle-tc-legend.js)
+        assert page.locator(".nd-tc-legend li").count() >= 1
         page.reload()
         # the name is remembered; the passphrase is not -- the KEY is, kept
         # non-extractable in IndexedDB, and it signs straight away
@@ -147,8 +143,7 @@ def test_empty_name_cannot_submit(browser, base_url, noodle_slug):
         page.fill("#nd-pass", "something")
         page.wait_for_timeout(2500)
         assert page.is_disabled("#nd-submit")
-        assert page.inner_text("#nd-why") == "enter your name first"
-        assert page.inner_text("#nd-seal-cap") == "your seal of approval"
+        assert page.inner_text("#nd-why") == "Enter your name to continue."
     finally:
         page.close()
 
@@ -169,7 +164,7 @@ def test_draft_is_local_until_submit_then_only_signed_data_is_sent(browser, base
         page.mouse.click(box["x"] + box["width"] * 0.85, box["y"] + box["height"] * 0.85)
         page.fill("#nd-ask", "draft text")
         picked = cell.get_attribute("class")
-        assert page.inner_text("#nd-submit") == "Commit*" and page.is_visible("#nd-dirty")
+        assert page.inner_text("#nd-dirty") == "Unsaved changes" and page.is_visible("#nd-dirty")
         assert sent == [], f"nothing may leave before submit: {sent}"
 
         page.reload()
@@ -191,26 +186,9 @@ def test_draft_is_local_until_submit_then_only_signed_data_is_sent(browser, base
         # and every OTHER draft this poll held is gone too (a stale one would
         # beat the saved picks the next time its seal matched)
         assert page.evaluate(f"Object.keys(localStorage).filter(k => k.startsWith('noodle.draft.{noodle_slug}.')).length") == 0
-        assert page.inner_text("#nd-submit") == "Commit" and page.inner_text("#nd-dirty") == "all changes saved"
+        assert page.inner_text("#nd-dirty") == "All changes saved"
     finally:
         ctx.close()
-
-
-def test_tapping_a_face_fills_the_name(browser, base_url, noodle_slug):
-    page = browser.new_page(viewport={"width": 430, "height": 932})
-    try:
-        page.goto(f"{base_url}/noodle/{noodle_slug}")
-        face = page.locator("#nd-voters .nd-face").first
-        face.wait_for(timeout=10000)
-        name = face.get_attribute("data-name")
-        face.click()
-        assert page.input_value("#nd-name") == name
-        assert page.evaluate("document.activeElement.id") == "nd-pass"
-        want = ("please enter your passphrase" if page.evaluate("NDV.held") else
-                "you'll need this to change your vote")
-        assert page.get_attribute("#nd-pass", "placeholder") == want
-    finally:
-        page.close()
 
 
 def test_your_taps_light_the_half_and_add_your_dot(browser, base_url, noodle_slug):
@@ -287,7 +265,7 @@ def test_the_calendar_is_endless_and_guests_get_no_crop(browser, base_url, noodl
     page = browser.new_page(viewport={"width": 430, "height": 932})
     try:
         page.goto(f"{base_url}/noodle/{noodle_slug}")
-        page.locator(".nd-wk").first.wait_for()
+        page.locator(".nd-wk").first.wait_for(state="attached")   # the pick step is laid out, unseen, on step 1
         poll = page.evaluate(f"fetch('/api/noodle/{noodle_slug}').then(r => r.json())")
         if not poll["voters"]:
             pytest.skip("no host on this session's poll yet (run alone): the visitor would be the host")

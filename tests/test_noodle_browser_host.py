@@ -1,10 +1,15 @@
 """noodle in the real engine (WebKit = iOS), the HOST and IDENTITY flows: the
 crop lines, a fresh poll's defaults, retitling, and changing a name or
-passphrase. Split from test_noodle_browser.py at the 500-line cap.
+passphrase. Split from test_noodle_browser.py at the 500-line cap. /noodle wears
+the TC front end (pages.SKINS): every string asserted is noodle-tc-copy.js's,
+and "Save" reads the same clean or dirty, so #nd-dirty says which.
 """
 import pytest
 
 pytestmark = pytest.mark.browser
+
+# an unsaved change: "Save" reads the same either way on the TC front end
+DIRTY = "document.querySelector('#nd-dirty').textContent === 'Unsaved changes'"
 
 
 @pytest.fixture
@@ -44,7 +49,7 @@ def test_the_host_drags_the_crop_lines_and_commit_saves_them(browser, base_url, 
         page.mouse.down()
         page.mouse.move(b["x"] + b["width"] / 2, b["y"] + b["height"] / 2 + dy, steps=8)
         page.mouse.up()
-        page.wait_for_function("document.querySelector('#nd-submit').textContent === 'Commit*'", timeout=5000)
+        page.wait_for_function(DIRTY, timeout=5000)
         page.evaluate("NDV.committed = 0")
         page.click("#nd-submit")
         page.wait_for_function("NDV.committed > 0",
@@ -90,12 +95,12 @@ def test_changing_the_passphrase_and_name_hands_the_vote_to_the_new_key(browser,
         page.fill("#nd-name", nm)
         page.fill("#nd-pass", pw)
         page.wait_for_function("(NDV.step !== 'pick' && ndvCanNext() && ndvStep('pick'), !document.getElementById('nd-cal').classList.contains('nd-readonly'))"
-                               " || document.querySelector('#nd-why').textContent.includes('different')",
+                               " || document.querySelector('#nd-why').textContent.includes('does not match')",
                                timeout=20000)
         return page.evaluate("NDV.mine")
 
     def commit():
-        assert page.inner_text("#nd-submit") == "Commit*"
+        assert page.evaluate(DIRTY)
         page.evaluate("NDV.committed = 0")
         page.click("#nd-submit")
         page.wait_for_function("NDV.committed > 0",
@@ -104,7 +109,7 @@ def test_changing_the_passphrase_and_name_hands_the_vote_to_the_new_key(browser,
     def change(field, btn, new):
         page.evaluate("ndvStep('you')")   # one section at a time: the fields live on YOU
         page.wait_for_function(f"!document.querySelector('#{btn}').hidden", timeout=10000)
-        assert page.inner_text(f"#{btn}") == "change"
+        assert page.inner_text(f"#{btn}") == "Change"
         page.click(f"#{btn}")
         assert page.inner_text(f"#{btn}") == "undo"
         assert not page.is_disabled(f"#{field}")
@@ -134,13 +139,13 @@ def test_changing_the_passphrase_and_name_hands_the_vote_to_the_new_key(browser,
         # right passphrase: locked, with a change button beside each field
         assert page.is_disabled("#nd-pass")
         change("nd-pass", "nd-rekey", two)
-        assert page.get_attribute("#nd-pass", "placeholder") == "please enter your passphrase"   # a held name
+        assert page.get_attribute("#nd-pass", "placeholder") == "Enter your passphrase"   # a held name
         assert page.is_disabled("#nd-pass"), "the new passphrase locks once committed"
         page.reload()
         page.wait_for_function("NDV.mine", timeout=20000)
         # the committed KEY is what this browser kept -- never the passphrase
         assert page.input_value("#nd-pass") == "" and page.evaluate("NDV.usingKept")
-        assert page.get_attribute("#nd-pass", "placeholder") == "kept on this device"
+        assert page.get_attribute("#nd-pass", "placeholder") == "Saved on this device"
         assert two not in page.evaluate("JSON.stringify(localStorage)")
         assert not fresh(name, one), "the old passphrase no longer opens the vote"
         assert fresh(name, two)
@@ -165,43 +170,10 @@ def test_changing_the_passphrase_and_name_hands_the_vote_to_the_new_key(browser,
         assert page.input_value("#nd-pass") == one
         page.wait_for_function("NDV.mine", timeout=20000)   # the old key re-derives, then locks again
         assert page.is_disabled("#nd-pass")
-        assert page.inner_text("#nd-submit") == "Commit"
+        assert page.inner_text("#nd-dirty") == "All changes saved"
         # this test RELOADS mid-flight on purpose: a request cut off by its own
         # reload is WebKit's 'Load failed', not a page bug
         assert [e for e in errors if not e.startswith("Load failed")] == []
-    finally:
-        page.close()
-
-
-def test_a_new_name_shows_its_face_among_the_voters(browser, base_url, noodle_slug):
-    page = browser.new_page(viewport={"width": 430, "height": 932})
-    try:
-        page.goto(f"{base_url}/noodle/{noodle_slug}")
-        # no name yet: a blank seat says there is room, and tapping it fills nothing
-        page.wait_for_selector(".nd-face.pending", timeout=10000)
-        assert page.inner_text(".nd-face.pending .nd-face-name") == "you"
-        blank = page.inner_text(".nd-face.pending .nd-seal")
-        assert blank.strip(), "the placeholder seat wears a seal"
-        page.click(".nd-face.pending")
-        assert page.input_value("#nd-name") == ""
-        page.reload()   # the placeholder seal is kept, not rerolled
-        page.wait_for_selector(".nd-face.pending", timeout=10000)
-        assert page.inner_text(".nd-face.pending .nd-seal") == blank
-        # a voter's name (still deriving, or wrong passphrase) is not a new seat
-        taken = page.evaluate("NDV.poll.voters.length ? NDV.poll.voters[0].name : null")
-        if taken:   # the shared poll may have been recreated empty
-            page.fill("#nd-name", taken)
-            page.wait_for_function("!document.querySelector('.nd-face.pending')", timeout=5000)
-        page.fill("#nd-name", "smoke newcomer")
-        page.wait_for_function("document.querySelector('.nd-face.pending .nd-face-name').textContent"
-                               " === 'smoke newcomer'", timeout=20000)
-        page.wait_for_selector(".nd-face.pending", timeout=20000)
-        assert page.inner_text(".nd-face.pending .nd-face-name") == "smoke newcomer"
-        first = page.inner_text(".nd-face.pending .nd-seal")
-        page.fill("#nd-pass", "another pass")
-        page.wait_for_function(f"(document.querySelector('.nd-face.pending .nd-seal') || {{}}).textContent"
-                               f" && document.querySelector('.nd-face.pending .nd-seal').textContent !== {first!r}",
-                               timeout=20000)
     finally:
         page.close()
 
@@ -211,10 +183,8 @@ def test_name_and_passphrase_keep_only_letters_digits_and_spaces(browser, base_u
     try:
         page.goto(f"{base_url}/noodle/{noodle_slug}")
         page.wait_for_function("NDV.poll", timeout=10000)
-        host = page.evaluate("ndxIsHost()")
-        assert page.get_attribute("#nd-name", "placeholder") == (
-            "how shall the guests address you, host?" if host else "please help the host know who you are")
-        assert page.get_attribute("#nd-pass", "placeholder") == "you'll need this to change your vote"
+        assert page.get_attribute("#nd-name", "placeholder") == "Enter your name"   # host or guest
+        assert page.get_attribute("#nd-pass", "placeholder") == "Needed to change your response later"
         page.type("#nd-name", "Jane.Doe-2!")
         page.type("#nd-pass", "p@ss w0rd?")
         assert page.input_value("#nd-name") == "JaneDoe2"   # capitals kept since 2026-10-23
@@ -244,7 +214,7 @@ def test_a_fresh_poll_starts_three_weeks_with_nothing_picked(browser, base_url):
         page.fill("#nd-name", "smoke fresh host")
         page.wait_for_function("(NDV.step !== 'pick' && ndvCanNext() && ndvStep('pick'), !document.getElementById('nd-cal').classList.contains('nd-readonly'))", timeout=20000)
         assert page.evaluate("NDV.cal.getSel().size") == 0
-        assert "pick at least one" in page.inner_text("#nd-why")
+        assert "Select at least one time" in page.inner_text("#nd-why")
     finally:
         page.close()
         with httpx.Client(base_url=base_url, timeout=15.0) as c:
@@ -271,7 +241,7 @@ def test_the_host_retitles_by_tapping_the_title(browser, base_url):
         page.keyboard.press("End")
         page.keyboard.type(" renamed")
         page.keyboard.press("Enter")
-        assert page.inner_text("#nd-submit") == "Commit*"
+        assert page.evaluate(DIRTY)
         page.evaluate("NDV.committed = 0")
         page.click("#nd-submit")
         page.wait_for_function("NDV.committed > 0",
@@ -282,7 +252,7 @@ def test_the_host_retitles_by_tapping_the_title(browser, base_url):
         page.click("#nd-note")
         page.keyboard.type("bring snacks")
         page.keyboard.press("Enter")
-        assert page.inner_text("#nd-submit") == "Commit*"
+        assert page.evaluate(DIRTY)
         page.evaluate("NDV.committed = 0")
         page.click("#nd-submit")
         page.wait_for_function("NDV.committed > 0", timeout=20000)
@@ -365,7 +335,9 @@ def test_a_host_tap_outside_the_crop_grows_it_and_picks_the_day(browser, base_ur
         page.wait_for_function("(NDV.step !== 'pick' && ndvCanNext() && ndvStep('pick'), !document.getElementById('nd-cal').classList.contains('nd-readonly'))", timeout=20000)
         page.wait_for_function("document.querySelector('.nd-cropbox')", timeout=10000)
         today = page.evaluate("NoodleCalParts.iso(new Date())")
-        day = page.evaluate(f"[...document.querySelectorAll('#nd-cal .nd-d.out')].map(c => c.dataset.day).find(d => d > '{today}')")
+        # a WEEK past the crop's end: the host's grab strip reaches 36px over
+        # the first week outside it (noodle-tc.css) and would take the tap
+        day = page.evaluate(f"[...document.querySelectorAll('#nd-cal .nd-d.out')].map(c => c.dataset.day).filter(d => d > '{today}')[7]")
         assert day, "a future day outside the crop to tap"
         before = page.evaluate("ndhCrop()")
         cell = page.locator(f"#nd-cal .nd-d[data-day='{day}']")

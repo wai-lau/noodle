@@ -54,7 +54,9 @@ waits for DOMContentLoaded too, or asks lazily (`noodle-share.js`). Pinned by
 
 **Two front ends, one backend** (`pages.SKINS`): `/noodle` and `/noodle-tc`
 (Tarid Change look: `noodle-tc.css` + the wording table `noodle-tc-copy.js` +
-the pip legend `noodle-tc-legend.js`, same templates and JS). A new user-facing string in the shared JS needs a line
+the pip legend `noodle-tc-legend.js`, same templates and JS). Since
+2026-11-10 `/noodle` wears that same skin in noodle's black/green palette
+(`noodle-dark.css`, layered after). A new user-facing string in the shared JS needs a line
 in that table; a new front end needs the slug masks + guest lists in exec-fn
 and nginx. §Front ends.
 

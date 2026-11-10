@@ -144,7 +144,7 @@ def test_an_end_to_end_poll_end_to_end(browser, base_url, admin_headers):
         try:
             bare.goto(f"{base_url}/noodle/{slug}")
             bare.wait_for_selector("#nd-banner:not([hidden])", timeout=WAIT)
-            assert "missing its key" in bare.inner_text("#nd-banner")
+            assert "incomplete" in bare.inner_text("#nd-banner")
         finally:
             ctx.close()
 
