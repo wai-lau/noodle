@@ -131,18 +131,20 @@ made or shared on a front end stays on it -- and any link opens on either.
 - **/noodle wears the TC skin too, in noodle's colours and monospace**
   (owner, 2026-11-10: "replace noodle with noodle-tc, except with the current
   noodle color-scheme", then "noodle monospace back" and "an equivalent other
-  color for each noodle-tc color"). `SKINS` is `base -> (skin, palette,
-  theme-color, nav)`; /noodle is `noodle-tc` + `noodle-dark.css`, loaded
-  after it, with `body.noodle-dark`. That sheet gives EACH `--tc-*` token one
-  noodle counterpart in the same role (its header has the table): ink ->
-  green, cream -> marigold, peach -> a deep phosphor slab, rust -> a deep
-  ember slab, sand/amber/clay -> black to dark green. It points the three
-  tc faces at the monospace (`--tc-mono`), and overrides only what a dark
-  ground breaks (today's tab + number, the crop dim, the day numbers'
-  shadow). The new channels are page-local tc tokens, not `--*-hsl`, so the
-  palette lint does not govern them (as with noodle-tc.css's own).
-  noodle-tc.css re-points gray/cyan/orange and sets its dark voter inks only
-  off `.noodle-dark`, so noodle's cyan weekends and black-ground inks stay.
+  color for each noodle-tc color", then "white gray black terminal green and
+  also chatsubo green. Use marigold only sparingly. red for errors").
+  `SKINS` is `base -> (skin, palette, theme-color, nav)`; /noodle is
+  `noodle-tc` + `noodle-dark.css`, loaded after it, with `body.noodle-dark`.
+  That sheet gives EACH `--tc-*` token one counterpart in the same role (its
+  header has the table): ink -> terminal green, cream -> white, peach -> a
+  deep chatsubo slab, rust -> a dark gray slab, sand/amber/clay -> black to
+  dark gray. Weekends/holidays (cyan) -> chatsubo, every error (ember) ->
+  red, marigold -> TODAY only. It points the three tc faces at the monospace
+  (`--tc-mono`). The voter pips keep noodle.css's multi-hue inks: they must
+  tell people apart. The new channels are page-local tokens or re-pointed
+  existing ones, so the palette lint has no new (token, alpha) pair to
+  govern. noodle-tc.css re-points gray/cyan/orange and sets its dark voter
+  inks only off `.noodle-dark`.
   The site nav stays /noodle's. The original look (seal art, roster row,
   noodle's own words) is no longer served; its CSS stays as the base the
   skin layers over.

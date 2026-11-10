@@ -1,52 +1,70 @@
 /* noodle-dark -- /noodle's PALETTE and TYPE over the Tarid Change front end
-   (pages.SKINS, owner 2026-11-10: "replace noodle with noodle-tc, except with
-   the current noodle color-scheme"; then "noodle monospace back in there" and
-   "an equivalent other color for each noodle-tc color"). /noodle loads
-   noodle-tc.css (layout, sizes, steps, legend) and then this sheet.
+   (pages.SKINS). Owner, 2026-11-10: "replace noodle with noodle-tc, except
+   with the current noodle color-scheme"; "noodle monospace back in there";
+   "an equivalent other color for each noodle-tc color"; "white gray black
+   terminal green and also chatsubo green. Use marigold only sparingly. red
+   for errors". /noodle loads noodle-tc.css (layout, sizes, steps, legend)
+   and then this sheet.
 
    noodle-tc.css draws everything from its --tc-* tokens, so each one gets ONE
-   noodle counterpart, playing the same part:
+   counterpart from that set, playing the same part:
 
      tc       part it plays                            noodle
-     ink      all type, lines, pips                    phosphor green (--green-hsl)
-     cream    the title, type on rust, crop frame,     marigold (--orange-hsl)
+     ink      all type, lines, pips                    terminal green (--green-hsl)
+     cream    the title, type on rust, crop frame,     white (--white-hsl)
               tappable-day rings, the split diagonal
-     peach    buttons, fields, cards, picked days      deep phosphor (a dark green slab)
-     rust     calendar heads, week column, error       deep ember (a dark ember slab)
-              banner, today
-     sand     the ground's top                         the black (--bg-hsl)
-     amber    the ground's middle                      near-black green
-     clay     the ground's foot                        dark green
-     foot     what iOS paints under its toolbars       the ground's foot, under the grain
+     peach    buttons, fields, cards, picked days      deep chatsubo (a dark slab of it)
+     rust     calendar heads, week column              dark gray slab
+     sand     the ground's top                         black (--bg-hsl)
+     amber    the ground's middle                      near-black
+     clay     the ground's foot                        darker gray
+     foot     what iOS paints under its toolbars       the ground's foot
 
-   Raw channels below are page-local tc tokens (not --*-hsl palette tokens),
-   as noodle-tc.css's own are. */
+   and the shared accents: cyan (weekends, holidays) -> chatsubo green, ember
+   (every error) -> red, marigold -> TODAY only (its tab and number).
+
+   Raw channels below are page-local tokens (not palette --*-hsl tokens), as
+   noodle-tc.css's own are. */
 html:has(body.noodle-dark) {
   --tc-ink: var(--green-hsl);
-  --tc-cream: var(--orange-hsl);
-  --tc-peach: 135 60% 12%;      /* deep phosphor: green type on it 8:1 */
-  --tc-rust: 24 100% 14%;       /* deep ember: marigold type on it 9:1 */
+  --tc-cream: var(--white-hsl);
+  --tc-peach: 125 35% 13%;      /* deep chatsubo: green type on it 8:1 */
+  --tc-rust: 0 0% 14%;          /* dark gray: white type on it 15:1 */
   --tc-sand: var(--bg-hsl);
-  --tc-amber: 135 40% 4%;
-  --tc-clay: 135 50% 7%;
-  --tc-ground-foot: 135 50% 7%;
+  --tc-amber: 0 0% 3%;
+  --tc-clay: 0 0% 6%;
+  --tc-ground-foot: 0 0% 6%;
 }
 
-/* noodle's monospace for every face the skin names (--tc-mono is chrome.css's
-   --font-mono, kept on html by noodle-tc.css) */
 body.noodle-tc.noodle-dark {
+  /* weekends and holidays: chatsubo (chrome.css's --cat-social channels) */
+  --cyan-hsl: var(--cat-social-h) var(--cat-social-s) var(--cat-social-l);
+
+  /* every error the shared sheets draw in ember (the banner, why Save is
+     off, the no-passphrase warning, a locked passphrase) is red here */
+  --orange-glow-hsl: 0 85% 60%;
+
+  /* noodle's monospace for every face the skin names (--tc-mono is chrome.css's
+     --font-mono, kept on html by noodle-tc.css) */
   --font-mono: 'Noodle Glyphs', var(--tc-mono);
   --tc-sans: 'Noodle Glyphs', var(--tc-mono);
   --tc-serif: 'Noodle Glyphs', var(--tc-mono);
 }
 
+/* errors in red: tc draws these in the ink, and the banner cream on rust */
+.noodle-tc.noodle-dark .nd-why, .noodle-tc.noodle-dark .nd-warn { color: hsl(var(--orange-glow-hsl) / 0.8); }
+
+.noodle-tc.noodle-dark .nd-banner {
+  background: hsl(var(--bg-hsl) / 1);
+  color: hsl(var(--orange-glow-hsl) / 0.8);
+  border-color: hsl(var(--orange-glow-hsl) / 0.8);
+}
+
 /* the day numbers lifted off a filled day, as noodle-cal.css does on black */
 .noodle-tc.noodle-dark .nd-n { text-shadow: 0 0 3px hsl(var(--bg-hsl) / 1), 0 0 6px hsl(var(--bg-hsl) / 1); }
 
-/* TODAY: tc's rust tab and number would be the deep ember slab, unreadable on
-   the dark ground -- ember's bright self for the tab, marigold for the number,
-   noodle's own today */
-.noodle-tc.noodle-dark .nd-d.today::before { background: hsl(var(--orange-glow-hsl) / 1); }
+/* TODAY, the one marigold: tc's rust (here a gray slab) would hide it */
+.noodle-tc.noodle-dark .nd-d.today::before { background: hsl(var(--orange-hsl) / 1); }
 .noodle-tc.noodle-dark .nd-cal-wrap .nd-grid .nd-d.today .nd-n { color: hsl(var(--orange-hsl) / 1); }
 
 /* the crop's outside: noodle's grey and dim (tc's brightness alone does
