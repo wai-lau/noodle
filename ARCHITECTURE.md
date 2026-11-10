@@ -64,22 +64,42 @@ exists, so nothing in it may run at load.
 wrapper, OG slot), `noodle-vote.html` (poll body + scripts), `noodle-admin.html`
 (`/noodle` body + its 3 scripts).
 
-**Front ends** (`pages.SKINS`, 2026-10-23): ONE backend, one set of polls, two
-looks. `/noodle` + `/noodle/<slug>` is the original; `/noodle-tc` +
-`/noodle-tc/<slug>` (same tier each) is the Tarid Change look -- the SAME
-templates and JS, plus `noodle-tc.css` loaded LAST, `noodle-tc-copy.js` in
-the `<head>` and `noodle-tc-legend.js` (deferred). The shell carries `data-base` (`/noodle` or `/noodle-tc`) and
+**Front ends** (`pages.SKINS`, 2026-10-23; one structure since 2026-11-10):
+ONE backend, one set of polls, two front ends that differ ONLY in palette.
+`/noodle` + `/noodle/<slug>` and `/noodle-tc` + `/noodle-tc/<slug>` (same
+tier each) serve the SAME templates, JS and Tarid Change STRUCTURE: the shell
+(`noodle-shell.html`) loads `noodle-tc-copy.js` in the `<head>`,
+`noodle-tc-legend.js` (deferred), `noodle-tc.css` after the shared sheets, and
+then `{{PALETTE}}.css`: `noodle-sand.css` (/noodle-tc: taridchange.com's sand,
+rust, Baskerville, Almarai) or `noodle-dark.css` (/noodle: noodle's black,
+white, gray, terminal + chatsubo green, monospace; marigold only for today,
+red errors). `SKINS` is `base -> (palette, theme-color, nav)`; the body
+carries `noodle noodle-tc <palette>`. The shell carries `data-base` and
 `{{THEME}}`; the JS builds every page link from `data-base` (`noodle-admin.js`
 post-create redirect, `noodle-e2e.js` `ndeLink`, `noodle-share.js`), so a poll
 made or shared on a front end stays on it -- and any link opens on either.
-- **The look** re-points the shared palette tokens on `body.noodle-tc`
-  (`--green/--gray/--cyan/--orange-hsl` -> one deep-green ink, `--bg-hsl` ->
-  peach, `--font-mono` -> Almarai, `--radius-2` -> 10px), then sets type,
-  buttons and the ground: taridchange.com's colours, MUTED (owner: its own
-  were too saturated). Built to "UX accessibility for elderly -- 12
+- **Palettes are TOKENS ONLY** (`tests/test_noodle_skins.py`): every colour
+  and face `noodle-tc.css` uses is a `--tc-*` token (ink, cream, peach, rust,
+  the ground's sand/amber/clay/foot, noodle's gray/weekend/marigold/ember, and
+  the roles today, reason, alarm + alarm-ground, num-shadow, shade, serif,
+  sans). A palette sheet declares exactly that set -- nothing missing, nothing
+  dead, no property that is not a custom property, only under its own class
+  (`html:has(body.<palette>)`; `body.noodle.<palette>` for the optional voter
+  inks, which must sit on body because noodle.css sets its own there). The
+  structure re-points noodle's palette tokens at them on `body.noodle-tc`
+  (`--green/--gray/--cyan/--orange/--orange-glow/--bg-hsl`, `--font-mono`).
+  **A new colour role in the structure is a new token in BOTH palettes**; the
+  test fails until it is. The same test renders both front ends' pages and
+  requires them byte-identical but for base and palette, and
+  `test_noodle_browser_tc.py` requires the same visible words and elements on
+  both in WebKit. Palette channels are page-local tokens, not `--*-hsl`, so
+  the palette lint does not govern them (each palette's header has its role
+  table). The site nav is /noodle's alone (SKINS); `noodle-tc.css`'s link
+  underline skips `.exec-nav`.
+- **The look**: built to "UX accessibility for elderly -- 12
   principles" (Trzepla 2019), each rule tagged [P1]..[P12] in the sheet: 18px
   type, line height 1.5, MEASURED contrast (ink >= 4.9:1 on every ground
-  stop; cream only on the rust, 7.4:1), pressable bordered buttons, "Step 1
+  stop; cream only on the rust, 7.4:1, on sand), pressable bordered buttons, "Step 1
   of 2" markers, months in full, no decorative motion. Step 2 is HIDDEN
   during step 1, not greyed -- but kept laid out (invisible, out of flow),
   never `display:none`: the crop frame measures the rows then, and with no
@@ -92,7 +112,7 @@ made or shared on a front end stays on it -- and any link opens on either.
   sample did nothing on iOS 26 but draw a line.
 - **The calendar**: picked days are PEACH (not ink-filled), offered days a
   soft peach wash, so one set of pips reads on every cell. Pips wear the shared ink
-  palette (below) in this skin's DARK set, no outline; past 8 voters they also take
+  palette (below) -- the palette's own set if it has one (sand's is dark), no outline; past 8 voters they also take
   a shape (circle / square / triangle), carried IN the ink string as
   `--tc-pip-r` / `--tc-pip-clip` (`noodle-tc-legend.js` wraps `NoodleSeal.seal`); a number badge was tried and was too small. NOT
   `:has()` on the pips' pseudo-elements: WebKit does not re-check it when
@@ -122,38 +142,24 @@ made or shared on a front end stays on it -- and any link opens on either.
   `#nd-note`, names) -- `noodle-host.js` reads the title back to spot the
   `title` placeholder, which `noodle-tc.css` shows as "Add a title" instead.
   **A new or changed string in the shared JS shows in noodle's own words on
-  /noodle-tc until its line is added to that table**; server error text
+  both front ends until its line is added to that table** (the wording test
+  in `test_noodle_browser_tc.py` runs on both); server error text
   (`votes.py` etc.) is not translated.
 - **Security wiring outside this repo**: both slug masks cover `/noodle-tc/`
   (exec-fn `api/log_masking.py`, nginx `conf.d/noodle-log-mask.conf`), and the
   guest page set lists it (exec-fn `_GUEST_NEXT_ALLOWED`, the 401 handler).
   Any further front end needs all four.
-- **/noodle wears the TC skin too, in noodle's colours and monospace**
-  (owner, 2026-11-10: "replace noodle with noodle-tc, except with the current
-  noodle color-scheme", then "noodle monospace back" and "an equivalent other
-  color for each noodle-tc color", then "white gray black terminal green and
-  also chatsubo green. Use marigold only sparingly. red for errors").
-  `SKINS` is `base -> (skin, palette, theme-color, nav)`; /noodle is
-  `noodle-tc` + `noodle-dark.css`, loaded after it, with `body.noodle-dark`.
-  That sheet gives EACH `--tc-*` token one counterpart in the same role (its
-  header has the table): ink -> terminal green, cream -> white, peach -> a
-  deep chatsubo slab, rust -> a dark gray slab, sand/amber/clay -> black to
-  dark gray. Weekends/holidays (cyan) -> chatsubo, every error (ember) ->
-  red, marigold -> TODAY only. It points the three tc faces at the monospace
-  (`--tc-mono`). The voter pips keep noodle.css's multi-hue inks: they must
-  tell people apart. The new channels are page-local tokens or re-pointed
-  existing ones, so the palette lint has no new (token, alpha) pair to
-  govern. noodle-tc.css re-points gray/cyan/orange and sets its dark voter
-  inks only off `.noodle-dark`.
-  The site nav stays /noodle's. The original look (seal art, roster row,
-  noodle's own words) is no longer served; its CSS stays as the base the
-  skin layers over.
+- **History**: /noodle had its own look (seal art, roster row, noodle's own
+  words) until 2026-11-10 (owner: "replace noodle with noodle-tc, except with
+  the current noodle color-scheme"; then the monospace, one counterpart per
+  TC colour, and the white/gray/black/greens palette). That CSS stays as the
+  base the structure layers over; it is no longer served on its own.
 
 **Tests** (`tests/test_noodle_*.py`): unit — isolation, crypt (at rest), votes,
 host, rekey, drafts, ask, rules, holidays, names, convert, toggle, glyphs,
-limits, stats, legacy, hardening, e2e, e2e_view. Browser (WebKit/Playwright) —
+limits, stats, legacy, hardening, e2e, e2e_view, skins (front-end drift). Browser (WebKit/Playwright) —
 `test_noodle_browser.py` (sign/vote), `_page`, `_host`, `_keys`, `_created`,
-`_e2e`, `_signed`, `_csp`, `_journey`; helpers in `tests/noodle_helpers.py`.
+`_e2e`, `_signed`, `_csp`, `_journey`, `_tc` (wording + drift, both front ends); helpers in `tests/noodle_helpers.py`.
 exec-fn's side: the `noodle_slug` fixture (root `conftest.py`, a fresh poll per
 session), smoke rows in `tests/test_smoke.py`.
 

@@ -1,72 +1,58 @@
-/* noodle-dark -- /noodle's PALETTE and TYPE over the Tarid Change front end
-   (pages.SKINS). Owner, 2026-11-10: "replace noodle with noodle-tc, except
-   with the current noodle color-scheme"; "noodle monospace back in there";
-   "an equivalent other color for each noodle-tc color"; "white gray black
-   terminal green and also chatsubo green. Use marigold only sparingly. red
-   for errors". /noodle loads noodle-tc.css (layout, sizes, steps, legend)
-   and then this sheet.
+/* noodle-dark -- /noodle's PALETTE and FACES over the Tarid Change structure
+   (noodle-tc.css, pages.SKINS). Owner, 2026-11-10: "replace noodle with
+   noodle-tc, except with the current noodle color-scheme"; "noodle
+   monospace back in there"; "an equivalent other color for each noodle-tc
+   color"; "white gray black terminal green and also chatsubo green. Use
+   marigold only sparingly. red for errors".
 
-   noodle-tc.css draws everything from its --tc-* tokens, so each one gets ONE
-   counterpart from that set, playing the same part:
+   TOKENS ONLY: the same set as noodle-sand.css, /noodle-tc's palette
+   (tests/test_noodle_skins.py), each in the same role:
 
-     tc       part it plays                            noodle
-     ink      all type, lines, pips                    terminal green (--green-hsl)
-     cream    the title, type on rust, crop frame,     white (--white-hsl)
-              tappable-day rings, the split diagonal
-     peach    buttons, fields, cards, picked days      deep chatsubo (a dark slab of it)
-     rust     calendar heads, week column              dark gray slab
-     sand     the ground's top                         black (--bg-hsl)
-     amber    the ground's middle                      near-black
-     clay     the ground's foot                        darker gray
-     foot     what iOS paints under its toolbars       the ground's foot
+     token     part it plays                            here
+     ink       all type, lines, pips                    terminal green
+     cream     the title, type on rust, crop frame,     white
+               tappable-day rings, the split diagonal
+     peach     buttons, fields, cards, picked days      deep chatsubo (a dark slab)
+     rust      calendar heads, week column              dark gray slab
+     sand..    the ground, top to foot                  black to dark gray
+     gray      past / not-offered days                  noodle's gray
+     weekend   weekends, holidays                       chatsubo green
+     marigold  noodle's orange                          marigold, used by TODAY only
+     ember     every error the shared sheets draw       red
+     today     today's tab and number                   marigold
+     reason    why Save is off, the warning             red
+     alarm     the error banner (on alarm-ground)       red on black
 
-   and the shared accents: cyan (weekends, holidays) -> chatsubo green, ember
-   (every error) -> red, marigold -> TODAY only (its tab and number).
-
-   Raw channels below are page-local tokens (not palette --*-hsl tokens), as
-   noodle-tc.css's own are. */
+   Declared on html, where chrome.css's tokens still hold, so var(--x-hsl)
+   here is chrome.css's value. Raw channels are page-local tokens, not
+   palette --*-hsl tokens. The voter inks stay noodle.css's (for black). */
 html:has(body.noodle-dark) {
   --tc-ink: var(--green-hsl);
   --tc-cream: var(--white-hsl);
   --tc-peach: 125 35% 13%;      /* deep chatsubo: green type on it 8:1 */
   --tc-rust: 0 0% 14%;          /* dark gray: white type on it 15:1 */
+
+  /* the ground, top to foot */
   --tc-sand: var(--bg-hsl);
   --tc-amber: 0 0% 3%;
   --tc-clay: 0 0% 6%;
   --tc-ground-foot: 0 0% 6%;
-}
 
-body.noodle-tc.noodle-dark {
-  /* weekends and holidays: chatsubo (chrome.css's --cat-social channels) */
-  --cyan-hsl: var(--cat-social-h) var(--cat-social-s) var(--cat-social-l);
+  /* noodle's accents */
+  --tc-gray: var(--gray-hsl);
+  --tc-weekend: var(--cat-social-h) var(--cat-social-s) var(--cat-social-l);   /* chatsubo */
+  --tc-marigold: var(--orange-hsl);
+  --tc-ember: 0 85% 60%;        /* red */
 
-  /* every error the shared sheets draw in ember (the banner, why Save is
-     off, the no-passphrase warning, a locked passphrase) is red here */
-  --orange-glow-hsl: 0 85% 60%;
+  /* roles */
+  --tc-today: var(--orange-hsl);
+  --tc-reason: var(--tc-ember);
+  --tc-alarm: var(--tc-ember);
+  --tc-alarm-ground: var(--bg-hsl);
+  --tc-num-shadow: 0 0 3px hsl(var(--bg-hsl) / 1), 0 0 6px hsl(var(--bg-hsl) / 1);   /* lifted off a filled day */
+  --tc-shade: grayscale(1) brightness(0.55);   /* noodle-cal.css's: plain darkening shows nothing on black */
 
-  /* noodle's monospace for every face the skin names (--tc-mono is chrome.css's
-     --font-mono, kept on html by noodle-tc.css) */
-  --font-mono: 'Noodle Glyphs', var(--tc-mono);
-  --tc-sans: 'Noodle Glyphs', var(--tc-mono);
+  /* noodle's monospace for every face (--tc-mono: chrome.css's, noodle-tc.css) */
   --tc-serif: 'Noodle Glyphs', var(--tc-mono);
+  --tc-sans: 'Noodle Glyphs', var(--tc-mono);
 }
-
-/* errors in red: tc draws these in the ink, and the banner cream on rust */
-.noodle-tc.noodle-dark .nd-why, .noodle-tc.noodle-dark .nd-warn { color: hsl(var(--orange-glow-hsl) / 0.8); }
-
-.noodle-tc.noodle-dark .nd-banner {
-  background: hsl(var(--bg-hsl) / 1);
-  color: hsl(var(--orange-glow-hsl) / 0.8);
-  border-color: hsl(var(--orange-glow-hsl) / 0.8);
-}
-
-/* the day numbers lifted off a filled day, as noodle-cal.css does on black */
-.noodle-tc.noodle-dark .nd-n { text-shadow: 0 0 3px hsl(var(--bg-hsl) / 1), 0 0 6px hsl(var(--bg-hsl) / 1); }
-
-/* TODAY, the one marigold: tc's rust (here a gray slab) would hide it */
-.noodle-tc.noodle-dark .nd-d.today::before { background: hsl(var(--orange-hsl) / 1); }
-.noodle-tc.noodle-dark .nd-cal-wrap .nd-grid .nd-d.today .nd-n { color: hsl(var(--orange-hsl) / 1); }
-
-/* the crop's outside: noodle's grey and dim (tc's brightness alone does
-   nothing visible on a dark ground) */
-.noodle-tc.noodle-dark .nd-shade { backdrop-filter: grayscale(1) brightness(0.55); }

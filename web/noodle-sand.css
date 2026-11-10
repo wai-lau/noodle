@@ -1,0 +1,62 @@
+/* noodle-sand -- /noodle-tc's PALETTE and FACES over the Tarid Change
+   structure (noodle-tc.css, pages.SKINS). taridchange.com's look, MUTED
+   (owner, 2026-10-23: its orange was too saturated): a soft sand-to-clay
+   ground with grain ending in a deep rust, Libre Baskerville headings,
+   Almarai text, peach buttons.
+
+   TOKENS ONLY: every --tc-* token noodle-tc.css reads, and the same set as
+   noodle-dark.css, /noodle's palette (tests/test_noodle_skins.py). Fonts are
+   self-hosted (@font-face in noodle-tc.css; the vote page's CSP allows
+   font-src 'self' only).
+
+   [P4] CONTRAST, WCAG, measured 2026-10-23: ink on sand 7.8:1, on amber
+   6.3:1, on clay 4.9:1, on peach 13.7:1; cream on the rust 7.4:1. Type is the
+   ink everywhere except ON the rust (the calendar heads, the banner), which
+   is cream. */
+html:has(body.noodle-sand) {
+  --tc-ink: 162 55% 8%;       /* taridchange.com's #164b3a, deepened: all type */
+  --tc-cream: 32 71% 96%;     /* #fcf5ed: the title, type on the rust */
+  --tc-peach: 31 97% 88%;     /* #fee1c3: buttons, fields, cards, picked days */
+  --tc-rust: 12 42% 34%;      /* #7b4132: calendar heads, banner, today */
+
+  /* the ground: sand to clay. It stops at clay, not rust: text scrolls over
+     every stop, and the ink holds 4.9:1 on clay but not on the rust */
+  --tc-sand: 30 45% 66%;      /* #cfa881: the top */
+  --tc-amber: 26 42% 60%;     /* #c4936e */
+  --tc-clay: 20 38% 54%;      /* #b67b5d */
+  --tc-ground-foot: 21 32% 48%;   /* the foot as it shows under the grain, measured */
+
+  /* noodle's accents, all one ink here: no colour says anything alone [P3] */
+  --tc-gray: var(--tc-ink);
+  --tc-weekend: var(--tc-ink);
+  --tc-marigold: var(--tc-ink);
+  --tc-ember: var(--tc-ink);
+
+  /* roles */
+  --tc-today: var(--tc-rust);
+  --tc-reason: var(--tc-ink);
+  --tc-alarm: var(--tc-cream);
+  --tc-alarm-ground: var(--tc-rust);
+  --tc-num-shadow: none;
+  --tc-shade: brightness(0.8);
+
+  /* 'Noodle Glyphs' first in each: it holds only noodle's icon glyphs
+     (unicode-range, noodle.css), so letters fall through to the face named */
+  --tc-serif: 'Noodle Glyphs', 'TC Baskerville', georgia, serif;
+  --tc-sans: 'Noodle Glyphs', 'TC Almarai', system-ui, sans-serif;
+}
+
+/* VOTER INKS (noodle-ink.js: a key's hashed home colour; noodle.css's set is
+   for black): dark and saturated, to read on sand and on a picked day's
+   peach, neighbours far apart in hue (a clash steps to the next) (owner,
+   2026-10-30). On body: noodle.css sets its own there. */
+body.noodle.noodle-sand {
+  --nd-ink-0: 140 60% 25%;    /* green */
+  --nd-ink-1: 222 65% 38%;    /* blue */
+  --nd-ink-2: 6 70% 40%;      /* brick */
+  --nd-ink-3: 280 50% 35%;    /* purple */
+  --nd-ink-4: 185 80% 22%;    /* teal */
+  --nd-ink-5: 40 90% 28%;     /* ochre */
+  --nd-ink-6: 330 65% 40%;    /* magenta */
+  --nd-ink-7: 210 20% 28%;    /* slate */
+}

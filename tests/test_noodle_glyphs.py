@@ -107,7 +107,10 @@ def test_rendered_glyphs_are_one_cell_wide(browser, base_url, noodle_slug):
     page = browser.new_page(viewport={"width": 430, "height": 932})
     try:
         page.goto(f"{base_url}/noodle/{slug}")
-        page.evaluate("document.fonts.ready")
+        # load the face for EVERY glyph first: nothing on the page draws the
+        # seal glyphs any more (no seal art), so the browser has not fetched
+        # them, and an unloaded glyph measures in a fallback face
+        page.evaluate("(gs) => document.fonts.load('16px \"Noodle Glyphs\"', gs.join(''))", glyphs)
         widths = page.evaluate(
             """(gs) => { const s = document.createElement('span');
               s.style.cssText = 'position:absolute;white-space:pre;font-family:"Noodle Glyphs",var(--tc-mono)';

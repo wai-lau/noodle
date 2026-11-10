@@ -1,11 +1,14 @@
-/* noodle-tc -- the Tarid Change front end (/noodle-tc, pages.SKINS): the SAME
-   templates and JS as /noodle, restyled by this one sheet (loaded last) and
-   reworded by noodle-tc-copy.js.
+/* noodle-tc -- the Tarid Change front end's STRUCTURE (pages.SKINS): the
+   layout, sizes, steps and legend both front ends wear over the shared
+   noodle sheets, reworded by noodle-tc-copy.js. Every colour and face here is
+   a --tc-* token, set by ONE palette sheet loaded after this one:
+   noodle-sand.css (/noodle-tc: taridchange.com's sand, rust, Baskerville and
+   Almarai) or noodle-dark.css (/noodle: noodle's black, greens and
+   monospace). A palette declares tokens and nothing else, and both declare
+   the same set (tests/test_noodle_skins.py) -- a new colour role here is a
+   new token in BOTH.
 
-   The look is taridchange.com's, MUTED (owner, 2026-10-23: its orange was too
-   saturated): a soft sand-to-clay ground with grain ending in a deep rust,
-   Libre Baskerville headings, Almarai text, peach buttons, 10px corners. No
-   seal art: voters are name cards.
+   10px corners, no seal art: voters are named in the pip legend.
 
    Built to "UX accessibility for elderly -- 12 principles" (Trzepla, 2019;
    owner, 2026-10-23), each marked [P1]..[P12] where it is applied below:
@@ -48,22 +51,12 @@
 }
 
 /* the ORIGINAL monospace, kept before body re-points --font-mono below: the
-   copy button's icon glyph is drawn from it. Read on html, where the token
-   still holds chrome.css's value, and inherited as that value. */
+   copy button's icon glyph is drawn from it (and noodle-dark.css's every
+   face). Read on html, where the token still holds chrome.css's value, and
+   inherited as that value. */
 html:has(body.noodle-tc) {
   --tc-mono: var(--font-mono);
-  --tc-cream: 32 71% 96%;     /* #fcf5ed: type on the rust */
-  --tc-peach: 31 97% 88%;     /* #fee1c3: buttons, fields */
-  --tc-sand: 30 45% 66%;      /* #cfa881: the ground's top */
-  --tc-amber: 26 42% 60%;     /* #c4936e */
-  --tc-clay: 20 38% 54%;      /* #b67b5d */
-  --tc-rust: 12 42% 34%;      /* #7b4132: the foot, calendar heads, banner */
-  --tc-ink: 162 55% 8%;       /* taridchange.com's #164b3a, deepened: all type */
 
-  /* [P4] CONTRAST, WCAG, measured 2026-10-23: ink on sand 7.8:1, on amber
-     6.3:1, on clay 4.9:1, on peach 13.7:1; cream on the rust 7.4:1. Type is
-     the ink everywhere except ON the rust (the calendar heads, the banner),
-     which is cream. */
   min-height: 100%;
 
   /* What iOS Safari paints flat under its floating toolbars and past the
@@ -72,8 +65,6 @@ html:has(body.noodle-tc) {
      all the way down under the toolbar to meet it (owner, 2026-10-23: the
      top colour showed there as a band; edge strips for the bars to sample
      did nothing but draw a line). */
-  --tc-ground-foot: 21 32% 48%;
-
   background: hsl(var(--tc-ground-foot));
 }
 
@@ -99,11 +90,6 @@ body.noodle-tc::before {
 
 
 body.noodle-tc {
-  /* 'Noodle Glyphs' first in each: it holds only noodle's icon glyphs
-     (unicode-range, noodle.css), so letters fall through to the face named */
-  --tc-serif: 'Noodle Glyphs', 'TC Baskerville', georgia, serif;
-  --tc-sans: 'Noodle Glyphs', 'TC Almarai', system-ui, sans-serif;
-
   /* [P1] type sizes: 18px body (and every field, past iOS's 16px zoom-on-focus
      floor), 16px the smallest anything gets; [P2] reading line height */
   --tc-fs-body: 18px;
@@ -112,29 +98,24 @@ body.noodle-tc {
   --tc-press: 3px;    /* [P5] the pressable lip under a button */
   --tc-weekcol: 28px;   /* the calendar's week column: just the month's name */
 
-  /* noodle's ink tokens -> the deep green: every text, line and lit cell the
-     shared sheets draw turns over here at once */
+  /* noodle's palette tokens -> the palette sheet's: every text, line and lit
+     cell the shared sheets draw turns over here at once */
   --green-hsl: var(--tc-ink);
   --bg-hsl: var(--tc-peach);
+  --gray-hsl: var(--tc-gray);
+  --cyan-hsl: var(--tc-weekend);
+  --orange-hsl: var(--tc-marigold);
+  --orange-glow-hsl: var(--tc-ember);
   --radius-2: 10px;   /* taridchange.com's corner: every noodle box rounds to it */
 
-  /* every noodle rule that names the monospace gets Almarai instead */
-  --font-mono: 'Noodle Glyphs', 'TC Almarai', system-ui, sans-serif;
+  /* every noodle rule that names the monospace gets the palette's text face */
+  --font-mono: var(--tc-sans);
 
   font-family: var(--tc-sans);
   font-size: var(--tc-fs-body);
   line-height: var(--tc-lh);
   color: hsl(var(--tc-ink));
   background: transparent;   /* the ground is html's (above) */
-}
-
-/* ... and the accent tokens too -- except on /noodle's black (noodle-dark.css),
-   which keeps noodle's gray, cyan and orange */
-body.noodle-tc:not(.noodle-dark) {
-  --gray-hsl: var(--tc-ink);
-  --cyan-hsl: var(--tc-ink);
-  --orange-hsl: var(--tc-ink);
-  --orange-glow-hsl: var(--tc-ink);
 }
 
 /* EVERYTHING centred -- text, labels, fields, buttons (owner, 2026-10-23);
@@ -254,6 +235,9 @@ body.noodle-tc:not(.noodle-dark) {
   color: hsl(var(--tc-ink));
 }
 .noodle-tc .nd-field > span { font-size: var(--tc-fs-body); font-weight: var(--fw-bold); }
+
+/* why Save is off, and the no-passphrase warning: the palette's REASON colour */
+.noodle-tc .nd-why, .noodle-tc .nd-warn { color: hsl(var(--tc-reason)); }
 .noodle-tc .nd-warn { font-weight: var(--fw-bold); }
 
 /* [P5] a link looks like a link -- in the page, not the site nav /noodle
@@ -263,13 +247,14 @@ body.noodle-tc:not(.noodle-dark) {
 .noodle-tc .nd-you-sum { flex-wrap: wrap; }
 .noodle-tc #nd-you-name { color: hsl(var(--tc-ink)); overflow-wrap: anywhere; }
 
-/* [P3][P4] an error: cream on the rust, and it always says what went wrong */
+/* [P3][P4] an error: the palette's ALARM on its ground, and it always says
+   what went wrong */
 .noodle-tc .nd-banner {
   font-size: var(--tc-fs-body);
   line-height: var(--tc-lh);
-  background: hsl(var(--tc-rust));
-  color: hsl(var(--tc-cream));
-  border-color: hsl(var(--tc-cream));
+  background: hsl(var(--tc-alarm-ground));
+  color: hsl(var(--tc-alarm));
+  border-color: hsl(var(--tc-alarm));
 }
 
 /* ── no roster row (owner, 2026-10-23): the name cards and the host's guide
@@ -380,7 +365,7 @@ body.noodle-tc:not(.noodle-dark) {
   font-size: var(--fs-sm);
   line-height: var(--lh-snug);
 }
-.noodle-tc .nd-n { font-family: var(--tc-sans); line-height: var(--lh-snug); text-shadow: none; }
+.noodle-tc .nd-n { font-family: var(--tc-sans); line-height: var(--lh-snug); text-shadow: var(--tc-num-shadow); }
 
 /* ONE weight for every day number. The shared sheet says a day's state with
    its weight (bold = pickable or picked, regular = past / not offered), and
@@ -428,7 +413,7 @@ body.noodle-tc:not(.noodle-dark) {
 /* the rings at 0.7, quieter than the cells they mark (owner, 2026-10-30) */
 .noodle-tc .nd-tri::before { background: hsl(var(--tc-cream) / 0.7); }
 
-/* TODAY: a rust tab across the top of its cell, and its number in rust */
+/* TODAY: a tab across the top of its cell, and its number, in the palette's TODAY */
 .noodle-tc .nd-d.today::before {
   content: '';
   position: absolute;
@@ -436,9 +421,9 @@ body.noodle-tc:not(.noodle-dark) {
   left: 0;
   right: 0;
   height: var(--tc-press);
-  background: hsl(var(--tc-rust));
+  background: hsl(var(--tc-today));
 }
-.noodle-tc .nd-cal-wrap .nd-grid .nd-d.today .nd-n { color: hsl(var(--tc-rust)); }
+.noodle-tc .nd-cal-wrap .nd-grid .nd-d.today .nd-n { color: hsl(var(--tc-today)); }
 
 /* the LAST column the same width as the rest: every other day gives 5px of
    its box to the gap (a right border), the week's last day gave none and so
@@ -558,21 +543,6 @@ body.noodle-tc:not(.noodle-dark) {
   background: none;
 }
 
-/* VOTER INKS (noodle-ink.js: a key's hashed home colour; the shared set in noodle.css is
-   for black): dark and saturated, to read on sand and on a picked day's
-   peach, neighbours far apart in hue (a clash steps to the next) (owner, 2026-10-30).
-   Not on /noodle's black (noodle-dark.css): the shared set is for it. */
-body.noodle.noodle-tc:not(.noodle-dark) {
-  --nd-ink-0: 140 60% 25%;    /* green */
-  --nd-ink-1: 222 65% 38%;    /* blue */
-  --nd-ink-2: 6 70% 40%;      /* brick */
-  --nd-ink-3: 280 50% 35%;    /* purple */
-  --nd-ink-4: 185 80% 22%;    /* teal */
-  --nd-ink-5: 40 90% 28%;     /* ochre */
-  --nd-ink-6: 330 65% 40%;    /* magenta */
-  --nd-ink-7: 210 20% 28%;    /* slate */
-}
-
 /* the most popular times (noodle-top.js), in the card under the legend: a
    heading, and the dates at a readable size (worded in full by
    noodle-tc-copy.js); a day's two halves sit tight, the days apart
@@ -644,9 +614,10 @@ body.noodle.noodle-tc:not(.noodle-dark) {
    The crop only moves up and down (first week, last week), so the frame is
    L-shaped corners plus a centre tick on the top and bottom edges -- the
    draggable ones -- and no side ticks, which would promise a sideways crop
-   there is none of. What it leaves out goes darker, keeping its hue: the
-   shared sheet's grayscale + 0.55 read near-black (owner: "contrast too high"). */
-.noodle-tc .nd-shade { backdrop-filter: brightness(0.8); }
+   there is none of. What it leaves out goes darker, by the palette's SHADE
+   filter (on sand the shared grayscale + 0.55 read near-black, owner:
+   "contrast too high"; on black a plain darkening shows nothing). */
+.noodle-tc .nd-shade { backdrop-filter: var(--tc-shade); }
 
 .noodle-tc .nd-grid .nd-crop-h {
   --tc-frame: linear-gradient(hsl(var(--tc-cream)), hsl(var(--tc-cream)));   /* white (owner) */

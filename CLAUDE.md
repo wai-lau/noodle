@@ -52,14 +52,16 @@ waits for DOMContentLoaded too, or asks lazily (`noodle-share.js`). Pinned by
 **Owner key reset** (the package now lives in the submodule, so run it there):
 `docker compose exec -w /app/apps/noodle/api api python -m noodle.reset <slug> "<name>"`.
 
-**Two front ends, one backend** (`pages.SKINS`): `/noodle` and `/noodle-tc`
-(Tarid Change look: `noodle-tc.css` + the wording table `noodle-tc-copy.js` +
-the pip legend `noodle-tc-legend.js`, same templates and JS). Since
-2026-11-10 `/noodle` wears that same skin in noodle's palette (white/gray/black,
-terminal + chatsubo green, marigold only for today, red errors) and
-monospace (`noodle-dark.css`, layered after: one noodle colour per TC colour). A new user-facing string in the shared JS needs a line
-in that table; a new front end needs the slug masks + guest lists in exec-fn
-and nginx. §Front ends.
+**Two front ends, one backend, one structure** (`pages.SKINS`): `/noodle` and
+`/noodle-tc` serve the same templates, JS and Tarid Change structure
+(`noodle-tc.css` + the wording table `noodle-tc-copy.js` + the pip legend
+`noodle-tc-legend.js`) and differ ONLY by a TOKENS-ONLY palette sheet:
+`noodle-dark.css` (/noodle) or `noodle-sand.css` (/noodle-tc). A new colour
+role in the structure is a new `--tc-*` token in BOTH palettes;
+`tests/test_noodle_skins.py` + `test_noodle_browser_tc.py` fail on any drift.
+A new user-facing string in the shared JS needs a line in the wording table;
+a new front end needs the slug masks + guest lists in exec-fn and nginx.
+§Front ends.
 
 **Every non-ASCII glyph is single-width** via `web/fonts/noodle-seal.woff2`
 (cut from the full Iosevka Mayukai TTF in exec-fn's `web/fonts/`; `tests/test_noodle_glyphs.py`).
