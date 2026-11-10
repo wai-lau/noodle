@@ -1,48 +1,54 @@
-/* noodle-dark -- /noodle's PALETTE over the Tarid Change front end (pages.SKINS,
-   owner 2026-11-10: "replace noodle with noodle-tc, except with the current
-   noodle color-scheme"). /noodle loads noodle-tc.css (layout, type, steps,
-   legend) and then this sheet, which puts noodle's own colours back: black
-   ground, green ink, cyan weekends, orange today. Colour only -- every size,
-   order and shape is noodle-tc.css's.
+/* noodle-dark -- /noodle's PALETTE and TYPE over the Tarid Change front end
+   (pages.SKINS, owner 2026-11-10: "replace noodle with noodle-tc, except with
+   the current noodle color-scheme"; then "noodle monospace back in there" and
+   "an equivalent other color for each noodle-tc color"). /noodle loads
+   noodle-tc.css (layout, sizes, steps, legend) and then this sheet.
 
-   noodle-tc.css draws everything from its --tc-* tokens, so most of the work
-   is re-pointing them at noodle's: ink and cream (the type) -> green, peach
-   and rust (fields, buttons, cards, calendar heads) -> the black. Where a tc
-   rule paints a fill a black would erase (a picked day, today), it is put
-   back to noodle-cal.css's own rule below. */
+   noodle-tc.css draws everything from its --tc-* tokens, so each one gets ONE
+   noodle counterpart, playing the same part:
 
-/* set on html, where chrome.css's tokens hold, and inherited as those values.
-   gray, cyan and orange are never re-pointed here (noodle-tc.css skips
-   .noodle-dark) */
+     tc       part it plays                            noodle
+     ink      all type, lines, pips                    phosphor green (--green-hsl)
+     cream    the title, type on rust, crop frame,     marigold (--orange-hsl)
+              tappable-day rings, the split diagonal
+     peach    buttons, fields, cards, picked days      deep phosphor (a dark green slab)
+     rust     calendar heads, week column, error       deep ember (a dark ember slab)
+              banner, today
+     sand     the ground's top                         the black (--bg-hsl)
+     amber    the ground's middle                      near-black green
+     clay     the ground's foot                        dark green
+     foot     what iOS paints under its toolbars       the ground's foot, under the grain
+
+   Raw channels below are page-local tc tokens (not --*-hsl palette tokens),
+   as noodle-tc.css's own are. */
 html:has(body.noodle-dark) {
   --tc-ink: var(--green-hsl);
-  --tc-cream: var(--green-hsl);
-  --tc-peach: var(--bg-hsl);
-  --tc-rust: var(--bg-hsl);
-  --tc-ground-foot: var(--bg-hsl);
+  --tc-cream: var(--orange-hsl);
+  --tc-peach: 135 60% 12%;      /* deep phosphor: green type on it 8:1 */
+  --tc-rust: 24 100% 14%;       /* deep ember: marigold type on it 9:1 */
+  --tc-sand: var(--bg-hsl);
+  --tc-amber: 135 40% 4%;
+  --tc-clay: 135 50% 7%;
+  --tc-ground-foot: 135 50% 7%;
 }
 
-/* no sand ground: the flat black under it (html's) shows */
-body.noodle-tc.noodle-dark::before { display: none; }
-
-/* an error in noodle's orange, as noodle-actions.css draws it */
-.noodle-tc.noodle-dark .nd-banner {
-  background: hsl(var(--bg-hsl) / 1);
-  color: hsl(var(--orange-glow-hsl) / 0.8);
-  border-color: hsl(var(--orange-glow-hsl) / 0.8);
+/* noodle's monospace for every face the skin names (--tc-mono is chrome.css's
+   --font-mono, kept on html by noodle-tc.css) */
+body.noodle-tc.noodle-dark {
+  --font-mono: 'Noodle Glyphs', var(--tc-mono);
+  --tc-sans: 'Noodle Glyphs', var(--tc-mono);
+  --tc-serif: 'Noodle Glyphs', var(--tc-mono);
 }
 
-/* the cards tc fills peach would vanish on black: a line marks them instead */
-.noodle-tc.noodle-dark .nd-tc-card, .noodle-tc.noodle-dark .nd-event { border: 1px solid hsl(var(--green-hsl) / 0.45); }
-
-/* the calendar, as noodle-cal.css colours it: a PICKED half green, no peach
-   wash on offered days, the months' green shade, the numbers lifted off a
-   fill, today orange, the crop's outside grey and dim */
-.noodle-tc.noodle-dark .nd-d.mid { --top: hsl(var(--green-hsl) / 0.45); }
-.noodle-tc.noodle-dark .nd-d.nit { --bot: hsl(var(--green-hsl) / 0.45); }
-.noodle-tc.noodle-dark .nd-tri::after { display: none; }
-.noodle-tc.noodle-dark .nd-d.alt::after { background: hsl(var(--green-hsl) / 0.12); }
+/* the day numbers lifted off a filled day, as noodle-cal.css does on black */
 .noodle-tc.noodle-dark .nd-n { text-shadow: 0 0 3px hsl(var(--bg-hsl) / 1), 0 0 6px hsl(var(--bg-hsl) / 1); }
-.noodle-tc.noodle-dark .nd-d.today::before { background: hsl(var(--orange-hsl) / 1); }
+
+/* TODAY: tc's rust tab and number would be the deep ember slab, unreadable on
+   the dark ground -- ember's bright self for the tab, marigold for the number,
+   noodle's own today */
+.noodle-tc.noodle-dark .nd-d.today::before { background: hsl(var(--orange-glow-hsl) / 1); }
 .noodle-tc.noodle-dark .nd-cal-wrap .nd-grid .nd-d.today .nd-n { color: hsl(var(--orange-hsl) / 1); }
+
+/* the crop's outside: noodle's grey and dim (tc's brightness alone does
+   nothing visible on a dark ground) */
 .noodle-tc.noodle-dark .nd-shade { backdrop-filter: grayscale(1) brightness(0.55); }

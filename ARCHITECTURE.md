@@ -128,19 +128,24 @@ made or shared on a front end stays on it -- and any link opens on either.
   (exec-fn `api/log_masking.py`, nginx `conf.d/noodle-log-mask.conf`), and the
   guest page set lists it (exec-fn `_GUEST_NEXT_ALLOWED`, the 401 handler).
   Any further front end needs all four.
-- **/noodle wears the TC skin too, in noodle's colours** (owner, 2026-11-10:
-  "replace noodle with noodle-tc, except with the current noodle
-  color-scheme"). `SKINS` is `base -> (skin, palette, theme-color, nav)`;
-  /noodle is `noodle-tc` + the PALETTE sheet `noodle-dark.css`, loaded after
-  it, with `body.noodle-dark`. The palette sheet re-points the `--tc-*`
-  tokens on html (ink + cream -> green, peach + rust + the ground -> black),
-  leaves gray/cyan/orange alone (noodle-tc.css re-points them only off `.noodle-dark`), drops the sand ground, and puts back
-  noodle-cal.css's fills a black would erase (picked half green, today
-  orange, month shade, crop dim). Colour only: layout, type, steps, wording,
-  legend are all the TC skin's. The TC dark voter inks skip `.noodle-dark`,
-  so noodle.css's black-ground set applies. The site nav stays /noodle's.
-  The original look (seal art, roster row, noodle's own words) is no longer
-  served; its CSS stays as the base the skin layers over.
+- **/noodle wears the TC skin too, in noodle's colours and monospace**
+  (owner, 2026-11-10: "replace noodle with noodle-tc, except with the current
+  noodle color-scheme", then "noodle monospace back" and "an equivalent other
+  color for each noodle-tc color"). `SKINS` is `base -> (skin, palette,
+  theme-color, nav)`; /noodle is `noodle-tc` + `noodle-dark.css`, loaded
+  after it, with `body.noodle-dark`. That sheet gives EACH `--tc-*` token one
+  noodle counterpart in the same role (its header has the table): ink ->
+  green, cream -> marigold, peach -> a deep phosphor slab, rust -> a deep
+  ember slab, sand/amber/clay -> black to dark green. It points the three
+  tc faces at the monospace (`--tc-mono`), and overrides only what a dark
+  ground breaks (today's tab + number, the crop dim, the day numbers'
+  shadow). The new channels are page-local tc tokens, not `--*-hsl`, so the
+  palette lint does not govern them (as with noodle-tc.css's own).
+  noodle-tc.css re-points gray/cyan/orange and sets its dark voter inks only
+  off `.noodle-dark`, so noodle's cyan weekends and black-ground inks stay.
+  The site nav stays /noodle's. The original look (seal art, roster row,
+  noodle's own words) is no longer served; its CSS stays as the base the
+  skin layers over.
 
 **Tests** (`tests/test_noodle_*.py`): unit — isolation, crypt (at rest), votes,
 host, rekey, drafts, ask, rules, holidays, names, convert, toggle, glyphs,
