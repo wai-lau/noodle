@@ -6,7 +6,7 @@ sha384 of the repo file at the deployed commit.
 
 noodle imports no app module (test_noodle_isolation), so it cannot resolve a
 parent-served script (qc-holidays.js) itself: the composition root hands it a
-resolver via pages.set_sri, exactly like set_nav/set_owner. noodle owns the
+resolver via pages.set_sri, exactly like set_owner. noodle owns the
 hashing; the resolver only returns bytes."""
 import base64
 import hashlib
@@ -66,7 +66,7 @@ def test_no_sri_resolver_leaves_the_page_working_and_unpinned():
 def test_routers_wire_the_resolver_so_production_is_not_noop():
     """The vote page in production must actually be pinned -- catch a missing
     set_sri wiring. A source check (importing routers needs app secrets): the
-    composition root calls pages.set_sri beside set_nav/set_owner."""
+    composition root calls pages.set_sri beside set_owner."""
     from conftest import HOST_ROOT
     src = (HOST_ROOT / "api" / "routers.py").read_text()
     assert "noodle_pages.set_sri(" in src, "routers.py must call noodle_pages.set_sri"

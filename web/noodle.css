@@ -33,7 +33,7 @@ body.noodle {
 
   /* VOTER INKS (noodle-ink.js: a key's hashed home colour), light for the black ground:
      Okabe-Ito / Paul Tol style hues, neighbours far apart (a clash steps
-     to the next) (owner, 2026-10-30). /noodle-tc sets its own, dark, set. */
+     to the next) (owner, 2026-10-30). noodle-sand.css sets its own, dark, set. */
   --nd-ink-0: 33 100% 60%;    /* orange */
   --nd-ink-1: 200 80% 65%;    /* sky */
   --nd-ink-2: 150 65% 50%;    /* green */
@@ -42,11 +42,11 @@ body.noodle {
   --nd-ink-5: 265 80% 75%;    /* lavender */
   --nd-ink-6: 8 90% 62%;      /* vermillion */
   --nd-ink-7: 0 0% 78%;       /* silver */
-}
 
-/* no nav bar on a poll page; the /noodle page carries the site's
-   (.with-nav), whose script keeps --nav-h live on the root */
-body.noodle:not(.with-nav) { --nav-h: 0px; }
+  /* no site nav on any noodle page (owner, 2026-11-10): the home link in
+     the corner instead (noodle-home.css) */
+  --nav-h: 0px;
+}
 
 /* a poll page paints NOTHING of the card until its first full render
    (noodle-vote.js ndvReveal): the bare HTML has no roster, note or calendar,
@@ -98,11 +98,6 @@ body.noodle:not(.with-nav) { --nav-h: 0px; }
 }
 .nd-title.untitled { text-decoration: underline wavy hsl(var(--orange-glow-hsl) / 0.8); text-underline-offset: 0.2em; }
 .nd-title[contenteditable="plaintext-only"], .nd-title[contenteditable="true"] { outline: none; }
-
-/* the site nav on /noodle: the other pages' shell sizes it border-box, and
-   without that its standalone side padding was ADDED to its full width -- a
-   516px bar on a 430px phone, both rows pushed off the right edge */
-.noodle .exec-nav { box-sizing: border-box; }
 
 /* the host's NOTE under the title: the title's own mechanism (noodle-host.js
    NDH_TEXT) -- tap to edit, sent with Commit. Empty,

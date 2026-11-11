@@ -11,9 +11,10 @@ A Doodle-style poll at `/noodle/<slug>`: slots are `(date, midday|night)`, or on
 an unsplit poll `(date, whole day)` — no clock times. **Fully standalone**:
 `api/noodle/` imports stdlib, fastapi, `anthropic` and `cryptography` only,
 never another app module (pinned by `tests/test_noodle_isolation.py`). Own state
-directory, own HTML shell (no Exec bubble, no voice, **no CRT stack**; the site
-nav only on `/noodle`, handed in by exec-fn's `routers.py` via
-`pages.set_nav` / `set_owner`); it links `/chrome.css` for palette + scale
+directory, own HTML shell (no Exec bubble, no voice, **no CRT stack**, **no
+site nav** since 2026-11-10 -- the site favicon top-left links home instead,
+as on /spire, `noodle-home.css`; owner detection is handed in by exec-fn's
+`routers.py` via `pages.set_owner`); it links `/chrome.css` for palette + scale
 tokens only. Three bare routers carry it — `routers.py` mounts `routes.router`
 on `public`, `guest_router` on the guest tier, `owner_router` on `protected`;
 noodle itself holds no auth. The browser derives an Ed25519 key from the
@@ -26,7 +27,7 @@ passphrase (`noodle-kdf-worker.js`) and never sends the passphrase or private ke
 | File | What |
 |---|---|
 | `routes.py` | `router` (public: poll page/JSON, vote/settings/remove/rekey/ask), `guest_router` (`/noodle` + `POST /api/noodle-polls/new`), `owner_router` (list/create/delete + per-day counts). |
-| `pages.py` | HTML shell, Open Graph, KDF config as `data-*`, `set_nav`/`set_owner` injection points, `public_poll()`. |
+| `pages.py` | HTML shell, Open Graph, KDF config as `data-*`, `set_owner`/`set_sri` injection points, the front ends + palettes, `public_poll()`. |
 | `store.py` | One sealed JSON file per poll under `DATA_DIR/polls/`; the one lock; atomic writes; `RULES` stamp. |
 | `drafts.py` | A poll that doesn't exist yet: `<claim>.<mac>` token, `new_for` (rate limit), `ensure()`. |
 | `stats.py` | Polls created per day, `DATA_DIR/created.json` = `{"YYYY-MM-DD": n}` (21i). |
@@ -110,8 +111,7 @@ made or shared on a front end stays on it -- and any link opens on either.
   `test_noodle_browser_tc.py` requires the same visible words and elements on
   both in WebKit. Palette channels are page-local tokens, not `--*-hsl`, so
   the palette lint does not govern them (each palette's header has its role
-  table). Both bases carry the site nav on the start page; `noodle-tc.css`'s
-  link underline skips `.exec-nav`.
+  table). No site nav on any page: the favicon home link (`.nd-home`).
 - **The look**: built to "UX accessibility for elderly -- 12
   principles" (Trzepla 2019), each rule tagged [P1]..[P12] in the sheet: 18px
   type, line height 1.5, MEASURED contrast (ink >= 4.9:1 on every ground
@@ -773,8 +773,8 @@ verification); styles may be inline (seal inks are `style="--seal-hsl:…"`);
 `img-src 'self' data:`; `font-src`/`connect-src 'self'`; `worker-src 'self' blob:`
 (the key worker runs from a verified Blob); `object-src 'none'`; `base-uri 'none'`;
 `form-action 'self'`;
-`frame-ancestors 'none'`. `/noodle` carries the site nav (an inline script), so
-it gets `frame-ancestors 'none'` only. **Testing it**: Playwright's
+`frame-ancestors 'none'`. `/noodle` gets `frame-ancestors 'none'` only (it
+carried the site nav's inline script until 2026-11-10; it no longer does). **Testing it**: Playwright's
 `wait_for_function` compiles a string predicate in the page, which the policy
 refuses — exec-fn's root `conftest.py` browser wrapper strips the CSP header for
 the general suites; `tests/test_noodle_browser_csp.py` keeps it
@@ -790,14 +790,14 @@ repos are public -- `wai-lau/noodle`, and `wai-lau/exec-fn` for the shared
 (`pages._apply_sri`): a `sha384` the browser enforces. noodle imports no app
 module, so it cannot resolve a parent-served script itself -- the composition
 root hands it a resolver (`pages.set_sri`, wired in `routers.py` beside
-`set_nav`; the resolver reads bytes via `app_paths.web_dirs`, the same resolution
+`set_owner`; the resolver reads bytes via `app_paths.web_dirs`, the same resolution
 the static mount and `asset_version` use). The hash is of the served FILE,
 computed per render; no resolver (standalone / isolation) leaves the page working
 and unpinned. SRI covers only the external scripts, not the server-generated
 document, so (adversarial audit, 2026-10-17) the vote page ALSO mirrors its strict
 CSP into a `<meta>` (`config.VOTE_CSP`/`VOTE_CSP_META`, injected in
-`pages.vote_page` — vote page only, since the `/noodle` admin page runs the nav's
-inline script): `script-src 'self'` with no inline/eval and `connect-src 'self'`,
+`pages.vote_page` — vote page only, as the `/noodle` admin page then ran the
+nav's inline script): `script-src 'self'` with no inline/eval and `connect-src 'self'`,
 so even a pinned-script-clean page cannot run injected inline code or phone the
 key out. CSP policies INTERSECT, so the `<meta>` only ever tightens the header and
 cannot break a poll; a server that strips it to inject inline code leaves its

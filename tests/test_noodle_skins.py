@@ -127,12 +127,12 @@ def test_both_front_ends_serve_the_same_vote_page():
 
 
 def test_both_front_ends_serve_the_same_start_page():
-    _same(lambda base: pages.admin_page(None, base))
+    _same(lambda base: pages.admin_page(base))
 
 
 def test_each_page_loads_the_structure_then_every_palette():
     for base, palette in pages.SKINS.items():
-        for page in (_vote(base), pages.admin_page(None, base)):
+        for page in (_vote(base), pages.admin_page(base)):
             tc = page.index('href="/noodle-tc.css')
             for name in PALETTES:
                 assert tc < page.index(f'href="/{name}.css'), f"{base}: {name} must come after the structure"
@@ -141,4 +141,6 @@ def test_each_page_loads_the_structure_then_every_palette():
             # each page has its pair of chevrons
             assert page.index('src="/noodle-palette.js') < page.index('<div class="page-scroll">')
             assert page.count('class="nd-pal prev"') == page.count('class="nd-pal next"') == 1
+            # no site nav: the favicon home link in the corner instead
+            assert page.count('class="nd-home"') == 1 and "exec-nav" not in page
         assert page.index('src="/noodle-tc-copy.js') < page.index('<link rel="stylesheet" href="/chrome.css')

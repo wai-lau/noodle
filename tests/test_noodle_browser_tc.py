@@ -41,12 +41,11 @@ def _shown(page):
         const el = n.parentElement;
         if (!n.nodeValue.trim() || !el.checkVisibility()) continue;
         if (el.closest('#nd-title, #nd-note, .nd-face-name, #nd-you-name, .nd-top-date')) continue;  // poll content
-        if (el.closest('.exec-nav')) continue;   // the site nav: the site's words, not noodle's
         out.push(n.nodeValue.trim());
       }
       // a hidden element's label is out of the accessibility tree too
       document.querySelectorAll('[placeholder], [aria-label]').forEach(e => {
-        if (e.checkVisibility() && !e.closest('.exec-nav')) out.push(e.getAttribute('placeholder') || e.getAttribute('aria-label'));
+        if (e.checkVisibility()) out.push(e.getAttribute('placeholder') || e.getAttribute('aria-label'));
       });
       return out.filter(Boolean);
     }""")
@@ -84,9 +83,9 @@ def test_the_tc_pages_speak_in_their_own_words(browser, base_url, admin_headers,
 
 
 def _visible_ids(page):
-    """Every element on screen that has an id, outside the site nav."""
+    """Every element on screen that has an id."""
     return page.evaluate("""() => [...document.querySelectorAll('body [id]')]
-      .filter(e => e.checkVisibility() && !e.closest('.exec-nav')).map(e => e.id).sort()""")
+      .filter(e => e.checkVisibility()).map(e => e.id).sort()""")
 
 
 def test_the_front_ends_show_the_same_page(browser, base_url, admin_headers):
@@ -101,7 +100,9 @@ def test_the_front_ends_show_the_same_page(browser, base_url, admin_headers):
             ctx, page = _guest(browser, base_url)
             try:
                 page.goto(f"{base_url}{front}")
-                assert page.locator(".exec-nav").is_visible(), f"{front}: the site nav (one page, both bases)"
+                # no site nav: the favicon in the corner, home
+                assert page.locator(".exec-nav").count() == 0, f"{front}: no site nav"
+                assert page.locator(".nd-home").is_visible() and page.get_attribute(".nd-home", "href") == "/"
                 start = (_shown(page), _visible_ids(page))
                 page.goto(f"{base_url}{front}/{slug}")
                 page.wait_for_function("NDV.poll && NDV.keysLoaded", timeout=20000)

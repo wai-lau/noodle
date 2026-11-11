@@ -209,16 +209,16 @@ async def noodle_ask(slug: str, request: Request):
 
 
 @guest_router.get("/noodle", response_class=HTMLResponse)
-async def noodle_admin_page(request: Request):
+async def noodle_admin_page():
     """GUEST tier (behind Cloudflare Turnstile): any guest may start a poll. The
     page lists no polls; the owner API below does (ids only)."""
-    return HTMLResponse(pages.admin_page(request), headers=_ADMIN_PAGE)
+    return HTMLResponse(pages.admin_page(), headers=_ADMIN_PAGE)
 
 
 @guest_router.get("/noodle-tc", response_class=HTMLResponse)
-async def noodle_tc_admin_page(request: Request):
-    """/noodle in the Tarid Change front end: same tier, same create flow."""
-    return HTMLResponse(pages.admin_page(request, "/noodle-tc"), headers=_ADMIN_PAGE)
+async def noodle_tc_admin_page():
+    """The same page, opening on the sand palette (pages.SKINS): same tier, same create flow."""
+    return HTMLResponse(pages.admin_page("/noodle-tc"), headers=_ADMIN_PAGE)
 
 
 @guest_router.post("/api/noodle-polls/new")

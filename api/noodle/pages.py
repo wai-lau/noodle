@@ -1,6 +1,7 @@
 """noodle's HTML. Its own shell (api/templates/noodle-shell.html), NOT the
 site's page composer -- no Exec bubble, no CRT stack, and no import of the
-app's pages module; the nav is handed in (set_nav), never built here. It links /chrome.css only for the palette + scale
+app's pages module, and no site nav (owner, 2026-11-10: the site favicon
+home link in the corner instead, as on /spire). It links /chrome.css only for the palette + scale
 tokens, which are CSS, not code."""
 import base64
 import hashlib
@@ -57,12 +58,12 @@ SKINS = {"/noodle": "noodle-dark", "/noodle-tc": "noodle-sand"}
 PALETTES = {"noodle-dark": "#000", "noodle-sand": None}
 
 
-def _page(title: str, body: str, og: str = "", base: str = "/noodle", nav: bool = False) -> str:
+def _page(title: str, body: str, og: str = "", base: str = "/noodle") -> str:
     palette = SKINS[base]
     theme = PALETTES[palette]
     sheets = "".join(f'<link rel="stylesheet" href="/{p}.css?v=1">\n' for p in PALETTES)
     return _fill(_tmpl("noodle-shell.html"), TITLE=html.escape(title), OG=og, BODY=body,
-                 BASE=base, PALETTE=palette, PALETTE_CSS=sheets, BODY_CLASS=" with-nav" if nav else "",
+                 BASE=base, PALETTE=palette, PALETTE_CSS=sheets,
                  PALETTES=html.escape(json.dumps(PALETTES), quote=True),
                  THEME=f'<meta name="theme-color" content="{theme}">' if theme else "")
 
@@ -71,7 +72,7 @@ def _page(title: str, body: str, og: str = "", base: str = "/noodle", nav: bool 
 # verification"): a sha384 on every <script src> so a link holder can check the
 # code their browser ran against the public repo. noodle imports no app module,
 # so it cannot resolve a parent-served script (qc-holidays.js) on its own -- the
-# composition root hands it a resolver (url -> served bytes), like set_nav. The
+# composition root hands it a resolver (url -> served bytes), like set_owner. The
 # hash is the served FILE's; computed per render (files are small, served live).
 _sri = None   # (url: str) -> bytes | None
 
@@ -141,19 +142,8 @@ def vote_page(poll: dict, draft: str = "", base: str = "/noodle") -> str:
     return _apply_sri(page)
 
 
-# The site's nav bar, HANDED IN by the app (routers.py set_nav): noodle
-# imports no app module, so it cannot build the nav itself -- the composition
-# root gives it a function (request -> markup) instead. Unset, no nav.
-_nav = None
-
-
-def set_nav(fn) -> None:
-    global _nav
-    _nav = fn
-
-
-# Whether a request is the OWNER's, handed in the same way (request -> bool).
-# Unset, nobody is.
+# Whether a request is the OWNER's, HANDED IN by the app (routers.py
+# set_owner; request -> bool): noodle imports no app module. Unset, nobody is.
 _is_owner = None
 
 
@@ -162,12 +152,8 @@ def set_owner(fn) -> None:
     _is_owner = fn
 
 
-def admin_page(request=None, base: str = "/noodle") -> str:
-    nav = bool(_nav and request is not None)
-    page = _page("noodle", _tmpl("noodle-admin.html"), _og("noodle", "", base), base, nav)
-    if nav:
-        page = page.replace("</body>", _nav(request) + "</body>", 1)
-    return page
+def admin_page(base: str = "/noodle") -> str:
+    return _page("noodle", _tmpl("noodle-admin.html"), _og("noodle", "", base), base)
 
 
 def public_poll(poll: dict) -> dict:
