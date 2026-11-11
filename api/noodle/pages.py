@@ -62,13 +62,25 @@ def _page(title: str, body: str, og: str = "", base: str = "/noodle") -> str:
     palette = SKINS[base]
     theme = PALETTES[palette]
     sheets = "".join(f'<link rel="stylesheet" href="/{p}.css?v=1">\n' for p in PALETTES)
-    return _fill(_tmpl("noodle-shell.html"), TITLE=html.escape(title), OG=og, BODY=body,
+    page = _fill(_tmpl("noodle-shell.html"), TITLE=html.escape(title), OG=og, BODY=body,
                  BASE=base, PALETTE=palette, PALETTE_CSS=sheets,
                  PALETTES=html.escape(json.dumps(PALETTES), quote=True),
                  THEME=f'<meta name="theme-color" content="{theme}">' if theme else "")
+    # EVERY noodle page mirrors the strict CSP (sent as a header by routes) into
+    # a <meta> in the <head>, so the "no inline/eval scripts" rule is IN the
+    # bytes a visitor verifies -- the browser enforces it even if a hostile
+    # server strips the header, and its absence from the served HTML is itself
+    # the tell -- and pins its scripts with SRI. The vote page had it alone
+    # until 2026-11-10, while the start page ran the site nav's inline script
+    # (owner: "yes" to the start page taking it once the nav was gone).
+    # VOTE_CSP_META is a trusted constant (no < > & "); keep the quotes literal
+    # so the policy reads cleanly in View-Source. Guard a stray " just in case.
+    meta = f'<meta http-equiv="Content-Security-Policy" content="{config.VOTE_CSP_META.replace(chr(34), "&quot;")}">'
+    page = page.replace('<meta charset="utf-8">', '<meta charset="utf-8">\n' + meta, 1)
+    return _apply_sri(page)
 
 
-# SUBRESOURCE INTEGRITY for the vote page (noodle ARCHITECTURE.md 21m, "code
+# SUBRESOURCE INTEGRITY for every noodle page (noodle ARCHITECTURE.md 21m, "code
 # verification"): a sha384 on every <script src> so a link holder can check the
 # code their browser ran against the public repo. noodle imports no app module,
 # so it cannot resolve a parent-served script (qc-holidays.js) on its own -- the
@@ -129,17 +141,7 @@ def vote_page(poll: dict, draft: str = "", base: str = "/noodle") -> str:
         BASE=base,
     )
     og = _og("noodle" if sealed else shown, note, f"{base}/{poll['slug']}")
-    page = _page("noodle" if sealed else f"noodle: {shown}", body, og, base)
-    # Mirror the vote-page CSP (sent as a header by routes) into a <meta> in the
-    # <head>, so the "no inline/eval scripts" rule is IN the bytes a link holder
-    # verifies -- the browser enforces it even if a hostile server strips the
-    # header, and its absence from the served HTML is itself the tell. Only the
-    # vote page gets it (the /noodle admin page runs the site nav's inline script).
-    # VOTE_CSP_META is a trusted constant (no < > & "); keep the quotes literal
-    # so the policy reads cleanly in View-Source. Guard a stray " just in case.
-    meta = f'<meta http-equiv="Content-Security-Policy" content="{config.VOTE_CSP_META.replace(chr(34), "&quot;")}">'
-    page = page.replace('<meta charset="utf-8">', '<meta charset="utf-8">\n' + meta, 1)
-    return _apply_sri(page)
+    return _page("noodle" if sealed else f"noodle: {shown}", body, og, base)
 
 
 # Whether a request is the OWNER's, HANDED IN by the app (routers.py

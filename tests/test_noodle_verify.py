@@ -93,3 +93,15 @@ def test_vote_csp_admits_the_pinned_blob_worker():
     assert "worker-src 'self' blob:" in config.VOTE_CSP
     assert "'wasm-unsafe-eval'" in config.VOTE_CSP
     assert "'unsafe-eval'" not in config.VOTE_CSP.replace("'wasm-unsafe-eval'", "")
+
+
+def test_every_page_carries_the_csp_in_its_bytes():
+    """The strict CSP <meta> and SRI pins are on EVERY noodle page, start page
+    included (2026-11-10), and the start page's header is the same policy."""
+    from noodle import config, routes
+    meta = f'<meta http-equiv="Content-Security-Policy" content="{config.VOTE_CSP_META}">'
+    poll = {"slug": "AAAAAAAAAAAAAAAAAAAAAA", "title": "csp", "note": "", "e2e": False}
+    for base in pages.SKINS:
+        for page in (pages.admin_page(base), pages.vote_page(poll, "", base)):
+            assert page.count(meta) == 1, base
+    assert routes._ADMIN_PAGE["Content-Security-Policy"] == config.VOTE_CSP

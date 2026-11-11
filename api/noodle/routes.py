@@ -24,16 +24,18 @@ owner_router = APIRouter()
 
 _NO_STORE = {"Cache-Control": "no-store"}
 # The vote page holds the poll's key (in the address) and, once typed, the
-# voter's key: no script but this site's own files may run there, nothing
-# may frame it, and nothing it fetches leaves the site. Styles may be inline
+# voter's key; the start page MAKES the key (noodle-claim.js): on both, no
+# script but this site's own files may run, nothing may frame them, and
+# nothing they fetch leaves the site. Styles may be inline
 # (seal inks are style="--seal-hsl:..." strings); scripts never. The policy
-# lives in config.VOTE_CSP and is ALSO mirrored into a <meta> on the page
-# (pages.vote_page) so a link holder can see it in the bytes they verify.
+# lives in config.VOTE_CSP and is ALSO mirrored into a <meta> on every page
+# (pages._page) so a visitor can see it in the bytes they verify.
 _VOTE_CSP = config.VOTE_CSP
 _PRIVATE_PAGE = {"Cache-Control": "no-store", "X-Robots-Tag": "noindex",
                  "Referrer-Policy": "no-referrer", "Content-Security-Policy": _VOTE_CSP}
-# /noodle carries the site nav (inline script), so only the framing rule here
-_ADMIN_PAGE = {"Cache-Control": "no-store", "Content-Security-Policy": "frame-ancestors 'none'"}
+# the start page: the same policy (it carried the site nav's inline script,
+# and so only the framing rule, until 2026-11-10)
+_ADMIN_PAGE = {"Cache-Control": "no-store", "Content-Security-Policy": _VOTE_CSP}
 
 
 async def _json_body(request: Request, cap: int) -> dict:

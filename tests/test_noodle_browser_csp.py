@@ -1,7 +1,7 @@
-"""noodle's vote page under its real Content-Security-Policy (WebKit = iOS).
+"""noodle's pages under their real Content-Security-Policy (WebKit = iOS).
 
-The page answers with a strict CSP (scripts from this site only, no eval, no
-framing). Every other browser suite bypasses page CSP, because Playwright's
+Every noodle page -- the vote page, and since 2026-11-10 the start page --
+answers with a strict CSP (scripts from this site only, no eval, no framing). Every other browser suite bypasses page CSP, because Playwright's
 wait_for_function evaluates a string in the page; this one keeps the policy ON
 and polls from Python, through a plain poll's whole vote and an end-to-end
 poll's create -> commit -- so a policy that blocks something the page needs
@@ -85,3 +85,32 @@ def test_an_end_to_end_poll_is_created_and_committed_under_the_csp(browser, base
         ctx.close()
         if slug:
             httpx.delete(f"{base_url}/api/noodle-polls/{slug}", headers={"Authorization": f"Bearer {API_KEY}"})
+
+
+@pytest.mark.parametrize("who", ["guest", "owner"])
+def test_the_start_pages_run_under_the_csp(browser, base_url, who):
+    """Both bases' start page, as a guest and as the owner (who also gets the
+    polls-per-day chart): the header and the <meta>, and nothing blocked while
+    the page loads and the colour-scheme chevrons go round."""
+    import hashlib as _h
+
+    from conftest import API_KEY, TURNSTILE_SECRET
+    from noodle import config, pages
+    if not API_KEY or not TURNSTILE_SECRET:
+        pytest.skip("API_KEY / TURNSTILE_SECRET not set")
+    cookie = ({"name": "session", "value": _h.sha256(f"session:{API_KEY}".encode()).hexdigest()} if who == "owner" else
+              {"name": "guest_session", "value": _h.sha256(f"guest:{TURNSTILE_SECRET}".encode()).hexdigest()})
+    ctx = _context(browser, base_url, cookie)
+    try:
+        page = ctx.new_page()
+        for base in pages.SKINS:
+            resp = page.goto(f"{base_url}{base}")
+            assert resp.headers["content-security-policy"] == config.VOTE_CSP
+            assert page.get_attribute('meta[http-equiv="Content-Security-Policy"]', "content") == config.VOTE_CSP_META
+            if who == "owner":
+                _until(page, "!document.getElementById('nd-owner').hidden")
+            for _ in pages.PALETTES:
+                page.click("#nd-create .nd-pal.next")
+            assert page.evaluate("window.__csp") == [], f"{base}: the CSP blocked something the page needs"
+    finally:
+        ctx.close()

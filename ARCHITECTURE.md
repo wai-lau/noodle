@@ -48,95 +48,117 @@ passphrase (`noodle-kdf-worker.js`) and never sends the passphrase or private ke
 **CSS** (`web/`), in this order in `noodle-shell.html` — **load order is the
 cascade**: `chrome.css` (exec-fn) → `noodle.css` → `noodle-identity.css` →
 `noodle-actions.css` → `noodle-roster.css` → `noodle-split.css` →
-`noodle-admin.css` → `noodle-created.css` → `noodle-foot.css` → `noodle-cal.css`.
+`noodle-admin.css` → `noodle-created.css` → `noodle-foot.css` → `noodle-cal.css`
+→ **`noodle-tc.css`** (the structure) → `noodle-palette.css` (the chevrons) →
+`noodle-home.css` (the corner home link) → every PALETTE sheet
+(`noodle-dark.css`, `noodle-sand.css`; `pages.PALETTES` order).
 
-**JS** (`web/`), in this order in `noodle-vote.html` — **order matters**:
-`noodle-vote.js` runs `ndvInit()` as it loads, so everything it calls is
-loaded first: `qc-holidays` → `noodle-toggle` → `noodle-seal` → `noodle-cal` →
+**JS** (`web/`). The SHELL loads, on every page: `noodle-tc-copy.js` (in the
+`<head>`, the wording), `noodle-tc-legend.js` (deferred, the pip legend) and
+`noodle-palette.js` (FIRST in the body, the palette). Then the body's own, in
+this order in `noodle-vote.html` — **order matters**:
+`noodle-vote.js` runs `ndvInit()` at DOMContentLoaded, after everything it calls:
+`qc-holidays` → `noodle-toggle` → `noodle-seal` → `noodle-cal` →
 `noodle-cal-view` → `noodle-kdf` (+ `noodle-kdf-worker`) → `noodle-esc` →
-`noodle-roster` → `noodle-crop` → `noodle-keystore` → `noodle-storage` →
+`noodle-roster` → `noodle-ink` → `noodle-crop` → `noodle-keystore` → `noodle-storage` →
 `noodle-identity` → `noodle-claim` → `noodle-e2e` → `noodle-commit` →
 `noodle-vote` → `noodle-ask` → `noodle-host` → `noodle-rekey` → `noodle-top` →
-`noodle-share`. `/noodle` (`noodle-admin.html`) loads `noodle-claim`,
+`noodle-event` → `noodle-share`. The start page (`noodle-admin.html`) loads `noodle-claim`,
 `noodle-admin`, `noodle-created`. `noodle-identity.js` loads BEFORE `NDV`
 exists, so nothing in it may run at load.
 
-**Templates** (`api/templates/`): `noodle-shell.html` (shared shell, `.page-scroll`
-wrapper, OG slot), `noodle-vote.html` (poll body + scripts), `noodle-admin.html`
-(`/noodle` body + its 3 scripts).
+**Templates** (`api/templates/`): `noodle-shell.html` (shared shell: the CSP
+`<meta>` and SRI pins added by `pages._page`, the home link, `.page-scroll`
+wrapper, OG slot, `data-base` + `data-palettes` on the body),
+`noodle-vote.html` (poll body + scripts; the title between the palette
+chevrons), `noodle-admin.html` (the start page: Create a poll between the
+chevrons, the owner's chart).
 
-**Front ends** (`pages.SKINS`, 2026-10-23; one structure since 2026-11-10):
-ONE backend, one set of polls, ONE page under two bases that differ ONLY in
-the palette it opens on (owner, 2026-11-10: "noodle and noodle-tc should be
-the same page now, just that noodle-tc default to the tc color scheme"). Not
-a redirect: the base decides the default for every link the page builds, so
-a poll made on /noodle-tc shares /noodle-tc links and its guests open on sand.
-`/noodle` + `/noodle/<slug>` and `/noodle-tc` + `/noodle-tc/<slug>` (same
-tier each) serve the SAME templates, JS and Tarid Change STRUCTURE: the shell
-(`noodle-shell.html`) loads `noodle-tc-copy.js` in the `<head>`,
-`noodle-tc-legend.js` (deferred), `noodle-tc.css` + `noodle-palette.css` after
-the shared sheets, and then EVERY palette sheet (`pages.PALETTES`, name ->
-theme-color, in chevron order): `noodle-dark.css` (noodle's black, white,
-gray, terminal + chatsubo green, monospace; marigold only for today, red
-errors) and `noodle-sand.css` (taridchange.com's sand, rust, Baskerville,
-Almarai). `SKINS` is `base -> default palette`: /noodle opens on dark,
-/noodle-tc on sand; the body carries `noodle noodle-tc <palette>` and
-`data-palettes` (the PALETTES map, JSON).
-- **The palette switch** (owner, 2026-11-10: "more color schemes to come"):
-  chevrons (`.nd-pal`, drawn in CSS -- noodle's font has no chevron glyph,
-  `noodle-palette.css`) either side of Create a poll on the start page and of
-  the title on a poll step through PALETTES and wrap. `noodle-palette.js` runs
-  FIRST in the body, before anything paints: it applies `localStorage
-  noodle.palette` (this browser's choice, never a cookie, never sent; one
-  choice for both front ends) by swapping the body class, and sets or drops
-  the theme-color tag to the palette's. A new palette = a tokens-only sheet +
-  a PALETTES entry; the drift tests then hold it to the same token set. The shell carries `data-base` and
-`{{THEME}}`; the JS builds every page link from `data-base` (`noodle-admin.js`
-post-create redirect, `noodle-e2e.js` `ndeLink`, `noodle-share.js`), so a poll
-made or shared on a front end stays on it -- and any link opens on either.
-- **Palettes are TOKENS ONLY** (`tests/test_noodle_skins.py`): every colour
-  and face `noodle-tc.css` uses is a `--tc-*` token (ink, cream, peach, rust,
-  the ground's sand/amber/clay/foot, noodle's gray/weekend/marigold/ember, and
-  the roles today, reason, alarm + alarm-ground, num-shadow, shade, serif,
-  sans). A palette sheet declares exactly that set -- nothing missing, nothing
-  dead, no property that is not a custom property, only under its own class
-  (`html:has(body.<palette>)`, so every sheet can be loaded at once;
-  `body.noodle.<palette>` for the optional voter
-  inks, which must sit on body because noodle.css sets its own there). The
-  structure re-points noodle's palette tokens at them on `body.noodle-tc`
-  (`--green/--gray/--cyan/--orange/--orange-glow/--bg-hsl`, `--font-mono`).
+**Front ends and palettes** (`pages.SKINS`, `pages.PALETTES`; owner,
+2026-10-23 .. 2026-11-10). ONE backend, one set of polls, ONE page, served
+under two bases that differ ONLY in the palette the page opens on (owner,
+2026-11-10: "noodle and noodle-tc should be the same page now, just that
+noodle-tc default to the tc color scheme"):
+
+| Base | Opens on | Look |
+|---|---|---|
+| `/noodle`, `/noodle/<slug>` | `noodle-dark` | noodle's black, white, gray, terminal + chatsubo green, the monospace; marigold for today only, red errors |
+| `/noodle-tc`, `/noodle-tc/<slug>` | `noodle-sand` | taridchange.com's sand-to-clay ground, rust, peach, deep green ink, Libre Baskerville + Almarai |
+
+- **Why two bases and not a redirect**: the page builds every link from its
+  base (`data-base`: `noodle-admin.js` post-create redirect, `noodle-e2e.js`
+  `ndeLink`, `noodle-share.js`), so a poll made on /noodle-tc shares
+  /noodle-tc links and its guests open on sand too. Any poll opens on either.
+  Same tier each; both slug masks and the guest lists name both (below).
+- **One structure**: `noodle-tc.css` lays out both: the steps, sizes, type
+  scale, buttons, the pip legend card, the crop frame. Every colour and face
+  in it is a `--tc-*` TOKEN; it re-points noodle's own palette tokens at them
+  on `body.noodle-tc` (`--green/--gray/--cyan/--orange/--orange-glow/--bg-hsl`,
+  `--font-mono`), so every shared sheet turns over at once.
+- **Palettes are TOKENS ONLY**: a palette sheet declares exactly the `--tc-*`
+  set the structure (`noodle-tc.css` + `noodle-palette.css`) reads -- ink,
+  cream, peach, rust; the ground's sand, amber, clay, foot; noodle's gray,
+  weekend, marigold, ember; the roles today, reason, alarm + alarm-ground,
+  num-shadow, shade; the faces serif and sans -- under its own class
+  (`html:has(body.<palette>)`), plus optionally the voter inks on
+  `body.noodle.<palette>` (noodle.css sets its own there; sand's are dark,
+  dark keeps noodle's). Each palette's header comment has its role table.
+  Palette channels are page-local tokens, not `--*-hsl`; a pure alias
+  (`--tc-gray: var(--gray-hsl)`) is not a palette-lint usage (exec-fn §13).
+- **Every page loads every palette**, and the body's class picks one: the
+  base's default, or this browser's choice. **The chevrons** (`.nd-pal`,
+  drawn in CSS: noodle's font has no chevron glyph) sit either side of Create
+  a poll on the start page and of the title on a poll, and step through
+  PALETTES, wrapping (owner, 2026-11-10: "more color schemes to come").
+  `noodle-palette.js` runs FIRST in the body, before anything paints, applies
+  `localStorage noodle.palette` (this browser only: never a cookie, never
+  sent; one choice for both bases) by swapping the body class, and sets or
+  drops the `theme-color` tag to the palette's (dark `#000`; sand none, below).
+  **A new palette = a tokens-only sheet + a PALETTES entry.**
+- **Drift tests**: `tests/test_noodle_skins.py` -- a palette sets only custom
+  properties, under its own class; each declares exactly the tokens the
+  structure reads (none missing, none dead); both bases render byte-identical
+  pages but for the base and the palette they open on; every palette loads
+  after the structure; one chevron pair and one home link per page, no site
+  nav. `tests/test_noodle_browser_tc.py` (WebKit) -- the TC wording on both
+  bases; the same visible words and elements on both (start page, name step,
+  pick step); the chevrons go round, the choice survives a reload and
+  follows to a poll and the other base, and never leaves the browser.
   **A new colour role in the structure is a new token in BOTH palettes**; the
-  test fails until it is. The same test renders both front ends' pages and
-  requires them byte-identical but for base and the palette they open on, and
-  `test_noodle_browser_tc.py` requires the same visible words and elements on
-  both in WebKit. Palette channels are page-local tokens, not `--*-hsl`, so
-  the palette lint does not govern them (each palette's header has its role
-  table). No site nav on any page: the favicon home link (`.nd-home`).
+  tests fail until it is.
+- **No site nav** (owner, 2026-11-10: "just show a lil favicon on the top
+  left like the spire page"): the shell's `.nd-home` link, the site favicon
+  to `/` (`noodle-home.css`), absolutely placed so it scrolls away with the
+  page.
 - **The look**: built to "UX accessibility for elderly -- 12
   principles" (Trzepla 2019), each rule tagged [P1]..[P12] in the sheet: 18px
-  type, line height 1.5, MEASURED contrast (ink >= 4.9:1 on every ground
-  stop; cream only on the rust, 7.4:1, on sand), pressable bordered buttons, "Step 1
+  type, line height 1.5, MEASURED contrast (on sand: ink >= 4.9:1 on every
+  ground stop, cream only on the rust, 7.4:1; on dark: green on the chatsubo
+  slab 8:1, white on the gray slab 15:1), pressable bordered buttons, "Step 1
   of 2" markers, months in full, no decorative motion. Step 2 is HIDDEN
   during step 1, not greyed -- but kept laid out (invisible, out of flow),
   never `display:none`: the crop frame measures the rows then, and with no
   layout both edges landed on one line.
-- **The ground and the browser bars**: NO theme-color (a solid one drew a hard
+- **The ground and the browser bars** (sand): NO theme-color (a solid one drew a hard
   band). The gradient is a FIXED layer `100lvh` tall (under the toolbars
   too), and html's colour is the ground's foot as it shows under the grain
   (measured): iOS Safari paints that colour flat under its floating toolbar
   and past the page's ends, so the two meet. Edge strips for the bars to
-  sample did nothing on iOS 26 but draw a line.
-- **The calendar**: picked days are PEACH (not ink-filled), offered days a
-  soft peach wash, so one set of pips reads on every cell. Pips wear the shared ink
-  palette (below) -- the palette's own set if it has one (sand's is dark), no outline; past 8 voters they also take
+  sample did nothing on iOS 26 but draw a line. Dark's ground is black to
+  dark gray under the same layer, with `#000` bars.
+- **The calendar**: picked days are the PEACH token (not ink-filled), offered
+  days a soft wash of it, so one set of pips reads on every cell. Pips wear
+  the palette's voter inks, no outline; past 8 voters they also take
   a shape (circle / square / triangle), carried IN the ink string as
   `--tc-pip-r` / `--tc-pip-clip` (`noodle-tc-legend.js` wraps `NoodleSeal.seal`); a number badge was tried and was too small. NOT
   `:has()` on the pips' pseudo-elements: WebKit does not re-check it when
   the dots are injected later. The host's crop is a photo editor's frame
-  (corners + edge ticks), the outside dimmed with its hue kept, its grab
+  (corners + edge ticks), the outside dimmed by the palette's SHADE filter, its grab
   strip 44px and almost all OUTSIDE the crop so it never steals a tap. Inside
   the grid the type is noodle's own size: its cells are sized for it, and
-  the skin's 18px pushed the pips out of the cell.
+  the skin's 18px pushed the pips out of the cell. The width watcher
+  (`noodle-cal-view.js` `ndcOnWidth`) repaints on the NEXT frame: a resize
+  made inside the ResizeObserver callback looped (ARCHAEOLOGY 21).
 - **No roster row**: the name cards and the host's guide are hidden (owner);
   with them go tap-a-name-to-fill-it and the host's Remove-guest button.
   The names live in the PIP LEGEND (`noodle-tc-legend.js`), in ONE card with
@@ -147,8 +169,8 @@ made or shared on a front end stays on it -- and any link opens on either.
   it reads the hidden roster the shared JS still renders (`.nd-face`
   data-name + the ink on its `.nd-seal`), redraws on every change, builds
   names with `textContent`, and the wording layer skips it (a voter named
-  "noodle" stays "noodle").
-- Fonts are self-hosted (`fonts/tc-*.woff2`, SIL OFL): the vote CSP allows
+  "noodle" stays "noodle"). No seal art is shown anywhere.
+- Fonts are self-hosted (`fonts/tc-*.woff2`, SIL OFL): the CSP allows
   `font-src 'self'` only.
 - **The wording** is a DOM layer, not a fork: `noodle-tc-copy.js` rewrites
   every text node / `placeholder` / `title` / `aria-label` whose whole text is
@@ -158,18 +180,19 @@ made or shared on a front end stays on it -- and any link opens on either.
   `#nd-note`, names) -- `noodle-host.js` reads the title back to spot the
   `title` placeholder, which `noodle-tc.css` shows as "Add a title" instead.
   **A new or changed string in the shared JS shows in noodle's own words on
-  both front ends until its line is added to that table** (the wording test
-  in `test_noodle_browser_tc.py` runs on both); server error text
-  (`votes.py` etc.) is not translated.
+  both bases until its line is added to that table** (the wording test
+  runs on both); server error text (`votes.py` etc.) is not translated. The
+  browser tests therefore assert the TC words ("Save", "Response saved for
+  …"); "Save" reads the same clean or dirty, so they read `#nd-dirty`.
 - **Security wiring outside this repo**: both slug masks cover `/noodle-tc/`
   (exec-fn `api/log_masking.py`, nginx `conf.d/noodle-log-mask.conf`), and the
   guest page set lists it (exec-fn `_GUEST_NEXT_ALLOWED`, the 401 handler).
-  Any further front end needs all four.
-- **History**: /noodle had its own look (seal art, roster row, noodle's own
-  words) until 2026-11-10 (owner: "replace noodle with noodle-tc, except with
-  the current noodle color-scheme"; then the monospace, one counterpart per
-  TC colour, and the white/gray/black/greens palette). That CSS stays as the
-  base the structure layers over; it is no longer served on its own.
+  Any further base needs all four. Both bases' pages carry the strict CSP
+  (21m).
+- **History**: /noodle had its own look (seal art, roster row, the site nav,
+  noodle's own words) until 2026-11-10; the steps from there to here are
+  ARCHAEOLOGY 21. That CSS stays as the base the structure layers over; it
+  is no longer served on its own.
 
 **Tests** (`tests/test_noodle_*.py`): unit — isolation, crypt (at rest), votes,
 host, rekey, drafts, ask, rules, holidays, names, convert, toggle, glyphs,
@@ -183,12 +206,12 @@ session), smoke rows in `tests/test_smoke.py`.
 
 | Route | Tier | What |
 |---|---|---|
-| `GET /noodle/{slug}` (`?t=` draft) | public | vote page; a draft token for an unstored slug renders an empty e2e poll |
+| `GET /noodle/{slug}` (`?t=` draft), `GET /noodle-tc/{slug}` | public | vote page; a draft token for an unstored slug renders an empty e2e poll; `/noodle-tc` = the same page opening on sand |
 | `GET /noodle/{slug}/results` | public | 301 to the vote page (no separate results page) |
 | `GET /api/noodle/{slug}` | public | poll JSON (`e2e.public` or `pages.public_poll`), `no-store` |
 | `POST /api/noodle/{slug}/vote` · `/settings` · `/remove` · `/rekey` | public | signed writes; dispatched by the STORED poll's `e2e` flag |
 | `POST /api/noodle/{slug}/ask` | public | Ask noodle (21h) |
-| `GET /noodle` | guest | start page; `frame-ancestors 'none'` CSP, `no-store` |
+| `GET /noodle`, `GET /noodle-tc` | guest | start page (`/noodle-tc` opens on sand); the full strict CSP (21m), `no-store` |
 | `POST /api/noodle-polls/new` | guest | mint a draft (21c) |
 | `GET/POST /api/noodle-polls`, `DELETE /api/noodle-polls/{ref}` | owner | list (file ids + mtimes only) / titled create (plain poll) / delete by slug or file id |
 | `GET /api/noodle-polls/created` | owner | per-day creation counts (21i) |
@@ -766,27 +789,32 @@ the link holds the key. Title/note/`document.title` are filled after opening
 passed as NoodleKdf's slug), so the server — which knows the slug — can't test
 guessed names or passphrases against stored public keys.
 
-**Content-Security-Policy on the vote page** (`routes._VOTE_CSP`): `default-src
+**Content-Security-Policy on every noodle page** (`config.VOTE_CSP`; the vote
+page's `routes._PRIVATE_PAGE`, the start page's `routes._ADMIN_PAGE`): `default-src
 'self'`; `script-src 'self' 'wasm-unsafe-eval'` (no inline, no eval — the one
 exception is WebAssembly, for the pinned key worker's Argon2, see Code
 verification); styles may be inline (seal inks are `style="--seal-hsl:…"`);
 `img-src 'self' data:`; `font-src`/`connect-src 'self'`; `worker-src 'self' blob:`
 (the key worker runs from a verified Blob); `object-src 'none'`; `base-uri 'none'`;
 `form-action 'self'`;
-`frame-ancestors 'none'`. `/noodle` gets `frame-ancestors 'none'` only (it
-carried the site nav's inline script until 2026-11-10; it no longer does). **Testing it**: Playwright's
+`frame-ancestors 'none'`. The start page took the same policy on 2026-11-10
+(owner: "yes"), once the site nav and its inline script were gone; before
+that it sent `frame-ancestors 'none'` alone. It matters there too: the start
+page MAKES an end-to-end poll's key (`noodle-claim.js`). **Testing it**: Playwright's
 `wait_for_function` compiles a string predicate in the page, which the policy
 refuses — exec-fn's root `conftest.py` browser wrapper strips the CSP header for
 the general suites; `tests/test_noodle_browser_csp.py` keeps it
-(`bypass_csp=False`) and walks a plain vote plus an e2e create -> commit with zero
-violations.
+(`bypass_csp=False`) and walks a plain vote, an e2e create -> commit, and both
+bases' start pages as guest and owner (the chart, the palette chevrons) with
+zero violations; `test_noodle_verify.py` pins the `<meta>` on every page and
+the start page's header.
 
 **Code verification** (2026-10-16): a web app's last gap is that it serves its
 own decrypting JS, so a server could hand one victim tampered code that lifts the
 fragment key -- crypto at rest cannot close it. noodle makes it CHECKABLE. There
 is no build step (a served `/noodle-*.js` is byte-for-byte the repo file; both
 repos are public -- `wai-lau/noodle`, and `wai-lau/exec-fn` for the shared
-`qc-holidays.js`), and the vote page pins every script with Subresource Integrity
+`qc-holidays.js`), and every noodle page pins every script with Subresource Integrity
 (`pages._apply_sri`): a `sha384` the browser enforces. noodle imports no app
 module, so it cannot resolve a parent-served script itself -- the composition
 root hands it a resolver (`pages.set_sri`, wired in `routers.py` beside
@@ -794,10 +822,10 @@ root hands it a resolver (`pages.set_sri`, wired in `routers.py` beside
 the static mount and `asset_version` use). The hash is of the served FILE,
 computed per render; no resolver (standalone / isolation) leaves the page working
 and unpinned. SRI covers only the external scripts, not the server-generated
-document, so (adversarial audit, 2026-10-17) the vote page ALSO mirrors its strict
+document, so (adversarial audit, 2026-10-17) every page ALSO mirrors its strict
 CSP into a `<meta>` (`config.VOTE_CSP`/`VOTE_CSP_META`, injected in
-`pages.vote_page` — vote page only, as the `/noodle` admin page then ran the
-nav's inline script): `script-src 'self'` with no inline/eval and `connect-src 'self'`,
+`pages._page`; the vote page alone until 2026-11-10, while the start page ran the
+site nav's inline script): `script-src 'self'` with no inline/eval and `connect-src 'self'`,
 so even a pinned-script-clean page cannot run injected inline code or phone the
 key out. CSP policies INTERSECT, so the `<meta>` only ever tightens the header and
 cannot break a poll; a server that strips it to inject inline code leaves its

@@ -103,3 +103,67 @@ The `noodle_slug` fixture is a fresh poll per session (see the top of this file 
 ### Rate limits and the test suite
 
 A busy hour of pre-commit runs from this box spent noodle's 20-per-hour draft limit and failed `test_noodle_drafts_need_their_token` on 2026-10-01; tests from this machine must never fail because of a rate limit (owner).
+
+### Front ends: from two looks to one page (2026-11-10)
+
+All owner calls, in order, one day:
+
+1. **"replace noodle with noodle-tc, except with the current noodle color-scheme"**
+   -- /noodle took the Tarid Change structure, wording and pip legend over a
+   palette sheet (`noodle-dark.css`) that folded every TC colour into green +
+   black. Gone with it: /noodle's own look -- seal art, the roster row
+   (tap-a-name-to-fill-it, the host's Remove-guest button), the fill-tool
+   paint bucket / eraser, the "when are you free?" pick note, noodle's own
+   words. 23 browser tests asserted that look: 19 were moved to the TC words
+   and step layout, 4 that tested only hidden UI were deleted
+   (`test_tapping_a_face_fills_the_name`,
+   `test_a_new_name_shows_its_face_among_the_voters`,
+   `test_the_calendar_toggle_icons_actually_render`,
+   `test_the_pick_note_shows_only_once_unlocked`), and the e2e test lost its
+   host-removes-a-guest step (the button is hidden on both bases).
+2. **"noodle monospace back in there"** + **"an equivalent other color for
+   each noodle-tc color"** -- one counterpart per TC token instead of two
+   colours for all. A first mapping used marigold for cream and ember for
+   rust; replaced within the hour by
+3. **"white gray black terminal green and also chatsubo green. Use marigold
+   only sparingly"**, **"red for errors"** -- the current dark palette:
+   marigold on today alone, a red `--tc-ember`.
+4. **"get rid of the underlines in all the navs"** -- the TC link rule
+   (`.noodle-tc a`) underlined the site nav /noodle then carried. Moot after 8.
+5. **"update the code to be as DRY as possible and add tests to prevent
+   drift"** -- the TC palette moved out of `noodle-tc.css` into
+   `noodle-sand.css`; every palette-specific override became a role token, so
+   a palette is tokens only; `test_noodle_skins.py` + the WebKit drift test.
+   The palette lint counted `--tc-gray: var(--gray-hsl)` as a new
+   alpha-1 use of gray; aliases stopped counting as usages (exec-fn
+   `scripts/lint-colors.py` `_ALIAS`, the owner's "exempt this from the color
+   linter if needed").
+6. **Chevrons** beside Create a poll and the title, "more color schemes to
+   come", the choice in the browser only: every page loads every palette.
+7. **"noodle and noodle-tc should be the same page now"** -- the owner
+   offered a redirect; kept as two bases instead, because the page builds its
+   links from its base and a /noodle-tc poll's guests must still open on sand.
+   A test had read the old SKINS nav flag as the theme-color by accident
+   (True/False lined up with "has one"/"has none").
+8. **"don't show the nav bar on either page, just show a lil favicon on the
+   top left like the spire page"** -- `pages.set_nav` and exec-fn's
+   `_noodle_nav` removed; `.nd-home`.
+9. **The start page took the strict CSP** (owner: "yes") once nothing inline
+   ran there.
+
+**Incidents found on the way.**
+
+- **ResizeObserver loop** (`noodle-cal-view.js` `ndcOnWidth`): on the
+  monospace, the calendar's width repaint could still change a width (the
+  scrollbar arriving with the new height) inside the observer's callback, and
+  WebKit raised "ResizeObserver loop completed with undelivered
+  notifications" -- `test_sign_in_browser_verify_on_server` failed 2 runs in
+  3. The repaint now runs on the next frame (one `requestAnimationFrame` per
+  burst); 6/6 after.
+- **Glyph width test measured an unloaded face**: with no seal art on any
+  page, nothing drew the seal glyphs, so the browser had not fetched them
+  and `test_rendered_glyphs_are_one_cell_wide` measured a fallback (ratios
+  1.204). It now `document.fonts.load`s the face for every glyph first. It
+  also measures in `--tc-mono` (the page's `--font-mono` is a palette face).
+- `test_noodle_browser_signed.py::test_forged_and_stripped_records_never_show`
+  timed out once under the full suite's load and passed 3/3 alone: watch it.
