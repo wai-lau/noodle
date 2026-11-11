@@ -240,7 +240,7 @@ body.noodle-tc {
 .noodle-tc .nd-why, .noodle-tc .nd-warn { color: hsl(var(--tc-reason)); }
 .noodle-tc .nd-warn { font-weight: var(--fw-bold); }
 
-/* [P5] a link looks like a link -- in the page, not the site nav /noodle
+/* [P5] a link looks like a link -- in the page, not the site nav it
    carries (owner, 2026-11-10: the nav labels came out underlined) */
 .noodle-tc a:not(.exec-nav a) { color: hsl(var(--tc-ink)); text-decoration: underline; text-underline-offset: 3px; }
 .noodle-tc .nd-ask .nd-ask-helper { color: hsl(var(--tc-ink)); }

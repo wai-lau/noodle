@@ -38,16 +38,13 @@ def _og(title: str, desc: str, path: str) -> str:
     return "\n".join(out + ['<meta name="twitter:card" content="summary_large_image">'])
 
 
-# The FRONT ENDS: one backend, one set of polls (a link opens on either), each
-# its own page base and look. Both wear the SAME templates and JS and the same
-# Tarid Change structure (noodle-tc.css, the wording noodle-tc-copy.js, the pip
-# legend noodle-tc-legend.js -- in the shell, noodle-shell.html); they differ
-# ONLY in their DEFAULT palette and the site nav. A front end changes no
-# behaviour: anything it would need to change belongs in the shared JS, for
-# both. /noodle went from its own look to this one on 2026-11-10 (owner).
-# base -> (default palette, site nav or not).
-SKINS = {"/noodle": ("noodle-dark", True),
-         "/noodle-tc": ("noodle-sand", False)}
+# The FRONT ENDS: one backend, one set of polls, ONE page (owner, 2026-11-10:
+# "noodle and noodle-tc should be the same page now, just that noodle-tc
+# default to the tc color scheme"). Two bases serve it, and differ only in the
+# palette it opens on. The base stays a path, not a redirect: the page builds
+# every link from it (data-base), so a poll made or shared on /noodle-tc keeps
+# /noodle-tc links and its guests open on sand too. base -> default palette.
+SKINS = {"/noodle": "noodle-dark", "/noodle-tc": "noodle-sand"}
 
 # The PALETTES, in the order the chevrons step through them (noodle-palette.js;
 # owner, 2026-11-10: "more color schemes to come"). Each is a sheet that declares
@@ -61,7 +58,7 @@ PALETTES = {"noodle-dark": "#000", "noodle-sand": None}
 
 
 def _page(title: str, body: str, og: str = "", base: str = "/noodle", nav: bool = False) -> str:
-    palette = SKINS[base][0]
+    palette = SKINS[base]
     theme = PALETTES[palette]
     sheets = "".join(f'<link rel="stylesheet" href="/{p}.css?v=1">\n' for p in PALETTES)
     return _fill(_tmpl("noodle-shell.html"), TITLE=html.escape(title), OG=og, BODY=body,
@@ -166,8 +163,7 @@ def set_owner(fn) -> None:
 
 
 def admin_page(request=None, base: str = "/noodle") -> str:
-    # the site's nav belongs to /noodle only: /noodle-tc is its own look
-    nav = bool(_nav and request is not None and SKINS[base][1])
+    nav = bool(_nav and request is not None)
     page = _page("noodle", _tmpl("noodle-admin.html"), _og("noodle", "", base), base, nav)
     if nav:
         page = page.replace("</body>", _nav(request) + "</body>", 1)

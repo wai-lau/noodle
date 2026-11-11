@@ -41,7 +41,7 @@ def _shown(page):
         const el = n.parentElement;
         if (!n.nodeValue.trim() || !el.checkVisibility()) continue;
         if (el.closest('#nd-title, #nd-note, .nd-face-name, #nd-you-name, .nd-top-date')) continue;  // poll content
-        if (el.closest('.exec-nav')) continue;   // the site nav, /noodle's alone
+        if (el.closest('.exec-nav')) continue;   // the site nav: the site's words, not noodle's
         out.push(n.nodeValue.trim());
       }
       // a hidden element's label is out of the accessibility tree too
@@ -64,9 +64,9 @@ def test_the_tc_pages_speak_in_their_own_words(browser, base_url, admin_headers,
     slug = None
     try:
         page.goto(f"{base_url}{front}")
-        # /noodle-tc has no theme-color: iOS fades its bars over the ground
-        # instead of a solid band
-        theme = pages.SKINS[front][1]
+        # sand has no theme-color: iOS fades its bars over the ground instead
+        # of a solid band
+        theme = pages.PALETTES[pages.SKINS[front]]
         assert page.locator('meta[name="theme-color"]').count() == (1 if theme else 0)
         _no_leaks(page, f"{front}'s landing page")
         page.click("#nd-create .nd-submit")
@@ -101,6 +101,7 @@ def test_the_front_ends_show_the_same_page(browser, base_url, admin_headers):
             ctx, page = _guest(browser, base_url)
             try:
                 page.goto(f"{base_url}{front}")
+                assert page.locator(".exec-nav").is_visible(), f"{front}: the site nav (one page, both bases)"
                 start = (_shown(page), _visible_ids(page))
                 page.goto(f"{base_url}{front}/{slug}")
                 page.wait_for_function("NDV.poll && NDV.keysLoaded", timeout=20000)
@@ -133,9 +134,9 @@ def test_the_chevrons_switch_the_palette_and_this_browser_keeps_it(browser, base
     try:
         front, default = next(iter(pages.SKINS.items()))
         page.goto(f"{base_url}{front}")
-        assert _palette(page) == default[0]
+        assert _palette(page) == default
         theme = 'document.querySelector(\'meta[name="theme-color"]\')?.content ?? null'
-        start = names.index(default[0])
+        start = names.index(default)
         for i in range(1, len(names) + 1):   # all the way round, back to the start
             page.click("#nd-create .nd-pal.next")
             now = names[(start + i) % len(names)]

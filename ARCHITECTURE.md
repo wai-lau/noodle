@@ -65,8 +65,11 @@ wrapper, OG slot), `noodle-vote.html` (poll body + scripts), `noodle-admin.html`
 (`/noodle` body + its 3 scripts).
 
 **Front ends** (`pages.SKINS`, 2026-10-23; one structure since 2026-11-10):
-ONE backend, one set of polls, two front ends that differ ONLY in the palette
-they open on (and the site nav, /noodle's).
+ONE backend, one set of polls, ONE page under two bases that differ ONLY in
+the palette it opens on (owner, 2026-11-10: "noodle and noodle-tc should be
+the same page now, just that noodle-tc default to the tc color scheme"). Not
+a redirect: the base decides the default for every link the page builds, so
+a poll made on /noodle-tc shares /noodle-tc links and its guests open on sand.
 `/noodle` + `/noodle/<slug>` and `/noodle-tc` + `/noodle-tc/<slug>` (same
 tier each) serve the SAME templates, JS and Tarid Change STRUCTURE: the shell
 (`noodle-shell.html`) loads `noodle-tc-copy.js` in the `<head>`,
@@ -75,7 +78,7 @@ the shared sheets, and then EVERY palette sheet (`pages.PALETTES`, name ->
 theme-color, in chevron order): `noodle-dark.css` (noodle's black, white,
 gray, terminal + chatsubo green, monospace; marigold only for today, red
 errors) and `noodle-sand.css` (taridchange.com's sand, rust, Baskerville,
-Almarai). `SKINS` is `base -> (default palette, nav)`: /noodle opens on dark,
+Almarai). `SKINS` is `base -> default palette`: /noodle opens on dark,
 /noodle-tc on sand; the body carries `noodle noodle-tc <palette>` and
 `data-palettes` (the PALETTES map, JSON).
 - **The palette switch** (owner, 2026-11-10: "more color schemes to come"):
@@ -107,8 +110,8 @@ made or shared on a front end stays on it -- and any link opens on either.
   `test_noodle_browser_tc.py` requires the same visible words and elements on
   both in WebKit. Palette channels are page-local tokens, not `--*-hsl`, so
   the palette lint does not govern them (each palette's header has its role
-  table). The site nav is /noodle's alone (SKINS); `noodle-tc.css`'s link
-  underline skips `.exec-nav`.
+  table). Both bases carry the site nav on the start page; `noodle-tc.css`'s
+  link underline skips `.exec-nav`.
 - **The look**: built to "UX accessibility for elderly -- 12
   principles" (Trzepla 2019), each rule tagged [P1]..[P12] in the sheet: 18px
   type, line height 1.5, MEASURED contrast (ink >= 4.9:1 on every ground

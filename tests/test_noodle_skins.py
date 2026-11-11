@@ -12,7 +12,7 @@ class, until the chevrons pick another). Pinned here:
     missing role, no dead one), so a colour role added to noodle-tc.css fails
     here until BOTH palettes say what it is;
   - the pages each front end serves are the same bytes but for its base, its
-    default palette and its theme-color (and the site nav, /noodle's alone).
+    default palette and its theme-color.
 
 The rendered side (same visible text and elements on both) is
 test_noodle_browser_tc.py.
@@ -62,7 +62,7 @@ PALETTES = list(pages.PALETTES)
 def test_every_palette_has_a_sheet_and_every_front_end_opens_on_one():
     for name in PALETTES:
         assert (WEB / f"{name}.css").exists(), name
-    assert {p for p, _ in pages.SKINS.values()} <= set(PALETTES)
+    assert set(pages.SKINS.values()) <= set(PALETTES)
 
 
 @pytest.mark.parametrize("name", PALETTES)
@@ -101,7 +101,7 @@ def _as(page: str, src: str, dst: str) -> str:
     if nothing but the SKINS entry differed: its base (never the /noodle-tc
     files' names, which both load) and the palette it opens on."""
     page = re.sub(re.escape(src) + r"(?![\w.-])", dst, page)
-    return page.replace(f"noodle-tc {pages.SKINS[src][0]}", f"noodle-tc {pages.SKINS[dst][0]}")
+    return page.replace(f"noodle-tc {pages.SKINS[src]}", f"noodle-tc {pages.SKINS[dst]}")
 
 
 def _vote(base: str) -> str:
@@ -127,12 +127,11 @@ def test_both_front_ends_serve_the_same_vote_page():
 
 
 def test_both_front_ends_serve_the_same_start_page():
-    # no request: no site nav (it belongs to /noodle alone, SKINS)
     _same(lambda base: pages.admin_page(None, base))
 
 
 def test_each_page_loads_the_structure_then_every_palette():
-    for base, (palette, _) in pages.SKINS.items():
+    for base, palette in pages.SKINS.items():
         for page in (_vote(base), pages.admin_page(None, base)):
             tc = page.index('href="/noodle-tc.css')
             for name in PALETTES:
