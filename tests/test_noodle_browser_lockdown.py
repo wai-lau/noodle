@@ -74,7 +74,7 @@ def test_a_lockdown_seat_uses_pbkdf2_everywhere_and_keeps_it(browser, base_url):
         # the HOST, in Lockdown: a new seat, so PBKDF2
         host = open_(True)
         host.goto(f"{base_url}/noodle")
-        host.click("#nd-create button")
+        host.click("#nd-create .nd-submit")
         host.wait_for_function("window.NDV && NDV.keyStr", timeout=10000)
         key, slug = host.evaluate("[NDV.keyStr, NDV.slug]")
         assert host.evaluate("typeof WebAssembly") == "undefined"

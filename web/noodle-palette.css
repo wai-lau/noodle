@@ -1,0 +1,46 @@
+/* noodle-palette -- the colour-scheme CHEVRONS (noodle-palette.js; owner,
+   2026-11-10): either side of "Create a poll" on the start page, either side
+   of the title on a poll. Drawn, not typed: no glyph to put in noodle's font,
+   and they look the same in every palette's face. Loaded after noodle-tc.css. */
+.noodle-tc .nd-pal-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+}
+
+/* hugging the button: noodle-tc.css centres it with auto margins, which here
+   would push the chevrons out to the page's edges */
+.noodle-tc .nd-pal-row .nd-submit { margin-inline: 0; }
+
+/* the title keeps its full box between them */
+.noodle-tc .nd-title-row { margin: 0 0 var(--space-2); }
+.noodle-tc .nd-title-row .nd-title { flex: 1; min-width: 0; margin: 0; }
+
+/* [P5] a 44px target, the chevron in the ink at its middle */
+.noodle-tc .nd-pal {
+  position: relative;
+  flex: none;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: hsl(var(--tc-ink));
+  cursor: pointer;
+}
+
+.noodle-tc .nd-pal::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  width: 12px;
+  height: 12px;
+  margin: auto;
+  border: solid currentcolor;
+  border-width: 0 0 3px 3px;
+  transform: translateX(2px) rotate(45deg);
+}
+.noodle-tc .nd-pal.next::before { transform: translateX(-2px) rotate(-135deg); }
+
+.noodle-tc .nd-pal:focus-visible { outline: 2px solid hsl(var(--tc-ink)); outline-offset: 2px; }

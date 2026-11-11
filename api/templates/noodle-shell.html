@@ -29,11 +29,14 @@
 <link rel="stylesheet" href="/noodle-created.css?v=1">
 <link rel="stylesheet" href="/noodle-foot.css?v=5">
 <link rel="stylesheet" href="/noodle-cal.css?v=74">
-<!-- the Tarid Change structure, then this front end's palette (tokens only) -->
+<!-- the Tarid Change structure, then EVERY palette (tokens only, each scoped
+     to its body class; noodle/pages.py PALETTES) -->
 <link rel="stylesheet" href="/noodle-tc.css?v=1">
-<link rel="stylesheet" href="/{{PALETTE}}.css?v=1">
-</head>
-<body class="noodle noodle-tc {{PALETTE}}{{BODY_CLASS}}" data-base="{{BASE}}">
+<link rel="stylesheet" href="/noodle-palette.css?v=1">
+{{PALETTE_CSS}}</head>
+<body class="noodle noodle-tc {{PALETTE}}{{BODY_CLASS}}" data-base="{{BASE}}" data-palettes="{{PALETTES}}">
+<!-- FIRST in the body, before anything paints: this browser's chosen palette -->
+<script src="/noodle-palette.js?v=1"></script>
 <!-- the page scrolls in chrome.css's .page-scroll wrapper; the calendar page
      and /noodle turn it static and let the document scroll (noodle-cal.css).
      No CRT stack: noodle is the one plain page (dropped 2026-10-03, feedback) -->

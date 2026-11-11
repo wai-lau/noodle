@@ -42,22 +42,31 @@ def _og(title: str, desc: str, path: str) -> str:
 # its own page base and look. Both wear the SAME templates and JS and the same
 # Tarid Change structure (noodle-tc.css, the wording noodle-tc-copy.js, the pip
 # legend noodle-tc-legend.js -- in the shell, noodle-shell.html); they differ
-# ONLY in the palette sheet layered after it, which declares tokens and nothing
-# else (tests/test_noodle_skins.py). A front end changes no behaviour: anything
-# it would need to change belongs in the shared JS, for both.
-# base -> (palette sheet, theme-color: what iOS/Android tint the browser bars,
-# or None for none -- then iOS Safari fades its bars over the page, as
-# taridchange.com does, instead of painting a solid band; owner 2026-10-23,
-# site nav or not). /noodle went from its own look to this one in noodle's
-# colours on 2026-11-10 (owner).
-SKINS = {"/noodle": ("noodle-dark", "#000", True),
-         "/noodle-tc": ("noodle-sand", None, False)}
+# ONLY in their DEFAULT palette and the site nav. A front end changes no
+# behaviour: anything it would need to change belongs in the shared JS, for
+# both. /noodle went from its own look to this one on 2026-11-10 (owner).
+# base -> (default palette, site nav or not).
+SKINS = {"/noodle": ("noodle-dark", True),
+         "/noodle-tc": ("noodle-sand", False)}
+
+# The PALETTES, in the order the chevrons step through them (noodle-palette.js;
+# owner, 2026-11-10: "more color schemes to come"). Each is a sheet that declares
+# tokens and nothing else (tests/test_noodle_skins.py); every page loads them
+# all and the body's class picks one -- the front end's default, or the one this
+# browser chose (localStorage, never sent). name -> theme-color: what
+# iOS/Android tint the browser bars, or None for none -- then iOS Safari fades
+# its bars over the page, as taridchange.com does, instead of painting a solid
+# band (owner, 2026-10-23).
+PALETTES = {"noodle-dark": "#000", "noodle-sand": None}
 
 
 def _page(title: str, body: str, og: str = "", base: str = "/noodle", nav: bool = False) -> str:
-    palette, theme, _ = SKINS[base]
+    palette = SKINS[base][0]
+    theme = PALETTES[palette]
+    sheets = "".join(f'<link rel="stylesheet" href="/{p}.css?v=1">\n' for p in PALETTES)
     return _fill(_tmpl("noodle-shell.html"), TITLE=html.escape(title), OG=og, BODY=body,
-                 BASE=base, PALETTE=palette, BODY_CLASS=" with-nav" if nav else "",
+                 BASE=base, PALETTE=palette, PALETTE_CSS=sheets, BODY_CLASS=" with-nav" if nav else "",
+                 PALETTES=html.escape(json.dumps(PALETTES), quote=True),
                  THEME=f'<meta name="theme-color" content="{theme}">' if theme else "")
 
 
@@ -158,7 +167,7 @@ def set_owner(fn) -> None:
 
 def admin_page(request=None, base: str = "/noodle") -> str:
     # the site's nav belongs to /noodle only: /noodle-tc is its own look
-    nav = bool(_nav and request is not None and SKINS[base][2])
+    nav = bool(_nav and request is not None and SKINS[base][1])
     page = _page("noodle", _tmpl("noodle-admin.html"), _og("noodle", "", base), base, nav)
     if nav:
         page = page.replace("</body>", _nav(request) + "</body>", 1)

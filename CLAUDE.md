@@ -55,8 +55,10 @@ waits for DOMContentLoaded too, or asks lazily (`noodle-share.js`). Pinned by
 **Two front ends, one backend, one structure** (`pages.SKINS`): `/noodle` and
 `/noodle-tc` serve the same templates, JS and Tarid Change structure
 (`noodle-tc.css` + the wording table `noodle-tc-copy.js` + the pip legend
-`noodle-tc-legend.js`) and differ ONLY by a TOKENS-ONLY palette sheet:
-`noodle-dark.css` (/noodle) or `noodle-sand.css` (/noodle-tc). A new colour
+`noodle-tc-legend.js`) and every TOKENS-ONLY palette sheet (`pages.PALETTES`:
+`noodle-dark.css`, `noodle-sand.css`); they differ ONLY by the palette they
+open on (dark / sand). Chevrons beside Create a poll and the poll title switch
+it, kept in this browser only (`noodle-palette.js`, localStorage). A new colour
 role in the structure is a new `--tc-*` token in BOTH palettes;
 `tests/test_noodle_skins.py` + `test_noodle_browser_tc.py` fail on any drift.
 A new user-facing string in the shared JS needs a line in the wording table;

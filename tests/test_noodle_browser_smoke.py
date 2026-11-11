@@ -102,7 +102,7 @@ def test_a_new_poll_takes_votes_from_real_taps(browser, base_url, admin_headers,
     slug, keep = None, False
     try:
         host.goto(f"{base_url}{front}")
-        host.click("#nd-create button")
+        host.click("#nd-create .nd-submit")
         host.wait_for_function("window.NDV && NDV.keyStr", timeout=WAIT)
         slug, key = host.evaluate("[NDV.slug, NDV.keyStr]")
         assert host.url.startswith(f"{base_url}{front}/{slug}"), "a poll opens in the front end it was made in"
@@ -199,7 +199,7 @@ def test_a_name_keeps_its_capitals_for_everyone(browser, base_url, admin_headers
     slug = None
     try:
         host.goto(f"{base_url}/noodle")
-        host.click("#nd-create button")
+        host.click("#nd-create .nd-submit")
         host.wait_for_function("window.NDV && NDV.keyStr", timeout=WAIT)
         slug, key = host.evaluate("[NDV.slug, NDV.keyStr]")
         _sign_in(host, "Smoke Capital Host", "cap pass")

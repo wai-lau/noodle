@@ -51,7 +51,7 @@ def test_forged_and_stripped_records_never_show(browser, base_url):
     try:
         page = ctx.new_page()
         page.goto(f"{base_url}/noodle")
-        page.click("#nd-create button")
+        page.click("#nd-create .nd-submit")
         _until(page, "window.NDV && NDV.keyStr")
         slug, key = page.evaluate("[NDV.slug, NDV.keyStr]")
         _join(page, "signed host", "host pass")

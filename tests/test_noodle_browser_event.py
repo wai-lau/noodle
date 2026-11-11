@@ -44,7 +44,7 @@ def test_the_host_picks_an_event_time_and_everyone_sees_it(browser, base_url):
     try:
         host = open_()
         host.goto(f"{base_url}/noodle-tc")
-        host.click("#nd-create button")
+        host.click("#nd-create .nd-submit")
         host.wait_for_function("window.NDV && NDV.keyStr", timeout=10000)
         key, slug = host.evaluate("[NDV.keyStr, NDV.slug]")
         host.fill("#nd-name", "event host")

@@ -65,7 +65,7 @@ def test_an_end_to_end_poll_from_draft_to_rekey(browser, base_url):
         # /noodle makes the key, in the browser, into the draft's address; the
         # server gets only the claim key's public half, bound into the token
         host.goto(f"{base_url}/noodle")
-        host.click("#nd-create button")
+        host.click("#nd-create .nd-submit")
         host.wait_for_function("window.NDV && NDV.keyStr", timeout=10000)
         key, slug, draft = host.evaluate("[NDV.keyStr, NDV.slug, NDV.draft]")
         assert host.url.endswith(f"#k={key}") and len(key) == 43

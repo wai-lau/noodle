@@ -75,7 +75,7 @@ def test_an_end_to_end_poll_is_created_and_committed_under_the_csp(browser, base
     try:
         page = ctx.new_page()
         page.goto(f"{base_url}/noodle")
-        page.click("#nd-create button")
+        page.click("#nd-create .nd-submit")
         _until(page, "window.NDV && NDV.keyStr")
         slug = page.evaluate("NDV.slug")
         _vote(page, "csp host", "csp host pass")

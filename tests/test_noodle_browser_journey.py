@@ -126,7 +126,7 @@ def test_an_end_to_end_poll_end_to_end(browser, base_url, admin_headers):
     slug = None
     try:
         host.goto(f"{base_url}/noodle")
-        host.click("#nd-create button")
+        host.click("#nd-create .nd-submit")
         host.wait_for_function("window.NDV && NDV.keyStr", timeout=WAIT)
         slug, key = host.evaluate("[NDV.slug, NDV.keyStr]")
         link = f"{base_url}/noodle/{slug}#k={key}"

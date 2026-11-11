@@ -69,7 +69,7 @@ def test_the_tc_pages_speak_in_their_own_words(browser, base_url, admin_headers,
         theme = pages.SKINS[front][1]
         assert page.locator('meta[name="theme-color"]').count() == (1 if theme else 0)
         _no_leaks(page, f"{front}'s landing page")
-        page.click("#nd-create button")
+        page.click("#nd-create .nd-submit")
         page.wait_for_function("window.NDV && NDV.keyStr", timeout=20000)
         slug = page.evaluate("NDV.slug")
         _sign_in(page, "tc host", "tc pass")
@@ -115,3 +115,46 @@ def test_the_front_ends_show_the_same_page(browser, base_url, admin_headers):
     a, b = seen.values()
     for step in a:
         assert a[step] == b[step], f"the front ends drifted on the {step} page"
+
+
+def _palette(page):
+    return page.evaluate("ndpCurrent(ndpList())")
+
+
+def test_the_chevrons_switch_the_palette_and_this_browser_keeps_it(browser, base_url, noodle_slug):
+    """The start page's chevrons (beside Create a poll) step through every
+    palette and wrap; the choice is kept in THIS browser only -- it survives a
+    reload, follows to a poll page (chevrons beside the title) and to the
+    other front end, and no request ever carries it."""
+    ctx, page = _guest(browser, base_url)
+    sent = []
+    page.on("request", lambda r: sent.append(r.url) if "palette" in (r.post_data or "") + r.url and r.method != "GET" else None)
+    names = list(pages.PALETTES)
+    try:
+        front, default = next(iter(pages.SKINS.items()))
+        page.goto(f"{base_url}{front}")
+        assert _palette(page) == default[0]
+        theme = 'document.querySelector(\'meta[name="theme-color"]\')?.content ?? null'
+        start = names.index(default[0])
+        for i in range(1, len(names) + 1):   # all the way round, back to the start
+            page.click("#nd-create .nd-pal.next")
+            now = names[(start + i) % len(names)]
+            assert _palette(page) == now
+            assert page.evaluate(theme) == pages.PALETTES[now], f"{now}'s browser-bar tint"
+        page.click("#nd-create .nd-pal.prev")
+        chosen = names[(start - 1) % len(names)]
+        assert _palette(page) == chosen
+        assert page.evaluate("localStorage.getItem('noodle.palette')") == chosen
+        page.reload()
+        assert _palette(page) == chosen, "kept across a reload"
+        page.goto(f"{base_url}{front}/{noodle_slug}")
+        assert _palette(page) == chosen, "and on a poll page"
+        row = page.locator(".nd-title-row")
+        assert row.locator(".nd-pal.prev").is_visible() and row.locator(".nd-pal.next").is_visible()
+        for other in pages.SKINS:
+            page.goto(f"{base_url}{other}")
+            assert _palette(page) == chosen, f"and on {other}"
+        assert all("palette" not in c["name"] + c["value"] for c in ctx.cookies()), "never a cookie"
+        assert sent == [], f"the choice left the browser: {sent}"
+    finally:
+        ctx.close()

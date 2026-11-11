@@ -65,16 +65,28 @@ wrapper, OG slot), `noodle-vote.html` (poll body + scripts), `noodle-admin.html`
 (`/noodle` body + its 3 scripts).
 
 **Front ends** (`pages.SKINS`, 2026-10-23; one structure since 2026-11-10):
-ONE backend, one set of polls, two front ends that differ ONLY in palette.
+ONE backend, one set of polls, two front ends that differ ONLY in the palette
+they open on (and the site nav, /noodle's).
 `/noodle` + `/noodle/<slug>` and `/noodle-tc` + `/noodle-tc/<slug>` (same
 tier each) serve the SAME templates, JS and Tarid Change STRUCTURE: the shell
 (`noodle-shell.html`) loads `noodle-tc-copy.js` in the `<head>`,
-`noodle-tc-legend.js` (deferred), `noodle-tc.css` after the shared sheets, and
-then `{{PALETTE}}.css`: `noodle-sand.css` (/noodle-tc: taridchange.com's sand,
-rust, Baskerville, Almarai) or `noodle-dark.css` (/noodle: noodle's black,
-white, gray, terminal + chatsubo green, monospace; marigold only for today,
-red errors). `SKINS` is `base -> (palette, theme-color, nav)`; the body
-carries `noodle noodle-tc <palette>`. The shell carries `data-base` and
+`noodle-tc-legend.js` (deferred), `noodle-tc.css` + `noodle-palette.css` after
+the shared sheets, and then EVERY palette sheet (`pages.PALETTES`, name ->
+theme-color, in chevron order): `noodle-dark.css` (noodle's black, white,
+gray, terminal + chatsubo green, monospace; marigold only for today, red
+errors) and `noodle-sand.css` (taridchange.com's sand, rust, Baskerville,
+Almarai). `SKINS` is `base -> (default palette, nav)`: /noodle opens on dark,
+/noodle-tc on sand; the body carries `noodle noodle-tc <palette>` and
+`data-palettes` (the PALETTES map, JSON).
+- **The palette switch** (owner, 2026-11-10: "more color schemes to come"):
+  chevrons (`.nd-pal`, drawn in CSS -- noodle's font has no chevron glyph,
+  `noodle-palette.css`) either side of Create a poll on the start page and of
+  the title on a poll step through PALETTES and wrap. `noodle-palette.js` runs
+  FIRST in the body, before anything paints: it applies `localStorage
+  noodle.palette` (this browser's choice, never a cookie, never sent; one
+  choice for both front ends) by swapping the body class, and sets or drops
+  the theme-color tag to the palette's. A new palette = a tokens-only sheet +
+  a PALETTES entry; the drift tests then hold it to the same token set. The shell carries `data-base` and
 `{{THEME}}`; the JS builds every page link from `data-base` (`noodle-admin.js`
 post-create redirect, `noodle-e2e.js` `ndeLink`, `noodle-share.js`), so a poll
 made or shared on a front end stays on it -- and any link opens on either.
@@ -84,13 +96,14 @@ made or shared on a front end stays on it -- and any link opens on either.
   the roles today, reason, alarm + alarm-ground, num-shadow, shade, serif,
   sans). A palette sheet declares exactly that set -- nothing missing, nothing
   dead, no property that is not a custom property, only under its own class
-  (`html:has(body.<palette>)`; `body.noodle.<palette>` for the optional voter
+  (`html:has(body.<palette>)`, so every sheet can be loaded at once;
+  `body.noodle.<palette>` for the optional voter
   inks, which must sit on body because noodle.css sets its own there). The
   structure re-points noodle's palette tokens at them on `body.noodle-tc`
   (`--green/--gray/--cyan/--orange/--orange-glow/--bg-hsl`, `--font-mono`).
   **A new colour role in the structure is a new token in BOTH palettes**; the
   test fails until it is. The same test renders both front ends' pages and
-  requires them byte-identical but for base and palette, and
+  requires them byte-identical but for base and the palette they open on, and
   `test_noodle_browser_tc.py` requires the same visible words and elements on
   both in WebKit. Palette channels are page-local tokens, not `--*-hsl`, so
   the palette lint does not govern them (each palette's header has its role
@@ -159,7 +172,7 @@ made or shared on a front end stays on it -- and any link opens on either.
 host, rekey, drafts, ask, rules, holidays, names, convert, toggle, glyphs,
 limits, stats, legacy, hardening, e2e, e2e_view, skins (front-end drift). Browser (WebKit/Playwright) —
 `test_noodle_browser.py` (sign/vote), `_page`, `_host`, `_keys`, `_created`,
-`_e2e`, `_signed`, `_csp`, `_journey`, `_tc` (wording + drift, both front ends); helpers in `tests/noodle_helpers.py`.
+`_e2e`, `_signed`, `_csp`, `_journey`, `_tc` (wording + drift, both front ends; the palette chevrons); helpers in `tests/noodle_helpers.py`.
 exec-fn's side: the `noodle_slug` fixture (root `conftest.py`, a fresh poll per
 session), smoke rows in `tests/test_smoke.py`.
 
