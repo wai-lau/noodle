@@ -21,4 +21,8 @@
   left: 50%;
   margin: 0 0 calc(var(--space-6) + env(safe-area-inset-bottom, 0px));
   transform: translateX(-50%);
+
+  /* above #noodle-admin (a raised .doc-card), which spans the whole screen
+     and otherwise swallowed the tap (owner, 2026-11-11) */
+  z-index: var(--z-raised);
 }
