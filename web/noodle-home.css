@@ -1,14 +1,24 @@
-/* noodle-home -- the HOME link: the site's favicon, top-left, to the landing
-   page, in place of the site nav (owner, 2026-11-10: "don't show the nav bar
-   on either page, just show a lil favicon on the top left like the spire
-   page"; /spire's .asp-home). On every noodle page, every palette. It
-   scrolls away with the page rather than sitting over the title. */
+/* noodle-home -- the HOME link: the site's favicon, to the landing page, in
+   place of the site nav (owner, 2026-11-10: "don't show the nav bar on either
+   page, just show a lil favicon on the top left like the spire page").
+   Moved to the bottom centre of the page (owner, 2026-11-11): last in the
+   shell, in the flow, so it sits under everything and never over the title.
+   On every noodle page, every palette. */
 .nd-home {
-  position: absolute;
-  top: calc(var(--space-3) + env(safe-area-inset-top, 0px));
-  left: calc(var(--space-3) + env(safe-area-inset-left, 0px));
-  z-index: var(--z-raised);
   display: block;
+  width: fit-content;
+  margin: var(--space-6) auto calc(var(--space-6) + env(safe-area-inset-bottom, 0px));
   line-height: var(--lh-none);
 }
 .nd-home img { display: block; width: var(--space-7); height: var(--space-7); image-rendering: pixelated; }
+
+/* the /noodle start page fills the screen (#noodle-admin, min-height 100dvh,
+   title centred), so an in-flow link would sit below the fold: there it is
+   pinned to the screen's foot instead, leaving the title dead centre. */
+.page-scroll:has(#noodle-admin) .nd-home {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  margin: 0 0 calc(var(--space-6) + env(safe-area-inset-bottom, 0px));
+  transform: translateX(-50%);
+}

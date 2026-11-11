@@ -43,8 +43,8 @@ body.noodle {
   --nd-ink-6: 8 90% 62%;      /* vermillion */
   --nd-ink-7: 0 0% 78%;       /* silver */
 
-  /* no site nav on any noodle page (owner, 2026-11-10): the home link in
-     the corner instead (noodle-home.css) */
+  /* no site nav on any noodle page (owner, 2026-11-10): the home link at
+     the page's foot instead (noodle-home.css) */
   --nav-h: 0px;
 }
 

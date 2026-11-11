@@ -29,7 +29,7 @@ hook pushes this repo first, then bumps + pushes exec-fn's pointer.
 Pinned by `tests/test_noodle_isolation.py` (the module list is DERIVED from
 exec-fn's `api/` + every other `apps/*/api`). The owner tier, nav and owner
 detection are INJECTED by exec-fn's `routers.py` (`set_owner`); no site nav
-(the favicon in the corner links home, like /spire's).
+(the favicon at the bottom centre links home).
 What it does use from exec-fn is by URL only: `/chrome.css` tokens,
 `/fonts/iosevka-500.woff2`, `/qc-holidays.js` (shared with /rd), `/favicon.png`.
 

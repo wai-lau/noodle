@@ -12,7 +12,7 @@ an unsplit poll `(date, whole day)` — no clock times. **Fully standalone**:
 `api/noodle/` imports stdlib, fastapi, `anthropic` and `cryptography` only,
 never another app module (pinned by `tests/test_noodle_isolation.py`). Own state
 directory, own HTML shell (no Exec bubble, no voice, **no CRT stack**, **no
-site nav** since 2026-11-10 -- the site favicon top-left links home instead,
+site nav** since 2026-11-10 -- the site favicon (bottom centre since 2026-11-11) links home instead,
 as on /spire, `noodle-home.css`; owner detection is handed in by exec-fn's
 `routers.py` via `pages.set_owner`); it links `/chrome.css` for palette + scale
 tokens only. Three bare routers carry it — `routers.py` mounts `routes.router`
@@ -128,8 +128,8 @@ noodle-tc default to the tc color scheme"):
   tests fail until it is.
 - **No site nav** (owner, 2026-11-10: "just show a lil favicon on the top
   left like the spire page"): the shell's `.nd-home` link, the site favicon
-  to `/` (`noodle-home.css`), absolutely placed so it scrolls away with the
-  page.
+  to `/` (`noodle-home.css`). Moved to the BOTTOM CENTRE (owner,
+  2026-11-11): last in the shell after `{{BODY}}`, in the flow, centred.
 - **The look**: built to "UX accessibility for elderly -- 12
   principles" (Trzepla 2019), each rule tagged [P1]..[P12] in the sheet: 18px
   type, line height 1.5, MEASURED contrast (on sand: ink >= 4.9:1 on every
