@@ -44,6 +44,10 @@ html:has(body.noodle-sand) {
      (unicode-range, noodle.css), so letters fall through to the face named */
   --tc-serif: 'Noodle Glyphs', 'TC Baskerville', georgia, serif;
   --tc-sans: 'Noodle Glyphs', 'TC Almarai', system-ui, sans-serif;
+  --tc-title-face: var(--tc-serif);   /* the poll's title + the start page's name */
+  --tc-em: italic;                     /* the headings' slant */
+  --tc-label: var(--tc-ink);           /* "Share this link", "Or describe your availability" */
+  --tc-link: var(--tc-ink);            /* the end-to-end note's link */
 }
 
 /* VOTER INKS (noodle-ink.js: a key's hashed home colour; noodle.css's set is

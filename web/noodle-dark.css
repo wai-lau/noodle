@@ -55,4 +55,12 @@ html:has(body.noodle-dark) {
   /* noodle's monospace for every face (--tc-mono: chrome.css's, noodle-tc.css) */
   --tc-serif: 'Noodle Glyphs', var(--tc-mono);
   --tc-sans: 'Noodle Glyphs', var(--tc-mono);
+
+  /* owner, 2026-11-16: "no italics" / "main title should use the same font as
+     brown noodle" (sand's Baskerville) / "share this link and describe avail
+     titles should be in white" / "Link should be blue" */
+  --tc-title-face: 'Noodle Glyphs', 'TC Baskerville', georgia, serif;
+  --tc-em: normal;
+  --tc-label: var(--tc-cream);
+  --tc-link: var(--cyan-hsl);   /* chrome.css's link blue */
 }

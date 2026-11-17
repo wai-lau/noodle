@@ -137,7 +137,7 @@ body.noodle-tc {
   display: block;
   box-sizing: border-box;
   width: 100%;
-  font-family: var(--tc-serif);
+  font-family: var(--tc-title-face);
   font-weight: var(--fw-normal);
   font-size: clamp(2rem, 9vw, 3.25rem);
   line-height: var(--lh-tight);
@@ -171,7 +171,7 @@ body.noodle-tc {
 
 .noodle-tc .nd-subnote, .noodle-tc .nd-pick-note, .noodle-tc .nd-ask-label, .noodle-tc .nd-share-label {
   font-family: var(--tc-serif);
-  font-style: italic;
+  font-style: var(--tc-em);
   font-weight: var(--fw-normal);
   font-size: var(--fs-xl);
   line-height: var(--tc-lh);
@@ -179,6 +179,7 @@ body.noodle-tc {
   overflow-wrap: anywhere;
   color: hsl(var(--tc-ink));
 }
+.noodle-tc .nd-ask-label, .noodle-tc .nd-share-label { color: hsl(var(--tc-label)); }
 .noodle-tc .nd-subnote { margin-top: var(--space-2); color: hsl(var(--tc-cream)); }
 .noodle-tc .nd-subnote.editable:empty::before { content: 'Add a description'; color: hsl(var(--tc-cream) / 0.45); }
 
@@ -242,6 +243,7 @@ body.noodle-tc {
 
 /* [P5] a link looks like a link */
 .noodle-tc a { color: hsl(var(--tc-ink)); text-decoration: underline; text-underline-offset: 3px; }
+.noodle-tc .nd-ask-note a { color: hsl(var(--tc-link)); }
 .noodle-tc .nd-ask .nd-ask-helper { color: hsl(var(--tc-ink)); }
 .noodle-tc .nd-you-sum { flex-wrap: wrap; }
 .noodle-tc #nd-you-name { color: hsl(var(--tc-ink)); overflow-wrap: anywhere; }
@@ -353,7 +355,7 @@ body.noodle-tc {
 /* the lines between weeks stop at the month column: its own gap is rust, so
    the rust edge down the left runs unbroken (owner, 2026-10-26) */
 .noodle-tc .nd-wk { border-bottom-color: hsl(var(--tc-rust)); }
-.noodle-tc .nd-hd, .noodle-tc .nd-mlabel { font-family: var(--tc-serif); font-style: italic; }
+.noodle-tc .nd-hd, .noodle-tc .nd-mlabel { font-family: var(--tc-serif); font-style: var(--tc-em); }
 .noodle-tc .nd-mlabel, .noodle-tc .nd-mlabel span { color: hsl(var(--tc-cream)); text-transform: capitalize; }
 
 /* inside the grid, noodle's own type metrics: its cells are sized for them,
@@ -554,7 +556,7 @@ body.noodle-tc {
   display: block;
   margin: 0 0 var(--space-1);
   font-family: var(--tc-serif);
-  font-style: italic;
+  font-style: var(--tc-em);
   font-size: var(--fs-xl);
   text-align: center;
 }
@@ -600,7 +602,7 @@ body.noodle-tc {
   content: 'The host has chosen';
   display: block;
   font-family: var(--tc-serif);
-  font-style: italic;
+  font-style: var(--tc-em);
   font-weight: var(--fw-normal);
   font-size: var(--fs-xl);
 }
@@ -665,7 +667,7 @@ body.noodle-tc {
   margin: 0 0 var(--space-8);
   border: none;
   padding: 0;
-  font-style: italic;
+  font-style: var(--tc-em);
   font-size: clamp(2.5rem, 12vw, 4rem);
   text-shadow: none;
 }
