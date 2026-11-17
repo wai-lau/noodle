@@ -13,6 +13,11 @@ from noodle import config, slots, store
 from noodle.votes import VoteError, check_action, host_of, now_ms
 
 
+def tidy_lines(text: str) -> str:
+    """Spaces within each line collapsed; every line break kept as typed."""
+    return "\n".join(" ".join(line.split()) for line in text.split("\n")).strip()
+
+
 def _as_host(poll: dict, key: str, pub: str, ts: int) -> dict:
     """The host's record, after checking this signer IS the host."""
     host = host_of(poll)
@@ -43,7 +48,7 @@ def _title(body: dict) -> tuple[str | None, str | None]:
     title = body.get("title")
     if title is None:
         return None, None
-    clean = " ".join(title.split()) if isinstance(title, str) else ""
+    clean = tidy_lines(title) if isinstance(title, str) else ""
     if not clean or len(clean) > config.TITLE_MAX:
         raise VoteError(400, f"title must be 1-{config.TITLE_MAX} characters")
     return title, clean

@@ -263,7 +263,7 @@ async def noodle_created():
 async def noodle_create(request: Request):
     body = await _json_body(request, config.BODY_MAX_CREATE)
     # a title and nothing else: the dates are the host's to set
-    title = " ".join(str(body.get("title", "")).split())
+    title = host.tidy_lines(str(body.get("title", "")))
     if not title or len(title) > config.TITLE_MAX:
         raise HTTPException(400, f"title must be 1-{config.TITLE_MAX} characters")
     now = datetime.now().isoformat(timespec="seconds")

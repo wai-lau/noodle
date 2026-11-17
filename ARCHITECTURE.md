@@ -350,7 +350,10 @@ or `host.settings` — is host (order 0). Every plain host action shares
 `votes.check_action()`: name+ts shape, skew window, and `sig.canonical_action()`,
 whose mandatory `kind` field stops a vote replaying as an action or vice versa.
 `host.settings()` sets split/crop/title/note in one signed request (title/note
-ride only when changed). Flipping `halves` re-expresses every voter via
+ride only when changed). Both keep every LINE BREAK as typed -- Enter is a new
+line in either, blank lines included; only spaces within a line collapse
+(`host.tidy_lines`, `ndhTidy`, `ndeSealHead`; `.nd-title`/`.nd-subnote` are
+`white-space: pre-line`). Flipping `halves` re-expresses every voter via
 `slots.convert()`; narrowing the crop drops out-of-crop slots from everyone.
 `host.remove()` deletes a guest's record; a host never removes themself. The
 client mirrors the envelope (`ndhSend`/`ndhCanon`): sorted-key signature, `kind`

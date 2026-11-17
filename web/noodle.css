@@ -75,6 +75,7 @@ body.noodle {
   font-weight: var(--fw-bold);
   color: hsl(var(--green-hsl) / 1);
   text-align: center;
+  white-space: pre-line;   /* the title keeps its lines (noodle-host.js NDH_TEXT) */
 }
 
 /* the /noodle page's name: big and glowing (the landing's title glow) */

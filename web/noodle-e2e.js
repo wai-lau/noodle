@@ -151,7 +151,10 @@ function ndeHeadOf(h) {
 
 // The settings the host is committing, sealed whole -> {ct} or {error}.
 async function ndeSealHead(head) {
-  var title = String(head.title || '').split(/\s+/).filter(Boolean).join(' ');
+  // line breaks kept as typed (noodle-host.js NDH_TEXT); spaces within a line tidied
+  var title = String(head.title || '').split('\n').map(function (l) {
+    return l.split(/\s+/).filter(Boolean).join(' ');
+  }).join('\n').trim();
   if (!title || title.length > NDE_TITLE_MAX) return { error: 'title must be 1-' + NDE_TITLE_MAX + ' characters' };
   var note = String(head.note || '').trim();
   if (note.length > NDE_NOTE_MAX) return { error: 'note must be at most ' + NDE_NOTE_MAX + ' characters' };

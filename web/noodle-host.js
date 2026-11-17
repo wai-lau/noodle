@@ -144,18 +144,18 @@ async function ndhCommitSettings(ts) {
 // The TITLE and the NOTE under it, one mechanism: the host taps one and types;
 // tapping away ends the edit, and like the split and the crop it is sent with
 // Commit. The title may not be emptied (it snaps back); the note may (that
-// clears it). Enter ends a title edit; in the note it is a NEW LINE, like a
-// textarea (owner, 2026-10-31) -- the note keeps its lines, at most one blank
-// one between them.
+// clears it). Enter is a NEW LINE in both, like a textarea (note: owner,
+// 2026-10-31; title: 2026-11-16) -- each keeps every line break as typed,
+// blank lines included; only spaces within a line are tidied.
 var NDH_TEXT = {
-  title: { el: 'nd-title', pending: 'pendingTitle', empty: false, lines: false },
+  title: { el: 'nd-title', pending: 'pendingTitle', empty: false, lines: true },
   note: { el: 'nd-note', pending: 'pendingNote', empty: true, lines: true },
 };
 
 function ndhTidy(text, lines) {
   var one = function (s) { return s.split(/\s+/).filter(Boolean).join(' '); };
   if (!lines) return one(text);
-  return text.split('\n').map(one).join('\n').replace(/\n{3,}/g, '\n\n').trim();
+  return text.split('\n').map(one).join('\n').trim();
 }
 
 // The field's text, tidied; a note is read as RENDERED (innerText), where the
