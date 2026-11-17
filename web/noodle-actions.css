@@ -176,6 +176,7 @@
 /* the poll's link, as text in a read-only box, + copy button, under Commit */
 .nd-share { margin: var(--space-3) 0 0; }
 .nd-share[hidden] { display: none; }
+.nd-share-label { display: block; margin: 0 0 var(--space-2); text-align: center; font-size: var(--fs-sm); color: hsl(var(--green-hsl) / 0.8); }
 .nd-card .nd-share .nd-url { font-size: var(--fs-2xs); color: hsl(var(--green-hsl) / 0.8); }
 
 /* the copy button is an icon (U+F0C5, in noodle-seal.woff2); a check once copied.

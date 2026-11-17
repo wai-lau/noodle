@@ -63,6 +63,9 @@ def test_the_polls_link_sits_under_commit_with_a_copy_button(browser, base_url, 
         _can_commit(page)
         assert page.input_value("#nd-url") == f"{base_url}/noodle/{noodle_slug}"
         assert page.get_attribute("#nd-url", "readonly") is not None
+        label = page.locator(".nd-share-label")
+        assert label.inner_text().lower() == "share this link"
+        assert label.bounding_box()["y"] < page.locator("#nd-url").bounding_box()["y"], "the label sits above the link"
         assert page.inner_text("#nd-copy") == "\uf0c5"   # the copy icon
         page.click("#nd-copy")
         page.wait_for_function("document.querySelector('#nd-copy').textContent === '\\u2713'", timeout=3000)

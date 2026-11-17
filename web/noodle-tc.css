@@ -169,7 +169,7 @@ body.noodle-tc {
   color: hsl(var(--tc-cream) / 0.45);
 }
 
-.noodle-tc .nd-subnote, .noodle-tc .nd-pick-note, .noodle-tc .nd-ask-label {
+.noodle-tc .nd-subnote, .noodle-tc .nd-pick-note, .noodle-tc .nd-ask-label, .noodle-tc .nd-share-label {
   font-family: var(--tc-serif);
   font-style: italic;
   font-weight: var(--fw-normal);
